@@ -1,10 +1,10 @@
-function App() {
-  const [count, setCount] = useState(0)
+import LandingPage from "./LandingPage"
 
+function App() {
   return (
     <>
-      <div>
-        hello
+      <div className="h-auto w-screen bg-white font-serif">
+        <LandingPage />
       </div>
     </>
   )
