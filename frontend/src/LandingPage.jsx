@@ -2,20 +2,21 @@ import { useState, useRef } from "react"
 
 function Brands(props) {
     const colorClasses = {
-        yellow: "bg-amber-200",
+        yellow: "bg-amber-300",
         purple: "bg-purple-500",
         blue: "bg-blue-500",
     };
 
     return (
-        <div className={`body h-[600px] w-[100%] ${colorClasses[props.color]} flex flex-row justify-center items-center`}>
+        <div className={`body h-[600px] w-full ${colorClasses[props.color]} flex flex-row justify-center items-center`}>
             <div className="h-[80%] w-[80%] flex flex-row gap-2">
-                <div className="flex flex-row justify-center items-center rounded-2xl h-[100%] w-[70%]"><img className="h-[400px] w-[900px] object-contain rounded-2xl" src={`/${props.brand}.jpg`} alt={`${props.brand}_img`} /></div>
+                <div className="flex flex-row justify-center items-center rounded-2xl h-[100%] w-[70%]"><img className="h-[400px] w-[100%] object-contain rounded-2xl" src={`/${props.brand}.jpg`} alt={`${props.brand}_img`} /></div>
                 <div className="h-[100%] w-[30%] flex flex-row justify-center items-center"><span className="xs:text-md md:text-lg lg:text-2xl">{props.info}</span></div>
             </div>
         </div>
     )
 }
+
 
 function BrandSlider() {
     const [activeSlide, setActiveSlide] = useState(0);
@@ -36,32 +37,31 @@ function BrandSlider() {
     const handleMouseMove = (e) => {
         if (!isDragging.current) return;
         const diff = e.clientX - startX.current;
-
         if (Math.abs(diff) > 50) {
-            if (diff < 0) setActiveSlide((prev) => (prev + 1) % slides.length); // drag left -> next
-            else setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length); // drag right -> prev
-            startX.current = e.clientX; // reset for continuous drag
+            if (diff < 0)
+                setActiveSlide((prev) => (prev + 1) % slides.length);
+            else
+                setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
+            startX.current = e.clientX;
         }
     };
 
-    const handleMouseUp = () => {
-        isDragging.current = false;
-    };
+    const handleMouseUp = () => (isDragging.current = false);
 
     return (
         <div
-            className="w-full h-[600px] flex justify-center items-center select-none cursor-grab overflow-hidden"
+            className="relative w-full h-[600px] select-none cursor-grab overflow-x-hidden bg-blue-300"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp} // handle case where mouse leaves the div
+            onMouseLeave={handleMouseUp}
         >
             <div
-                className="flex transition-transform duration-500 ease-in-out h-full"
+                className="flex transition-transform duration-500 ease-in-out h-full w-[100%] bg-orange-500"
                 style={{ transform: `translateX(-${activeSlide * 100}%)` }}
             >
                 {slides.map((slide, index) => (
-                    <div key={index} className="w-full flex-shrink-0">
+                    <div key={index} className="w-[100%] flex-shrink-0 bg-purple-500">
                         {slide}
                     </div>
                 ))}
@@ -70,14 +70,32 @@ function BrandSlider() {
     );
 }
 
-export default function LandingPage() {
+function Owner() {
+    return (
+
+        <div className="owner_details overflow-hidden h-[400px] w-full box-border flex flex-row justify-center items-center gap-6 ">
+            <div className="sm:h-[300px] sm:w-[300px] xs:h-[150px] xs:w-[150px] rounded-full bg-emerald-400 border-4 border-black">
+                <img className="h-[100%] w-[100%] object-cover rounded-full" src="/photo_21.jpg" alt="my_photo" />
+            </div>
+            <div className="w-[40%] text-justify xs:text-sm md:text-md lg:text-lg">
+                <span className="">With over 15 years of hands-on experience in the pet care industry, we bring trusted expertise to every pet and owner we serve. From quality nutrition to personalized care, our passion is keeping pets happy and healthy. At our shop, every tail wag and purr reflects years of dedication and love for animals.</span>
+            </div>
+
+
+        </div>
+
+
+    )
+}
+
+function Header() {
     const [show, setShow] = useState(false)
     function categoriesHandler() {
         setShow(!show)
     }
     return (
         <>
-            <div className="header flex flex-col h-[100px] bg-white w-[100%] gap-2">
+            <div className="header flex flex-col h-[100px]  w-[100%] gap-2 sticky top-0 z-2 bg-white">
                 <div className="upper_header flex flex-row justify-evenly items-center gap-3 w-[100%] bg-white">
                     <div className="l-upper-header flex flex-row gap-1">
                         <div className="flex flex-row justify-center items-center"><img src="/header_logo.svg" alt="paws_img" /></div>
@@ -86,7 +104,7 @@ export default function LandingPage() {
                             <div><span className="sm:text-md md:text-lg">Pet Shop</span></div>
                         </div>
                     </div>
-                    <div className="m-upper-header bg-white w-[30%] flex flex-row gap-2 p-2 rounded-2xl border-1 border-[rgb(97,94,100)]">
+                    <div className="m-upper-header bg-white w-[30%] flex flex-row gap-2 p-2 rounded-2xl border border-[rgb(97,94,100)]">
                         <div className="search_logo">
                             <img src="/search_logo.svg" alt="search_icon" />
                         </div>
@@ -136,10 +154,16 @@ export default function LandingPage() {
                     </div>
                 </div>
             </div>
+        </>
+    )
+}
 
-            <BrandSlider />
-
-
+export default function LandingPage() {
+    return (
+        <>
+            <Header />
+            <BrandSlider/>
+            <Owner />
         </>
     )
 }
