@@ -1,4 +1,5 @@
 import { useState, useRef } from "react"
+import { useEffect } from "react";
 
 function Brands(props) {
     const colorClasses = {
@@ -71,20 +72,33 @@ function BrandSlider() {
 }
 
 function Owner() {
+    const myRef = useRef();
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                }else setIsVisible(false)
+            },
+            { threshold: 0.2 } // triggers when 20% of the component is visible
+        );
+
+        if (myRef.current) observer.observe(myRef.current);
+
+        return () => observer.disconnect();
+    }, []);
     return (
 
-        <div className="owner_details overflow-hidden h-[400px] w-full box-border flex flex-row justify-center items-center gap-6 ">
-            <div className="sm:h-[300px] sm:w-[300px] xs:h-[150px] xs:w-[150px] rounded-full bg-emerald-400 border-4 border-black">
+        <div ref={myRef} className={`owner_details ${isVisible ? "visible":""} overflow-hidden h-[400px] w-full box-border flex flex-row justify-center items-center gap-6`}>
+            <div className="sm:h-[300px] sm:w-[300px] xs:h-[150px] xs:w-[150px] rounded-full bg-emerald-400 border-4 border-black ">
                 <img className="h-[100%] w-[100%] object-cover rounded-full" src="/photo_21.jpg" alt="my_photo" />
             </div>
             <div className="w-[40%] text-justify xs:text-sm md:text-md lg:text-lg">
                 <span className="">With over 15 years of hands-on experience in the pet care industry, we bring trusted expertise to every pet and owner we serve. From quality nutrition to personalized care, our passion is keeping pets happy and healthy. At our shop, every tail wag and purr reflects years of dedication and love for animals.</span>
             </div>
-
-
         </div>
-
-
     )
 }
 
@@ -162,7 +176,7 @@ export default function LandingPage() {
     return (
         <>
             <Header />
-            <BrandSlider/>
+            <BrandSlider />
             <Owner />
         </>
     )
