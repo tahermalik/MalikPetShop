@@ -80,9 +80,9 @@ function Owner() {
             ([entry]) => {
                 if (entry.isIntersecting) {
                     setIsVisible(true);
-                }else setIsVisible(false)
+                } else setIsVisible(false)
             },
-            { threshold: 0.2 } // triggers when 20% of the component is visible
+            { threshold: 0.5 } // triggers when 50% of the component is visible
         );
 
         if (myRef.current) observer.observe(myRef.current);
@@ -91,7 +91,7 @@ function Owner() {
     }, []);
     return (
 
-        <div ref={myRef} className={`owner_details ${isVisible ? "visible":""} overflow-hidden h-[400px] w-full box-border flex flex-row justify-center items-center gap-6`}>
+        <div ref={myRef} className={`owner_details ${isVisible ? "visible" : ""} overflow-hidden h-[400px] w-full box-border flex flex-row justify-center items-center gap-6`}>
             <div className="sm:h-[300px] sm:w-[300px] xs:h-[150px] xs:w-[150px] rounded-full bg-emerald-400 border-4 border-black ">
                 <img className="h-[100%] w-[100%] object-cover rounded-full" src="/photo_21.jpg" alt="my_photo" />
             </div>
@@ -172,12 +172,43 @@ function Header() {
     )
 }
 
+function FeedBack() {
+    const myRef = useRef(null)
+    const [text, setText] = useState("")
+
+    useEffect(() => {
+        const el = myRef.current;
+        if (el) {
+            if (el.scrollHeight <= 200 && el.scrollHeight >= 50) {
+                el.style.height = "auto"; // reset
+                el.style.height = el.scrollHeight + "px"; // resize
+            }
+        }
+    }, [text])
+
+    return (
+        <form action="post">
+            <div className="h-[300px] w-[100%] border-b-2 border-t-2 border-black flex flex-row gap-30 justify-center items-stretch bg-[#38bdf8]">
+                <div className="flex flex-col items-center justify-center gap-3 w-[30%]">
+                    <div className="w-[100%] rounded-2xl border-2 border-[rgb(173,169,189)]"><textarea ref={myRef} name="" id="" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter you FeedBack" className="outline-0 p-2 max-h-[200px] min-h-[100px] w-[100%] overflow-y-scroll scrollbar-hide placeholder:xs:text-sm placeholder:lg:text-lg xs:text-sm lg:text-lg"></textarea></div>
+                    <div className="flex flex-row justify-center items-center w-[80%] self-center border-2 border-black rounded-2xl cursor-pointer hover:bg-blue-400"><button className="xs:text-sm sm:text-md lg:text-xl">Submit</button></div>
+                </div>
+
+                <div className="flex flex-row justify-center items-center xs:text-xl lg:text-2xl">
+                    <span>FeedBack</span>
+                </div>
+            </div>
+        </form>
+    )
+}
+
 export default function LandingPage() {
     return (
         <>
             <Header />
             <BrandSlider />
             <Owner />
+            <FeedBack />
         </>
     )
 }
