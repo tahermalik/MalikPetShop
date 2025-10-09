@@ -1,5 +1,9 @@
 import { useState, useRef } from "react"
 import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setCategoryState, setLoginLogoutState } from "../redux/slices/userSlice";
+import { RiArrowDropDownLine,RiArrowDropUpLine } from "react-icons/ri";
+import { Link } from "react-router-dom";
 
 function Brands(props) {
     const colorClasses = {
@@ -17,7 +21,6 @@ function Brands(props) {
         </div>
     )
 }
-
 
 function BrandSlider() {
     const [activeSlide, setActiveSlide] = useState(0);
@@ -103,10 +106,42 @@ function Owner() {
 }
 
 function Header() {
-    const [show, setShow] = useState(false)
+    const dispatch=useDispatch();
+    const show=useSelector((state)=>state?.user?.categoryState)
+    const showLoginLogout=useSelector((state)=>state?.user?.loginLogout)
+
     function categoriesHandler() {
-        setShow(!show)
+        dispatch(setCategoryState())
     }
+
+    function loginLogoutHandler(){
+        dispatch(setLoginLogoutState())
+    }
+
+    const dropdownRef=useRef(null)
+    const loginRef=useRef(null)
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                if (show) {
+                    dispatch(setCategoryState());
+                }
+            }
+            if (loginRef.current && !loginRef.current.contains(event.target)) {
+                if (showLoginLogout) {
+                    dispatch(setLoginLogoutState());
+                }
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [show, dispatch,showLoginLogout]);
+
     return (
         <>
             <div className="header flex flex-col h-[100px]  w-[100%] gap-2 sticky top-0 z-2 bg-white">
@@ -139,8 +174,12 @@ function Header() {
                 </div>
 
                 <div className="lower_header flex flex-row justify-evenly items-center gap-3 w-[100%] bg-white">
-                    <div className="relative ">
-                        <div className="" onMouseEnter={(e) => categoriesHandler(e)}><span className="xs:text-sm md:text-lg lg:text-xl">Shop By Categories</span></div>
+                    <div ref={dropdownRef} className="relative">
+                        <div className="flex flex-row justify-center items-center" onMouseEnter={() => categoriesHandler()}>
+                            <div><span className="xs:text-sm md:text-lg lg:text-xl">Shop By Categories</span></div>
+                            {!show && <div><RiArrowDropDownLine size={30}/></div>}
+                            {show && <div><RiArrowDropUpLine size={30}/></div>}
+                        </div>
                         {show &&
                             <div className="w-[100%] h-auto backdrop-blur absolute xs:top-[20px] md:top-[25px] lg:top-[25px] flex flex-col gap-1 pt-1 pl-1 ">
                                 <div className=""><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer">Pet Foods</span></div>
@@ -161,7 +200,19 @@ function Header() {
                     </div>
 
                     <div className="flex flex-row gap-1">
-                        <div className="cursor-pointer hover:rounded-2xl hover:bg-[rgb(205,205,219)] p-1"><img src="/person_logo.svg" alt="person_img" /></div>
+                        <div ref={loginRef} className="cursor-pointer hover:rounded-2xl hover:bg-[rgb(205,205,219)] p-1 relative" onMouseEnter={()=>loginLogoutHandler()}>
+                            <div className="flex flex-row">
+                                <div><img src="/person_logo.svg" alt="person_img" /></div>
+                                {!showLoginLogout && <div><RiArrowDropDownLine size={30}/></div>}
+                                {showLoginLogout && <div><RiArrowDropUpLine size={30}/></div>}
+                            </div>
+                            {showLoginLogout &&
+                                <div className="w-[100%] h-auto backdrop-blur absolute xs:top-[25px] md:top-[27px] lg:top-[30px] flex flex-col gap-1 pt-1 ">
+                                    <Link to="/Login"><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer">Login</span></div></Link>
+                                    <div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer">Logout</span></div>
+                                </div>
+                            }
+                        </div>
                         <div className="cursor-pointer hover:rounded-2xl hover:bg-red-300 p-1"><img src="/fav_logo.svg" alt="fav_img" /></div>
                         <div className="cursor-pointer hover:rounded-2xl hover:bg-emerald-300 p-1"><img src="/shop_logo.svg" alt="shop_img" /></div>
 
