@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const productSchema = new mongoose.Schema({
+const foodSchema = new mongoose.Schema({
     name:{
         type:String,
         required:true
@@ -16,17 +16,29 @@ const productSchema = new mongoose.Schema({
     discount:{
         type:Number,
         required:true,
+        match:/^\d+(\.\d+)?$/
     },
     originalPrice:{
         type:Number,
         required:true,
+        match:/^\d+(\.\d+)?$/
     },
-    finalPrice:{
+    netWeight:{
+        type:Number,
+        required:true,
+        match:/^\d+(\.\d+)?$/
+    },
+    animal:{
+        type:String,
+        required:true,
+        match:/^[A-Za-z]+$/
+    },
+    stock:{
         type:Number,
         required:true
     }
 
 },{timestamps:true})
 
-const Product = mongoose.model("Product", productSchema);
-export default Product
+const Food = mongoose.model("Food", foodSchema);
+export default Food

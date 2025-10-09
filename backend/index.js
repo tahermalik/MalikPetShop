@@ -1,8 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";   // if using ES modules
-import router from "./routers/userRoutes.js";
 import { connectDB } from "./database/database.js";
 import cookieParser from "cookie-parser";
+import uRouter from "./routers/userRoutes.js";
+import pRouter from "./routers/productRoutes.js";
 
 
 const app=express();
@@ -20,5 +21,6 @@ app.use(cookieParser())
 
 app.listen(process.env.PORT_NUM,()=>console.log(`${process.env.PORT_NUM}`))
 
-app.use("/user",router)
+app.use("/user",uRouter)
+app.use("/admin",pRouter)
 

@@ -22,7 +22,7 @@ export async function login(req, res) {
 
         //// if the code is reached till here that user is genuine
         const token = jwt.sign(
-            { id: user._id, email: user.email },
+            { id: user._id, email: user.email ,username:user.username},
             process.env.JWT_SECRET,
             { expiresIn: "1h" } // token valid for 1 hour
         );
@@ -32,7 +32,6 @@ export async function login(req, res) {
         return res.status(500).json({message:"something wrong at the server side"})
     }
 }
-
 
 export async function register(req, res) {
     try {
@@ -69,3 +68,22 @@ export async function register(req, res) {
         return res.status(500).json({message:"error at the server side"})
     }
 }
+
+export async function logout(req,res){
+    try{
+        console.log("inside the logout function")
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: true,     // same as when you set it
+            sameSite: "strict"
+        });
+        // console.log(req.user)
+        return res.status(200).json({message:`${req.user.username} logout successfully`})
+
+    }catch(error){
+        console.log("something went wrong in logout",error)
+        return res.status(500).json({message:"something went wrong in logout"})
+    }
+}
+
+
