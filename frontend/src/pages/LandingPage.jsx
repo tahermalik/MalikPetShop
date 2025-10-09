@@ -16,7 +16,7 @@ function Brands(props) {
         <div className={`body h-[600px] w-full ${colorClasses[props.color]} flex flex-row justify-center items-center`}>
             <div className="h-[80%] w-[80%] flex flex-row gap-2">
                 <div className="flex flex-row justify-center items-center rounded-2xl h-[100%] w-[70%]"><img className="h-[400px] w-[100%] object-contain rounded-2xl" src={`/${props.brand}.jpg`} alt={`${props.brand}_img`} /></div>
-                <div className="h-[100%] w-[30%] flex flex-row justify-center items-center"><span className="xs:text-md md:text-lg lg:text-2xl">{props.info}</span></div>
+                <div className="h-[100%] w-[30%] flex flex-row justify-center items-center text-[#212121]"><span className="xs:text-md md:text-lg lg:text-2xl">{props.info}</span></div>
             </div>
         </div>
     )
@@ -95,10 +95,10 @@ function Owner() {
     return (
 
         <div ref={myRef} className={`owner_details ${isVisible ? "visible" : ""} overflow-hidden h-[400px] w-full box-border flex flex-row justify-center items-center gap-6`}>
-            <div className="sm:h-[300px] sm:w-[300px] xs:h-[150px] xs:w-[150px] rounded-full bg-emerald-400 border-4 border-black ">
+            <div className="sm:h-[300px] sm:w-[300px] xs:h-[150px] xs:w-[150px] rounded-full bg-emerald-400 border-4 border-[#00ACC1] ">
                 <img className="h-[100%] w-[100%] object-cover rounded-full" src="/photo_21.jpg" alt="my_photo" />
             </div>
-            <div className="w-[40%] text-justify xs:text-sm md:text-md lg:text-lg">
+            <div className="w-[40%] text-justify xs:text-sm md:text-md lg:text-lg text-[#212121]">
                 <span className="">With over 15 years of hands-on experience in the pet care industry, we bring trusted expertise to every pet and owner we serve. From quality nutrition to personalized care, our passion is keeping pets happy and healthy. At our shop, every tail wag and purr reflects years of dedication and love for animals.</span>
             </div>
         </div>
@@ -148,7 +148,7 @@ function Header() {
                 <div className="upper_header flex flex-row justify-evenly items-center gap-3 w-[100%] bg-white">
                     <div className="l-upper-header flex flex-row gap-1">
                         <div className="flex flex-row justify-center items-center"><img src="/header_logo.svg" alt="paws_img" /></div>
-                        <div className="flex flex-col">
+                        <div className="flex flex-col text-[#212121]">
                             <div><span className="sm:text-lg md:text-xl lg:text-2xl font-semibold">Malik</span></div>
                             <div><span className="sm:text-md md:text-lg">Pet Shop</span></div>
                         </div>
@@ -193,14 +193,14 @@ function Header() {
 
 
                     <div className="flex flex-row gap-3">
-                        <div className="xs:text-xs sm:text-sm md:text-md flex flex-row justify-center items-center hover:underline"><a href="">Home</a></div>
-                        <div className="xs:text-xs sm:text-sm md:text-md flex flex-row justify-center items-center hover:underline"><a href="">Shop</a></div>
-                        <div className="xs:text-xs sm:text-sm md:text-md flex flex-row justify-center items-center hover:underline"><a href="">Blog</a></div>
-                        <div className="xs:text-xs sm:text-sm md:text-md flex flex-row justify-center items-center hover:underline"><a href="">Offer</a></div>
+                        <div className="xs:text-xs sm:text-sm md:text-md flex flex-row justify-center items-center hover:underline hover:decoration-[#FFCA28]"><a href="">Home</a></div>
+                        <div className="xs:text-xs sm:text-sm md:text-md flex flex-row justify-center items-center hover:underline hover:decoration-[#FFCA28]"><a href="">Shop</a></div>
+                        <div className="xs:text-xs sm:text-sm md:text-md flex flex-row justify-center items-center hover:underline hover:decoration-[#FFCA28]"><a href="">Blog</a></div>
+                        <div className="xs:text-xs sm:text-sm md:text-md flex flex-row justify-center items-center hover:underline hover:decoration-[#FFCA28]"><a href="">Offer</a></div>
                     </div>
 
                     <div className="flex flex-row gap-1">
-                        <div ref={loginRef} className="cursor-pointer hover:rounded-2xl hover:bg-[rgb(205,205,219)] p-1 relative" onMouseEnter={()=>loginLogoutHandler()}>
+                        <div ref={loginRef} className="cursor-pointer hover:rounded-2xl hover:bg-[#0288D1] p-1 relative" onMouseEnter={()=>loginLogoutHandler()}>
                             <div className="flex flex-row">
                                 <div><img src="/person_logo.svg" alt="person_img" /></div>
                                 {!showLoginLogout && <div><RiArrowDropDownLine size={30}/></div>}
@@ -213,8 +213,8 @@ function Header() {
                                 </div>
                             }
                         </div>
-                        <div className="cursor-pointer hover:rounded-2xl hover:bg-red-300 p-1"><img src="/fav_logo.svg" alt="fav_img" /></div>
-                        <div className="cursor-pointer hover:rounded-2xl hover:bg-emerald-300 p-1"><img src="/shop_logo.svg" alt="shop_img" /></div>
+                        <div className="cursor-pointer hover:rounded-2xl hover:bg-[#0288D1] p-1 flex flex-row justify-center items-center"><img src="/fav_logo.svg" alt="fav_img" /></div>
+                        <div className="cursor-pointer hover:rounded-2xl hover:bg-[#0288D1] p-1 flex flex-row justify-center items-center"><img src="/shop_logo.svg" alt="shop_img" /></div>
 
                     </div>
                 </div>
@@ -239,13 +239,13 @@ function FeedBack() {
 
     return (
         <form action="post">
-            <div className="h-[300px] w-[100%] border-b-2 border-t-2 border-black flex flex-row gap-30 justify-center items-stretch bg-[#38bdf8]">
+            <div className="h-[300px] w-[100%] border-b-2 border-t-2 border-black flex flex-row gap-30 justify-center items-stretch bg-[#00ACC1]">
                 <div className="flex flex-col items-center justify-center gap-3 w-[30%]">
-                    <div className="w-[100%] rounded-2xl border-2 border-[rgb(173,169,189)]"><textarea ref={myRef} name="" id="" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter you FeedBack" className="outline-0 p-2 max-h-[200px] min-h-[100px] w-[100%] overflow-y-scroll scrollbar-hide placeholder:xs:text-sm placeholder:lg:text-lg xs:text-sm lg:text-lg"></textarea></div>
-                    <div className="flex flex-row justify-center items-center w-[80%] self-center border-2 border-black rounded-2xl cursor-pointer hover:bg-blue-400"><button className="xs:text-sm sm:text-md lg:text-xl">Submit</button></div>
+                    <div className="w-[100%] rounded-2xl border-2 border-[#E0E0E0] bg-[#FFFFFF]"><textarea ref={myRef} name="" id="" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter you FeedBack" className="outline-0 p-2 max-h-[200px] min-h-[100px] w-[100%] overflow-y-scroll scrollbar-hide placeholder:xs:text-sm placeholder:lg:text-lg xs:text-sm lg:text-lg placeholder:text-[#555555] text-[#212121]"></textarea></div>
+                    <div className="flex flex-row justify-center items-center w-[80%] self-center border-2 border-black rounded-2xl cursor-pointer bg-[#FFCA28] hover:bg-[#0288D1]"><button className="xs:text-sm sm:text-md lg:text-xl text-[#212121]">Submit</button></div>
                 </div>
 
-                <div className="flex flex-row justify-center items-center xs:text-xl lg:text-2xl">
+                <div className="flex flex-row justify-center items-center xs:text-xl lg:text-2xl text-[#FFFFFF]">
                     <span>FeedBack</span>
                 </div>
             </div>
