@@ -4,6 +4,7 @@ import { connectDB } from "./database/database.js";
 import cookieParser from "cookie-parser";
 import uRouter from "./routers/userRoutes.js";
 import pRouter from "./routers/productRoutes.js";
+import feedbackRouter from "./routers/feedbackRoutes.js";
 
 
 const app=express();
@@ -23,4 +24,5 @@ app.listen(process.env.PORT_NUM,()=>console.log(`${process.env.PORT_NUM}`))
 
 app.use("/user",uRouter)
 app.use("/admin",pRouter)
+app.use("/feedback",feedbackRouter)
 

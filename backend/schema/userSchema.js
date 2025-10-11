@@ -54,6 +54,13 @@ const userSchema = new mongoose.Schema({
         ref: "Order",
         }
     ],
+    feedbacks: [
+        {
+            message: { type: String, required: true },
+            rating: { type: Number, min: 1, max: 5 ,default:3},
+            createdAt: { type: Date, default: () => new Date()},
+        }
+    ]
 })
 
 const User = mongoose.model("User", userSchema);
