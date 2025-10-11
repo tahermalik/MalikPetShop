@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import Food from "../schema/foodSchema.js";
+import Product from "../schema/productSchema.js";
 export async function authenticate(req,res,next){
     try{
         const token=req.cookies?.token;
@@ -22,7 +22,7 @@ export async function findProduct(req,res,next){
         let {name,company,netWeight}=req.body;
         netWeight=Number(netWeight)
 
-        const product_db=await Food.findOne({name:name,netWeight:netWeight,company:company})
+        const product_db=await Product.findOne({name:name,netWeight:netWeight,company:company})
         // console.log(name,company,netWeight)
         if(!product_db){
             return res.status(404).json({message:"Product not found"})

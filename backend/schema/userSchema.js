@@ -17,7 +17,43 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
         match:/^.{8,}$/
-    }
+    },
+    wishlist: [
+        {
+            product_id:{
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Product"
+            },
+            price:{
+                type:Number,
+                required:true
+            }
+        }
+    ],
+    cart: [
+        {
+            product_id: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Product",
+                required: true,
+            },
+            quantity: {
+                type: Number,
+                required: true,
+                default: 1,
+            },
+            price:{
+                type:Number,
+                required:true
+            }
+        }
+    ],
+    orders: [
+        {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Order",
+        }
+    ],
 })
 
 const User = mongoose.model("User", userSchema);

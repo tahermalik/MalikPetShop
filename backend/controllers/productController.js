@@ -1,12 +1,11 @@
-import mongoose from "mongoose";
-import Food from "../schema/foodSchema.js";
+import Product from "../schema/productSchema.js";
 
 
 export async function addProduct(req,res){
     try{
-        const {name,originalPrice,company,expiry,discount,netWeight,animal}=req.body
+        const {name,originalPrice,company,expiry,discount,netWeight,animal,stock}=req.body
 
-        if(!name || !originalPrice || !company || !expiry || !discount || !netWeight || !animal){
+        if(!name || !originalPrice || !company || !expiry || !discount || !netWeight || !animal || !stock){
             return res.status(400).json({message:"All the fields are mandatory"})
         }
 
@@ -30,20 +29,21 @@ export async function addProduct(req,res){
 
 
         //// identifying the product uniquely on the basis of name, netWeight and company
-        const product_db=await Food.findOne({name:name,netWeight:Number(netWeight),company:company})
+        const product_db=await Product.findOne({name:name,netWeight:Number(netWeight),company:company})
 
         if(product_db){
             return res.status(409).json({message:"Product is already there in the DB"})
         }
 
-        const product=await Food.create({
+        const product=await Product.create({
             name:name,
             originalPrice:Number(originalPrice),
             company:company,
             discount:Number(discount),
             expiry:expiry,
             netWeight:Number(netWeight),
-            animal:animal
+            animal:animal,
+            stock:stock
         })
 
         return res.status(201).json({message:"Product successfully added into the DB"})
@@ -91,7 +91,7 @@ export async function updateProduct(req,res){
         const filter = { name, company, netWeight }; // find the product
         const update = { originalPrice, discount, expiry,animal }; // values to update
 
-        const result = await Food.updateOne(filter, { $set: update });
+        const result = await Product.updateOne(filter, { $set: update });
 
         if(!result.modifiedCount){
             return res.status(400).json({message:"chnages are not been done"})
@@ -122,7 +122,7 @@ export async function deleteProduct(req,res){
             return res.status(400).json({message:"only numbers are allowed"})
         }
 
-        const status=await Food.deleteOne({name:name,company:company,netWeight:Number(netWeight)})
+        const status=await Product.deleteOne({name:name,company:company,netWeight:Number(netWeight)})
         console.log("status",status)
         if(!status?.deletedCount){
             return res.status(404).json({message:"Item does not exists"})
@@ -137,12 +137,5 @@ export async function deleteProduct(req,res){
     }
 }
 
-export async function viewProduct(req,res){
-    try{
 
-    }catch(error){
-        console.log("wrong in view product",error);
-        return res.status(500).json({message:"something went wrong at the server side"})
-    }
-}
 
