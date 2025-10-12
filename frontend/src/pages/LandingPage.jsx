@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useLayoutEffect } from "react"
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setCategoryState, setLoginLogoutState } from "../redux/slices/userSlice";
@@ -253,12 +253,79 @@ function FeedBack() {
     )
 }
 
+
+function ShowFeedBack(){
+    const heightRef=useRef(null);
+    const outerHeightRef=useRef(null)
+    const [numLines,setNumLines]=useState(0);
+    const [numBlock,setNumBlock]=useState(0);
+    const [counter,setCounter]=useState(0)
+    
+    /// this useEffect should only be rendered once
+    useLayoutEffect(() => {
+        if (outerHeightRef.current) {
+            const blockWidth = outerHeightRef.current.offsetWidth;
+            setNumBlock(Math.ceil(blockWidth / 200) - 1);
+        }
+    }, []);
+    
+    // Measure line height after the blocks exist
+    useLayoutEffect(() => {
+        if (heightRef.current) {
+            const style = window.getComputedStyle(heightRef.current);
+            const lineHeight = parseFloat(style.lineHeight);
+            const height = heightRef.current.clientHeight;
+            const numberOfLines = Math.ceil(height / lineHeight);
+            setNumLines(numberOfLines);
+        }
+    }, [numBlock]); // wait until blocks are rendered
+    
+
+    ///// this array we will get by using custom hooks
+    let usernames=[1,2,3,4,5,6,7,8,9,10,11,12,13]
+    let messages="TaherMMalikOG"
+    messages=[...messages]
+    useEffect(()=>{
+        const a = setInterval(() => {
+            setCounter(counter => (counter + numBlock) % usernames.length);
+        }, 3000);
+        return () => clearInterval(a);
+    },[numBlock,usernames])
+
+    const divs=[]
+    for(let i=0;i<numBlock;i++){
+        divs.push(
+            <div key={i} className="feedback h-[90%] w-[200px] bg-white flex flex-col p-2 flex-shrink-0 border border-black rounded-2xl">
+                <div className="font-semibold xs:text-sm md:text-lg h-[10%]"><span>{`${usernames[(counter+i)%usernames.length]}`}</span></div>
+                {/* <div ref={heightRef} className={`text-justify xs:text-sm h-[90%]`} style={{WebkitLineClamp:numLines,display:'-webkit-box',WebkitBoxOrient: 'vertical',overflow: 'hidden'}}><span className="">Lorem ipsum, dolor sit amet consectetur adipisicing elit. Repellendus, ullam aspernatur. Quod et accusamus cumque eos recusandae blanditiis! Tenetur at consectetur mollitia molestiae. Explicabo doloribus culpa eveniet officiis, molestiae quisquam harum sapiente a ullam quis cum aliquam temporibus sunt quibusdam atque dicta aliquid magni labore magnam quidem tempora! Praesentium, a!</span></div> */}
+                <div ref={heightRef} className={`text-justify xs:text-sm h-[90%]`} style={{WebkitLineClamp:numLines,display:'-webkit-box',WebkitBoxOrient: 'vertical',overflow: 'hidden'}}><span className="">{`${messages[(counter+i)%usernames.length]}`}</span></div>
+            </div>
+
+        )
+    }
+
+
+
+    
+    return(
+        <>
+            <div ref={outerHeightRef} className="outside-container h-[300px] w-[100%] border border-black">
+                <div className="scrollable-container h-[100%] w-[100%] flex flex-row items-center justify-evenly p-2 relative flex-nowrap ">
+                    {divs}
+                </div>
+            </div>
+        
+        </>
+    )
+}
+
 export default function LandingPage() {
     return (
         <>
             <Header />
             <BrandSlider />
             <Owner />
+            <ShowFeedBack/>
             <FeedBack />
         </>
     )

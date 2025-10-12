@@ -22,3 +22,19 @@ body::-webkit-scrollbar,html::-webkit-scrollbar {
 .scrollbar-hide::-webkit-scrollbar{
   display: none;
 }
+
+/* 
+.scrollable-container{
+  animation: FeedScroll 20s linear infinite;
+  animation-direction: normal;
+}
+
+
+@keyframes FeedScroll {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+} */
