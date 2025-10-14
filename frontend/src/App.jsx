@@ -2,6 +2,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import "./custom.css"
+import Product from "./pages/Product";
+import TopSeller from "./pages/TopSeller";
+import Cat from "./pages/Cat"
+import Dog from "./pages/Dog"
+import SmallPets from "./pages/SmallPets"
 
 function App() {
   return (
@@ -10,6 +15,12 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/product" element={<Product/>}>
+            <Route path="" element={<TopSeller/>}></Route>
+            <Route path="cat" element={<Cat/>}></Route>
+            <Route path="dog" element={<Dog/>}></Route>
+            <Route path="small_pets" element={<SmallPets/>}></Route>
+          </Route>
         </Routes>
       </BrowserRouter>
     </div>
