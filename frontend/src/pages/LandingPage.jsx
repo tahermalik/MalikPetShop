@@ -9,6 +9,7 @@ import { HiHeart, HiOutlineMail } from "react-icons/hi";
 import { FaPhoneAlt, FaRegHeart, FaUser } from "react-icons/fa";
 import { IoIosContact } from "react-icons/io";
 import { MdOutlineShoppingCart } from "react-icons/md";
+import { setHeaderHight } from "../redux/slices/layoutSlice";
 
 
 function Brands(props) {
@@ -171,65 +172,75 @@ function Owner() {
     )
 }
 
+function SmoothUnderline(){
+    return(
+        <>
+            <span
+                className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-700 ease-in-out group-hover:w-full pointer-events-none"
+            ></span>
+        </>
+    )
+}
+
 function CatStuff() {
     return (
         <div className="flex flex-row gap-10 justify-center w-[100%]">
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Cat Food</span></div>
                 <div className="sm:text-sm">
-                    <Link to="/product/cat"><div>Dry Food</div></Link>
-                    <div>Wet Food</div>
-                    <div>Kitten Food</div>
-                    <div>Veterinary Food</div>
+                    <div><Link to="/product/cat"><span className="relative group">Dry Food {<SmoothUnderline/>}</span></Link></div>
+                    <div><span className="relative group">Wet Food {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Kitten Food {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Veterinary Food {<SmoothUnderline/>}</span></div>
                 </div>
             </div>
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Treats</span></div>
                 <div className="sm:text-sm">
-                    <div>Biscuits</div>
-                    <div>Meat Treats</div>
-                    <div>Creamy Treats</div>
-                    <div>Wet Treats</div>
+                    <div><span className="relative group">Biscuits {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Meat Treats {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group"> Creamy Treats {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Wet Treats {<SmoothUnderline/>}</span></div>
                 </div>
             </div>
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Clothing</span></div>
                 <div className="sm:text-sm">
-                    <div>Fancy Accessories</div>
-                    <div>Occassion Wears</div>
+                    <div><span className="relative group">Fancy Accessories{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Occassion Wears{<SmoothUnderline/>}</span></div>
                 </div>
             </div>
 
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Litter & Accessories</span></div>
                 <div className="sm:text-sm">
-                    <div>Ball Shaped Litter</div>
-                    <div>Cat Litter Trays</div>
-                    <div>Sand Litter</div>
-                    <div>Scoopers</div>
+                    <div><span className="relative group">Ball Shaped Litters{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Cat Litter Trays{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Sand Litter{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Scoopers{<SmoothUnderline/>}</span></div>
                 </div>
             </div>
 
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Toys</span></div>
                 <div className="sm:text-sm">
-                    <div>Cat Nip Toys</div>
-                    <div>Interactive Toys</div>
-                    <div>Squeaky Toys</div>
-                    <div>Steaky Toys</div>
+                    <div><span className="relative group">Cat Nip Toys{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Interactive Toys{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Squeaky Toys{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Steaky Toys{<SmoothUnderline/>}</span></div>
                 </div>
             </div>
 
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Grooming</span></div>
                 <div className="sm:text-sm">
-                    <div>Brushes & Combs</div>
-                    <div>Deodorants</div>
-                    <div>Gloves</div>
-                    <div>Nail Cutters</div>
-                    <div>Powders</div>
-                    <div>Shampoo & Soaps</div>
-                    <div>Towels & Wipes</div>
+                    <div><span className="relative group">Brushes & Combs{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Deodrants{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Gloves{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Nail Cutters{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Powders{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Shampoo & Soaps{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Towels & Wipes{<SmoothUnderline/>}</span></div>
                 </div>
             </div>
 
@@ -243,62 +254,62 @@ function DogStuff() {
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Dog Food</span></div>
                 <div className="sm:text-sm">
-                    <div>Dry Food</div>
-                    <div>Wet Food</div>
-                    <div>Puppy Food</div>
-                    <div>Veterinary Food</div>
+                    <div><span className="relative group">Dry Food {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Wet Food {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Puppy Food {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Veterinary Food {<SmoothUnderline/>}</span></div>
                 </div>
             </div>
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Treats</span></div>
                 <div className="sm:text-sm">
-                    <div>Biscuits</div>
-                    <div>Meat Treats</div>
-                    <div>Creamy Treats</div>
-                    <div>Wet Treats</div>
+                    <div><span className="relative group">Biscuits{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Meat Treats{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Creamy Treats {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Wet Treats{<SmoothUnderline/>}</span></div>
                 </div>
             </div>
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Clothing</span></div>
                 <div className="sm:text-sm">
-                    <div>T-Shirts</div>
-                    <div>Occassion Wears</div>
-                    <div>Winter Wears</div>
-                    <div>Shoes</div>
+                    <div><span className="relative group">T-Shirts{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Occassion Wears {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Winter Wears{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Shoes{<SmoothUnderline/>}</span></div>
                 </div>
             </div>
 
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Bedding</span></div>
                 <div className="sm:text-sm">
-                    <div>Beds</div>
-                    <div>Blankets</div>
-                    <div>Cooling Mats</div>
-                    <div>Cushions</div>
+                    <div><span className="relative group">Beds {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Blankets {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Cooling Mats{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Cushions{<SmoothUnderline/>}</span></div>
                 </div>
             </div>
 
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Toys</span></div>
                 <div className="sm:text-sm">
-                    <div>Leather Toys</div>
-                    <div>Interactive Toys</div>
-                    <div>Squeaky Toys</div>
-                    <div>Rope Toys</div>
-                    <div>Plush Toys</div>
+                    <div><span className="relative group">Leather Toys{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Interactive Toys{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Squeaky Toys {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Rope Toys{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Flush Toys {<SmoothUnderline/>}</span></div>
                 </div>
             </div>
 
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Grooming</span></div>
                 <div className="sm:text-sm">
-                    <div>Brushes & Combs</div>
-                    <div>Deodorants</div>
-                    <div>Gloves</div>
-                    <div>Nail Cutters</div>
-                    <div>Powders</div>
-                    <div>Shampoo & Soaps</div>
-                    <div>Towels & Wipes</div>
+                    <div><span className="relative group">Brushes & Combs{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Deodrants{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Gloves{<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Nail Cutters {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Powders {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Shampoo & Soaps {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Towels & Wipes {<SmoothUnderline/>}</span></div>
                 </div>
             </div>
 
@@ -312,36 +323,36 @@ function SmallPetStuff() {
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Bird</span></div>
                 <div className="sm:text-sm">
-                    <div>Bowls</div>
-                    <div>Cage</div>
-                    <div>Food</div>
-                    <div>Health Supplements</div>
+                    <div><span className="relative group">Bowls {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Cage {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Food {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Health Supplements {<SmoothUnderline/>}</span></div>
                 </div>
             </div>
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Hamster</span></div>
                 <div className="sm:text-sm">
-                    <div>Ball</div>
-                    <div>Cage</div>
-                    <div>Food</div>
-                    <div>Toys</div>
-                    <div>Cage</div>
+                    <div><span className="relative group">Ball {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Cage {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Food {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Toys {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Cage {<SmoothUnderline/>}</span></div>
                 </div>
             </div>
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Rabbit</span></div>
                 <div className="sm:text-sm">
-                    <div>Food</div>
-                    <div>Cage</div>
-                    <div>Health Supplements</div>
+                    <div><span className="relative group">Food {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Cage {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Health Supplements {<SmoothUnderline/>}</span></div>
                 </div>
             </div>
 
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Turtle</span></div>
                 <div className="sm:text-sm">
-                    <div>Food</div>
-                    <div>Health Supplement</div>
+                    <div><span className="relative group">Food {<SmoothUnderline/>}</span></div>
+                    <div><span className="relative group">Health Supplements {<SmoothUnderline/>}</span></div>
                 </div>
             </div>
         </div>
@@ -355,7 +366,6 @@ export function Header() {
     const showLoginLogout = useSelector((state) => state?.user?.loginLogout)
     const showContact = useSelector((state) => state?.user?.contactState)
     const [data, setData] = useState("cat")
-    const [headerHeight, setHeaderHeight] = useState(0);
 
     const headerRef = useRef(null);
 
@@ -379,9 +389,11 @@ export function Header() {
     useLayoutEffect(() => {
         if (headerRef.current) {
             console.log(headerRef.current.offsetHeight)
-            setHeaderHeight(headerRef.current.offsetHeight)
+            dispatch(setHeaderHight(headerRef.current.offsetHeight))
         }
     }, [])
+
+    const headerHeight=useSelector((state)=>state?.layout?.headerHeight)
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -460,43 +472,44 @@ export function Header() {
                                 </div>
                                 {showLoginLogout &&
                                     <div className="w-fit h-auto backdrop-blur absolute top-[50px] flex flex-col gap-1 pt-1 bg-[#1565C0] pl-1 pr-1">
-                                        <Link to="/Login"><div className=" hover:bg-[#1976D2]"><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Login</span></div></Link>
+                                        <Link to="/Login" state={{user:"user"}}><div className=" hover:bg-[#1976D2]"><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">User Login</span></div></Link>
+                                        <Link to="/Login" state={{user:"admin"}}><div className=" hover:bg-[#1976D2]"><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Login</span></div></Link>
                                         <div className=" hover:bg-[#1976D2]"><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Logout</span></div>
                                     </div>
                                 }
                             </div>
-                            <div className="cursor-pointer hover:rounded-2xl hover:bg-[#0288D1] p-1 flex flex-row justify-center items-center pl-2"><FaRegHeart color="#00ACC1" size={20} /></div>
-                            <div className="cursor-pointer hover:rounded-2xl hover:bg-[#0288D1] p-1 flex flex-row justify-center items-center pl-2"><MdOutlineShoppingCart color="#00ACC1" size={25} /></div>
+                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center ml-2"><FaRegHeart color="#00ACC1" size={20} /></div>
+                            <Link to="/cart"><div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center pl-2"><MdOutlineShoppingCart color="#00ACC1" size={25} /></div></Link>
                         </div>
                     </div>
                 </div>
 
-                <div className="lower_header flex flex-row justify-evenly items-center gap-3 w-[100%] h-[40%] bg-[#1565C0] text-white">
+                <div className="lower_header flex flex-row justify-evenly items-center gap-3 w-[100%] h-[40%] bg-[#51a2ff8a] text-white">
                     <div className="flex flex-row justify-evenly items-center w-[100%]">
-                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-[#64B5F6]">
-                            <div>Cat</div>
-                            {(!show || data === "dog" || data === "small pets" || data === "brands") && <div><RiArrowDropDownLine size={20} /></div>}
-                            {show && data === "cat" && <div><RiArrowDropUpLine size={20} /></div>}
+                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
+                            <div className="text-black">Cat</div>
+                            {(!show || data === "dog" || data === "small pets" || data === "brands") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
+                            {show && data === "cat" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-[#64B5F6]">
-                            <div>Dog</div>
-                            {(!show || data === "cat" || data === "small pets" || data === "brands") && <div><RiArrowDropDownLine size={20} /></div>}
-                            {show && data === "dog" && <div><RiArrowDropUpLine size={20} /></div>}
+                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
+                            <div className="text-black">Dog</div>
+                            {(!show || data === "cat" || data === "small pets" || data === "brands") && <div><RiArrowDropDownLine size={20} color="black"/></div>}
+                            {show && data === "dog" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-[#64B5F6]">
-                            <div>Small Pets</div>
-                            {(!show || data === "cat" || data === "dog" || data === "brands") && <div><RiArrowDropDownLine size={20} /></div>}
-                            {show && data === "small pets" && <div><RiArrowDropUpLine size={20} /></div>}
+                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
+                            <div className="text-black">Small Pets</div>
+                            {(!show || data === "cat" || data === "dog" || data === "brands") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
+                            {show && data === "small pets" && <div><RiArrowDropUpLine size={20} color="black"/></div>}
                         </div>
-                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-[#64B5F6]">
-                            <div>Brands</div>
-                            {(!show || data === "cat" || data === "dog" || data === "small pets") && <div><RiArrowDropDownLine size={20} /></div>}
-                            {show && data === "brands" && <div><RiArrowDropUpLine size={20} /></div>}
+                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
+                            <div className="text-black">Brands</div>
+                            {(!show || data === "cat" || data === "dog" || data === "small pets") && <div><RiArrowDropDownLine size={20} color="black"/></div>}
+                            {show && data === "brands" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <div className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-[#64B5F6]"><span>Offer</span></div>
+                        <div className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline text-black cursor-pointer"><span>Offer</span></div>
                     </div>
                 </div>
-                {show && <div ref={dropdownRef} className={`scoll-lower-header h-auto w-[100%] bg-white ${show ? "category" : ""} top-[${headerHeight}px] flex flex-row flex-wrap`}>
+                {show && <div ref={dropdownRef} className={`scoll-lower-header h-auto w-[100%] bg-white ${show ? "category" : ""}  flex flex-row flex-wrap`} style={{ top: `${headerHeight}px` }}>
                     {data === "cat" && <CatStuff />}
 
                     {data === "dog" && <DogStuff />}
@@ -622,7 +635,7 @@ function ShowFeedBack() {
     )
 }
 
-function Footer() {
+export function Footer() {
     return (
         <>
             <div className="footer h-[300px] w-[100%] bg-[#0D47A1] flex flex-row justify-center gap-10 items-center border-t-[#00ACC1]">
@@ -648,7 +661,7 @@ function Footer() {
                 <div className="flex flex-col h-[90%] w-fit gap-4 p-2 rounded-2xl text-white">
                     <div className="xs:text-lg lg:text-xl text-white"><span>Quick Links</span></div>
                     <div className="flex flex-col ">
-                        <div className="hover:underline hover:decoration-[#03A9F4] hover:cursor-pointer hover:text-[#4FC3F7] text-[#BBDEFB]"><a>Home</a></div>
+                        <Link to="/"><div className="hover:underline hover:decoration-[#03A9F4] hover:cursor-pointer hover:text-[#4FC3F7] text-[#BBDEFB]"><a>Home</a></div></Link>
                         <div className="hover:underline hover:decoration-[#03A9F4] hover:cursor-pointer text-[#BBDEFB] hover:text-[#4FC3F7]"><a>About Us</a></div>
                         <div className="hover:underline hover:decoration-[#03A9F4] hover:cursor-pointer text-[#BBDEFB] hover:text-[#4FC3F7]"><a>Offers</a></div>
                         <div className="hover:underline hover:decoration-[#03A9F4] hover:cursor-pointer text-[#BBDEFB] hover:text-[#4FC3F7]"><a>Contact Us</a></div>

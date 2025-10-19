@@ -1,9 +1,13 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const location= useLocation();
+  const {user}=location.state; /// user will either be normal user or the admin
+  
   return (
-    <div className="grid w-screen h-screen place-items-center bg-amber-200">
+    <div className="grid w-screen h-screen place-items-center bg-blue-200">
       <div className="w-[90%] min-w-[250px] max-w-[430px] bg-white p-8 rounded-2xl shadow-lg">
         {/* Header Title  */}
         <div className="flex justify-center mb-4">
@@ -12,8 +16,8 @@ function Login() {
           </h2>
         </div>
 
-        {/* tab control  */}
-        <div className="relative flex h-12 mb-6 border border-gray-300 rounded-full overflow-hidden">
+        {/* tab control  will be visible only to the normal user and not to the admin*/}
+        {user==="user" && <div className="relative flex h-12 mb-6 border border-gray-300 rounded-full overflow-hidden">
           <button
             className={`w-1/2 text-lg font-medium transition-all z-10 ${
               isLoginMode ? "text-white" : "text-black"
@@ -33,11 +37,11 @@ function Login() {
             Sign Up
           </button>
           <div
-            className={`absolute top-0 h-full w-1/2 rounded-full bg-gradient-to-r from-amber-600 via-amber-400 to-amber-200 transition-all ${
+            className={`absolute top-0 h-full w-1/2 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 transition-all ${
               isLoginMode ? "left-0" : "left-1/2"
             }`}
           ></div>
-        </div>
+        </div>}
 
         {/* form section  */}
         <form action="" className="space-y-4">
@@ -47,7 +51,7 @@ function Login() {
               type="text"
               placeholder="Name"
               required
-              className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-amber-500 placeholder-gray-400"
+              className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
             />
           )}
 
@@ -56,13 +60,13 @@ function Login() {
             type="email"
             placeholder="Email Address"
             required
-            className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-amber-500 placeholder-gray-400"
+            className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
           />
           <input
             type="password"
             placeholder="Password"
             required
-            className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-amber-500 placeholder-gray-400"
+            className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
           />
 
           {/* signup field  */}
@@ -71,26 +75,27 @@ function Login() {
               type="password"
               placeholder="Confirm Password"
               required
-              className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-amber-500 placeholder-gray-400"
+              className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
             />
           )}
 
           {/* Login field  */}
           {isLoginMode && (
             <div className="text-right">
-              <a href="#" className="text-amber-600 hover:underline">
+              <a href="#" className="text-orange-600 hover:underline">
                 Forgot password?
               </a>
             </div>
           )}
 
           {/* shared button  */}
-          <button className="w-full p-3 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-200 text-white rounded-full text-lg font-medium hover:opacity-90 transition">
+          <button className="w-full p-3 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 text-white rounded-full text-lg font-medium hover:opacity-90 transition cursor-pointer">
             {isLoginMode ? "Login" : "Signup"}
           </button>
 
           {/* switch link  */}
-          <p className="text-center text-gray-600">
+
+          {user==="user" && <p className="text-center text-gray-600">
             {isLoginMode
               ? "Dont have an account ? "
               : "Already have an account "}
@@ -100,11 +105,11 @@ function Login() {
                 e.preventDefault();
                 setIsLoginMode(!isLoginMode);
               }}
-              className="text-amber-600 hover:underline"
+              className="text-orange-600 hover:underline"
             >
               {isLoginMode ? "Signup now" : "Login"}
             </a>
-          </p>
+          </p>}
         </form>
       </div>
     </div>

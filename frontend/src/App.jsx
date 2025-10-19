@@ -7,6 +7,8 @@ import TopSeller from "./pages/TopSeller";
 import Cat from "./pages/Cat"
 import Dog from "./pages/Dog"
 import SmallPets from "./pages/SmallPets"
+import ProductDisplay from "./pages/ProductDisplay";
+import Cart from "./pages/Cart";
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
             <Route path="dog" element={<Dog/>}></Route>
             <Route path="small_pets" element={<SmallPets/>}></Route>
           </Route>
+          <Route path="/ProductDisplay" element={<ProductDisplay/>}></Route>
+          <Route path="/cart" element={<Cart/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>
