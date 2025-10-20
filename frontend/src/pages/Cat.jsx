@@ -26,8 +26,8 @@ function CatProduct(props) {
     return (
         // initially setting 0th product to be displayed whicle clicking on the product
         <div className="w-[250px] h-[450px] bg-white flex flex-col rounded-2xl hover:shadow-lg">
-            <div className="sm:text-[13px] bg-emerald-200 h-[5%] w-[100%] rounded-t-2xl p-1">Extra <span className="font-sans">5%</span> discount , use the code <span className="font-semibold">MPSCH</span></div>
-            <div className="h-[40%] w-[100%]"><img className="h-[100%] w-[100%] object-cover" src={`/${props.imagesArray[imgCounter]}`} alt={`${props.imagesArray[imgCounter]}`} /></div>
+            <div className="sm:text-[13px] bg-emerald-100 h-[5%] w-[100%] rounded-t-2xl p-1">Extra <span className="font-sans">5%</span> discount , use the code <span className="font-semibold">MPSCH</span></div>
+            <div className="h-[40%] w-[100%]"><img className="h-[100%] w-[100%] object-contain" src={`/${props.imagesArray[imgCounter]}`} alt={`${props.imagesArray[imgCounter]}`} /></div>
             <div className="flex flex-col justify-evenly h-[40%] w-[100%]">
                 <div className="product-data line-clamp-3 w-[100%]">Lorem ipsum dolor sit amet consectetur adipisicing elit. Provident, dolores.</div>
                 <div className="price font-sans"><span className="font-sans sm:text-lg lg:text-xl">&#8377;</span>{discountCalc(props.originalPriceArray[imgCounter],props.discountArray[imgCounter])} <span className="font-sans sm:text-sm">(&#8377;{gramAmountCalc(props.originalPriceArray[imgCounter],props.discountArray[imgCounter],props.netQuantityArray[imgCounter])}/100g)</span> <p><span className="line-through font-sans sm:text-sm">&#8377;{props.originalPriceArray[imgCounter]}</span> <span className="sm:text-sm">Discount {props.discountArray[imgCounter]}%</span></p></div>

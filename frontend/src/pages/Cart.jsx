@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 
@@ -7,18 +7,19 @@ export default function CartPage() {
   const [coupanAmount,setCoupanAmount]=useState(0);
   const [coupanVisible,setCoupanVisible]=useState(false);
   const [coupanIndex,setCoupanIndex]=useState(-1) /// none of the coupans are applied initially
+  const discounts=[5,10,20]
   const [cartItems, setCartItems] = useState([
     {
       id: 1,
       name: "Wireless Headphones",
-      price: 2999,
+      price: 100,
       quantity: 1,
       image: "https://via.placeholder.com/100",
     },
     {
       id: 2,
       name: "Smartwatch",
-      price: 4999,
+      price: 200,
       quantity: 2,
       image: "https://via.placeholder.com/100",
     },
@@ -51,10 +52,24 @@ export default function CartPage() {
     0
   );
   const shipping = subtotal > 5000 ? 0 : 99;
-  const total = subtotal + shipping - coupanAmount;
+  const total = subtotal + shipping;
   function discountAmount(price, discount){
     return Math.floor(discount*(price/100))
   }
+
+  useEffect(()=>{
+    if(coupanIndex!==-1){
+      setCoupanAmount(discountAmount(total-shipping,discounts[coupanIndex]))
+      console.log("coupan amount changed")
+    }
+
+    if (cartItems.length === 0) {
+      setCoupanIndex(-1);
+      setCoupanAmount(0);
+    }
+  },[cartItems,coupanIndex,total])
+
+
 
   return (
     <div className=" relative min-h-screen bg-blue-50 py-10 px-4 flex flex-col lg:flex-row justify-center gap-10">
@@ -144,7 +159,7 @@ export default function CartPage() {
             <div className="border-t border-gray-200 my-3"></div>
             <div className="flex justify-between font-semibold text-gray-900">
               <span>Total</span>
-              <span className="font-sans">₹{total}</span>
+              <span className="font-sans">₹{total-coupanAmount}</span>
             </div>
           </div>
 
@@ -167,15 +182,15 @@ export default function CartPage() {
 
           {/* Top of the Show Coupans */}
           <div className="flex flex-row gap-1 items-center ">
-            <div className="cursor-pointer hover:bg-blue-200 hover:rounded-full p-1" onClick={()=>setCoupanVisible(false)}><FiArrowLeft size={18}/></div>
+            <div className="cursor-pointer hover:bg-blue-200 hover:rounded-full p-1" onClick={()=>{setCoupanVisible(false); }}><FiArrowLeft size={18}/></div>
             <div className="underline font-semibold sm:text-md lg:text-xl">Coupans</div>
           </div>
-          {[...Array(10)].map((_, index) => (
+          {discounts.map((dAmount, index) => (
             <div className="w-[100%] h-auto bg-white rounded-2xl p-2 hover:shadow-md flex-shrink-0 cursor-pointer">
               <div className=" flex flex-row justify-between">
                 <div className=" coupan-name sm:text-xl border-dashed border-2 border-black px-1 font-sans">TIGER5</div>
                 { coupanIndex!==index &&
-                  <div className="bg-blue-500 rounded-2xl flex flex-row justify-center items-center p-1 sm:text-md text-white" onClick={()=>{setCoupanAmount(discountAmount(total,5)); setCoupanIndex(index)}}>Apply</div>
+                  <div className="bg-blue-500 rounded-2xl flex flex-row justify-center items-center p-1 sm:text-md text-white" onClick={()=>{setCoupanIndex(index)}}>Apply</div>
                 }
                 { coupanIndex===index &&
                   <div className="sm:text-md text-emerald-500 flex flex-row items-center">
@@ -184,7 +199,7 @@ export default function CartPage() {
                   </div>
                 }
                   </div>
-              <div className="text-emerald-500 sm:text-md lg:text-lg"><span className="">Save upto ₹<span className="font-sans">{discountAmount(total,5)}</span></span></div>
+              <div className="text-emerald-500 sm:text-md lg:text-lg"><span className="">Save upto ₹<span className="font-sans">{discountAmount(total-shipping,discounts[index])} ; {discounts[index]}%</span></span></div>
               <div className="sm:text-sm">*T&C Applied</div>
             </div>
           ))}
