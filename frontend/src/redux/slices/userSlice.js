@@ -3,20 +3,17 @@ import { createSlice } from "@reduxjs/toolkit";
 const userSlice = createSlice({
   name: "user",
   initialState: {
-    userData:null,categoryState:false, loginLogout:false,contactState:false
+    userData:null,categoryState:false, upperHeader:false
   },
   reducers: {
     setCategoryState:(state)=>{
         state.categoryState=!state.categoryState
     },
-    setLoginLogoutState:(state)=>{
-        state.loginLogout=!state.loginLogout
-    },
-    setContactState:(state)=>{
-      state.contactState=!state.contactState
+    setUpperHeader:(state)=>{
+      state.upperHeader=!state.upperHeader
     }
   }
 })
 
-export const { setCategoryState ,setLoginLogoutState,setContactState} = userSlice.actions;
+export const { setCategoryState ,setUpperHeader} = userSlice.actions;
 export default userSlice.reducer;

@@ -1,0 +1,94 @@
+import React, { useEffect, useState } from "react";
+import { Gift, Sparkles, Tag } from "lucide-react";
+import { FiArrowLeft } from "react-icons/fi";
+import { Link } from "react-router-dom";
+
+function fetchCurrentTime(expiry){
+  //// expiry time will be in date and time
+  const now=new Date();
+  // const futureDate = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes later
+  // const exp = futureDate.toISOString();
+  const exp=new Date(expiry);
+  const timeLeftMs=exp-now;
+  if(timeLeftMs<0) return -1;
+  const seconds = Math.floor(timeLeftMs / 1000) % 60;
+  const minutes = Math.floor(timeLeftMs / (1000 * 60)) % 60;
+  const hours = Math.floor(timeLeftMs / (1000 * 60 * 60)) % 24;
+  const days = Math.floor(timeLeftMs / (1000 * 60 * 60 * 24));
+
+  if(days!==0) return days>=2 ? `${days} Days`:`${days} Day`
+  else if(hours!==0) return `${hours} Hour`
+  else return `${minutes} Minute : ${seconds} Seconds`
+}
+
+export default function OfferSection() {
+  // Sample offers (you can fetch dynamically from backend later)
+
+  const [checkTime,setCheckTime]=useState(true)
+  const offers = [
+    {
+      id: 1,
+      title: "Festive Bonanza 🎉",
+      description: "Get flat 10% off on all electronics till Diwali!",
+      color: "from-blue-500 to-blue-400",
+      expiry:"2025-10-20T11:25:00.000Z"
+    },
+    {
+      id: 2,
+      title: "Free Shipping 🚚",
+      description: "Enjoy free shipping on orders above ₹999.",
+      color: "from-blue-400 to-blue-300",
+      expiry:"2025-10-20T11:30:00.000Z"
+    },
+    {
+      id: 3,
+      title: "Combo Offer 💥",
+      description: "Buy any 2 accessories and get 1 absolutely free!",
+      color: "from-blue-600 to-blue-500",
+      expiry:"2025-10-20T11:35:00.000Z"
+    },
+    {
+      id: 4,
+      title: "Combo Offer 💥",
+      description: "Buy any 2 accessories and get 1 absolutely free!",
+      color: "from-blue-600 to-blue-500",
+      expiry:"2025-10-20T10:00:00.000Z"
+    },
+  ];
+
+  useEffect(()=>{
+    const a=setInterval(()=>{
+      setCheckTime(prev=>!prev)
+    },1000)
+
+    return()=> clearInterval(a)
+  },[])
+
+  return (
+    <div className="bg-blue-50 rounded-2xl shadow-md p-5 h-[100%] mb-6 overflow-auto scrollbar-hide relative">
+      <Link to="/"><div className="mb-3 hover:bg-blue-200 w-fit p-1 hover:rounded-full"><FiArrowLeft size={30} color={"blue"}/></div></Link>
+      <div className="flex flex-row items-center gap-2 mb-3">
+        <Sparkles className="text-blue-600" size={22} />
+        <h2 className="text-2xl font-semibold text-blue-700">Special Offers</h2>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        {offers.map((offer) => (
+          <div
+            key={offer.id}
+            className={`bg-gradient-to-r ${offer.color} text-white rounded-xl p-4 flex flex-row justify-between items-center hover:shadow-lg transition-all duration-200`}
+          >
+            <div>
+              <h3 className="font-bold text-lg">{offer.title}</h3>
+              <p className="text-sm">{offer.description}</p>
+            </div>
+            <div className="flex flex-col gap-2 justify-center items-end font-sans">
+              <Tag className="text-white opacity-90" size={28} />
+              <div>{fetchCurrentTime(offer.expiry)===-1 ? "Offer Expired":`Offer ends in ${fetchCurrentTime(offer.expiry)}`}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

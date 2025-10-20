@@ -9,6 +9,7 @@ import Dog from "./pages/Dog"
 import SmallPets from "./pages/SmallPets"
 import ProductDisplay from "./pages/ProductDisplay";
 import Cart from "./pages/Cart";
+import OfferSection from "./pages/Offer";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           </Route>
           <Route path="/ProductDisplay" element={<ProductDisplay/>}></Route>
           <Route path="/cart" element={<Cart/>}></Route>
+          <Route path="/offer" element={<OfferSection/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>

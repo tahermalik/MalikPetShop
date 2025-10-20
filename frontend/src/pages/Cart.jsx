@@ -178,7 +178,7 @@ export default function CartPage() {
 
       {/* Coupan Window */}
       {coupanVisible && <div className=" absolute top-0 w-[100%] h-[100%] backdrop-blur flex flex-row justify-center items-center">
-        <div className="sm:h-[80%] sm:w-[400px] bg-blue-100 flex flex-col overflow-auto scrollbar-hide p-2 gap-3">
+        <div className="sm:h-[80%] sm:w-[400px] bg-blue-100 flex flex-col overflow-auto scrollbar-hide p-2 gap-3 rounded-2xl">
 
           {/* Top of the Show Coupans */}
           <div className="flex flex-row gap-1 items-center ">

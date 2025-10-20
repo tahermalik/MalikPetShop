@@ -1,7 +1,7 @@
 import { useState, useRef, useLayoutEffect } from "react"
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setCategoryState, setContactState, setLoginLogoutState } from "../redux/slices/userSlice";
+import { setCategoryState, setUpperHeader } from "../redux/slices/userSlice";
 import { RiArrowDropDownLine, RiArrowDropUpLine, RiTwitterXLine } from "react-icons/ri";
 import { FaWhatsapp, FaInstagram, FaFacebook } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -363,23 +363,24 @@ function SmallPetStuff() {
 export function Header() {
     const dispatch = useDispatch();
     const show = useSelector((state) => state?.user?.categoryState)
-    const showLoginLogout = useSelector((state) => state?.user?.loginLogout)
-    const showContact = useSelector((state) => state?.user?.contactState)
+    const showUpperHeader = useSelector((state) => state?.user?.upperHeader) // initally going to be false
     const [data, setData] = useState("cat")
+    const [showDetails,setShowDetails]=useState("user")
 
     const headerRef = useRef(null);
 
     function categoriesHandler(e) {
-        setData(e.target.textContent.toLowerCase())
+        const parentDiv=e.currentTarget;
+        const firstChildDiv=parentDiv.querySelector("div:first-child")
+        setData(firstChildDiv.textContent.toLowerCase())
         if (!show) dispatch(setCategoryState())
     }
 
-    function loginLogoutHandler() {
-        if (!show) dispatch(setLoginLogoutState())
-    }
-
-    function contactHandler() {
-        if (!show) dispatch(setContactState())
+    function detailsHandler(e){
+        const parentDiv=e.currentTarget;
+        const firstChildDiv=parentDiv.querySelector("div:first-child")
+        setShowDetails(firstChildDiv.dataset.details.toLowerCase())
+        if (!showUpperHeader) dispatch(setUpperHeader())
     }
 
     const dropdownRef = useRef(null)
@@ -395,6 +396,7 @@ export function Header() {
 
     const headerHeight=useSelector((state)=>state?.layout?.headerHeight)
 
+    /// whenever clicked outside of down scroll set toggle in the redux as false
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -403,14 +405,8 @@ export function Header() {
                 }
             }
             if (loginRef.current && !loginRef.current.contains(event.target)) {
-                if (showLoginLogout) {
-                    dispatch(setLoginLogoutState());
-                }
-            }
-
-            if (contactRef.current && !contactRef.current.contains(event.target)) {
-                if (showContact) {
-                    dispatch(setContactState());
+                if (showUpperHeader) {
+                    dispatch(setUpperHeader());
                 }
             }
         }
@@ -420,7 +416,7 @@ export function Header() {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [show, dispatch, showLoginLogout, showContact]);
+    }, [show, dispatch, showUpperHeader]);
 
     return (
         <>
@@ -443,13 +439,13 @@ export function Header() {
                     </div>
                     <div className="r-upper-header flex flex-row justify-evenly items-center gap-4">
                         <div className="flex flex-row gap-1">
-                            <div ref={contactRef} className="cursor-pointer hover:rounded-2xl relative flex flex-row items-center w-fit " onMouseEnter={() => contactHandler()}>
-                                <div className="flex flex-row justify-center items-center">
-                                    <div className=""><IoIosContact color="#00ACC1" size={30} /></div>
-                                    {!showContact && <div><RiArrowDropDownLine size={20} /></div>}
-                                    {showContact && <div><RiArrowDropUpLine size={20} /></div>}
+                            <div ref={contactRef} className="cursor-pointer hover:rounded-2xl relative flex flex-row items-center w-fit ">
+                                <div className="flex flex-row justify-center items-center" onMouseEnter={(e) => detailsHandler(e)}>
+                                    <div className="" data-details="details"><IoIosContact color="#00ACC1" size={30} /></div>
+                                    {(!showUpperHeader || showDetails!=="details") && <div><RiArrowDropDownLine size={20} /></div>}
+                                    {showUpperHeader && showDetails==="details" && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
-                                {showContact &&
+                                {showDetails==="details" && showUpperHeader &&
                                     <div className="h-auto backdrop-blur absolute top-[30px] flex flex-col gap-1 pt-1 bg-[#1565C0] pl-1 pr-1">
                                         <Link to="/Login">
                                             <div className=" flex flex-row items-center gap-2 pl-1">
@@ -464,13 +460,13 @@ export function Header() {
                                     </div>
                                 }
                             </div>
-                            <div ref={loginRef} className="cursor-pointer hover:rounded-2xl flex flex-row items-center" onMouseEnter={() => loginLogoutHandler()}>
-                                <div className="flex flex-row">
-                                    <div className="flex flex-row justify-center items-center"><FaUser color="#00ACC1" size={20} /></div>
-                                    {!showLoginLogout && <div><RiArrowDropDownLine size={20} /></div>}
-                                    {showLoginLogout && <div><RiArrowDropUpLine size={20} /></div>}
+                            <div ref={loginRef} className="cursor-pointer hover:rounded-2xl flex flex-row items-center">
+                                <div className="flex flex-row" onMouseEnter={(e) => detailsHandler(e)}>
+                                    <div className="flex flex-row justify-center items-center" data-details="user"><FaUser color="#00ACC1" size={20} /></div>
+                                    {(!showUpperHeader || showDetails!=="user")&& <div><RiArrowDropDownLine size={20} /></div>}
+                                    {showUpperHeader && showDetails==="user" && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
-                                {showLoginLogout &&
+                                {showDetails==="user" && showUpperHeader &&
                                     <div className="w-fit h-auto backdrop-blur absolute top-[50px] flex flex-col gap-1 pt-1 bg-[#1565C0] pl-1 pr-1">
                                         <Link to="/Login" state={{user:"user"}}><div className=" hover:bg-[#1976D2]"><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">User Login</span></div></Link>
                                         <Link to="/Login" state={{user:"admin"}}><div className=" hover:bg-[#1976D2]"><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Login</span></div></Link>
@@ -488,25 +484,25 @@ export function Header() {
                     <div className="flex flex-row justify-evenly items-center w-[100%]">
                         <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
                             <div className="text-black">Cat</div>
-                            {(!show || data === "dog" || data === "small pets" || data === "brands") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
+                            {(!show || data!=="cat") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "cat" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
                         <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
                             <div className="text-black">Dog</div>
-                            {(!show || data === "cat" || data === "small pets" || data === "brands") && <div><RiArrowDropDownLine size={20} color="black"/></div>}
+                            {(!show || data!=="dog") && <div><RiArrowDropDownLine size={20} color="black"/></div>}
                             {show && data === "dog" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
                         <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
                             <div className="text-black">Small Pets</div>
-                            {(!show || data === "cat" || data === "dog" || data === "brands") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
+                            {(!show || data!=="small pets") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "small pets" && <div><RiArrowDropUpLine size={20} color="black"/></div>}
                         </div>
                         <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
                             <div className="text-black">Brands</div>
-                            {(!show || data === "cat" || data === "dog" || data === "small pets") && <div><RiArrowDropDownLine size={20} color="black"/></div>}
+                            {(!show || data!=="brands") && <div><RiArrowDropDownLine size={20} color="black"/></div>}
                             {show && data === "brands" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <div className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline text-black cursor-pointer"><span>Offer</span></div>
+                        <Link to="/offer"><div className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline text-black cursor-pointer"><span>Offer</span></div></Link>
                     </div>
                 </div>
                 {show && <div ref={dropdownRef} className={`scoll-lower-header h-auto w-[100%] bg-white ${show ? "category" : ""}  flex flex-row flex-wrap`} style={{ top: `${headerHeight}px` }}>
