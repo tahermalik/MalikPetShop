@@ -31,14 +31,14 @@ export default function OfferSection() {
       title: "Festive Bonanza 🎉",
       description: "Get flat 10% off on all electronics till Diwali!",
       color: "from-blue-500 to-blue-400",
-      expiry:"2025-10-20T11:25:00.000Z"
+      expiry:"2025-10-22T19:00:00.000Z"
     },
     {
       id: 2,
       title: "Free Shipping 🚚",
       description: "Enjoy free shipping on orders above ₹999.",
       color: "from-blue-400 to-blue-300",
-      expiry:"2025-10-20T11:30:00.000Z"
+      expiry:"2025-10-20T15:00:00.000Z"
     },
     {
       id: 3,
@@ -54,6 +54,14 @@ export default function OfferSection() {
       color: "from-blue-600 to-blue-500",
       expiry:"2025-10-20T10:00:00.000Z"
     },
+    {
+      id: 5,
+      title: "Combo Offer 💥",
+      description: "Buy any 2 accessories and get 1 absolutely free!",
+      color: "from-blue-600 to-blue-500",
+      expiry:"2025-10-20T14:30:00.000Z"
+    },
+    
   ];
 
   useEffect(()=>{

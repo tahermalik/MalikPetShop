@@ -12,7 +12,7 @@ function Login() {
         {/* Header Title  */}
         <div className="flex justify-center mb-4">
           <h2 className="text-3xl font-semibold text-center">
-            {isLoginMode ? "Login" : "Sign Up"}
+            {isLoginMode ? user==="user" ? "Login":"Admin Login" : "Sign Up"}
           </h2>
         </div>
 

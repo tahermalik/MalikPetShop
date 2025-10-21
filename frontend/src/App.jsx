@@ -10,6 +10,7 @@ import SmallPets from "./pages/SmallPets"
 import ProductDisplay from "./pages/ProductDisplay";
 import Cart from "./pages/Cart";
 import OfferSection from "./pages/Offer";
+import CouponRuleCreator from "./pages/CoupanManagement";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/ProductDisplay" element={<ProductDisplay/>}></Route>
           <Route path="/cart" element={<Cart/>}></Route>
           <Route path="/offer" element={<OfferSection/>}></Route>
+          <Route path="/CouponRuleCreator" element={<CouponRuleCreator/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>

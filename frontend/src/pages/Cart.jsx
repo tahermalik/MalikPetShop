@@ -8,6 +8,9 @@ export default function CartPage() {
   const [coupanVisible,setCoupanVisible]=useState(false);
   const [coupanIndex,setCoupanIndex]=useState(-1) /// none of the coupans are applied initially
   const discounts=[5,10,20]
+  const [coupons, setCoupons] = useState([]);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [cartItems, setCartItems] = useState([
     {
       id: 1,
@@ -68,6 +71,36 @@ export default function CartPage() {
       setCoupanAmount(0);
     }
   },[cartItems,coupanIndex,total])
+
+
+  //// dealing with Pagination
+  const fetchCoupons = async () => {
+    if (loading) return;
+    setLoading(true);
+
+    const res = await axios.get("/coupons", {
+      params: { limit: 20, lastId: nextCursor }
+    });
+
+    setCoupons(prev => [...prev, ...res.data.coupons]);
+    setNextCursor(res.data.nextCursor);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchCoupons();
+    // Infinite scroll
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 300 &&
+        nextCursor
+      ) {
+        fetchCoupons();
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [nextCursor]);
 
 
 
