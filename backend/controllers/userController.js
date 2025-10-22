@@ -8,6 +8,7 @@ export async function login(req, res) {
     try {
         console.log("in this login component")
         const {email,password}=req.body;
+        const role=req.params?.role;
         if(!email || !password){
             return res.status(400).json({message:"All the fields are mandatory"});
         }
@@ -22,13 +23,15 @@ export async function login(req, res) {
             return res.status(400).json({message:"either email or password is not correct"});
         }
 
+        if(user.role!==role) return res.status(400).json({message:"either email or password is not correct"});
+
         //// if the code is reached till here that user is genuine
         const token = jwt.sign(
-            { id: user._id, email: user.email ,username:user.username},
+            { id: user._id, email: user.email ,username:user.username,role:role},
             process.env.JWT_SECRET,
             { expiresIn: "1h" } // token valid for 1 hour
         );
-        return res.status(200).cookie("token",token,{httpOnly:true,sameSite:"Strict",maxAge: 3600000}).json({ message: `login ${user.username}` })
+        return res.status(200).cookie("token",token,{httpOnly:true,sameSite:"None",maxAge: 3600000}).json({ message: `login ${user.username}` })
     } catch (error) {
         console.log("wrong in login", error)
         return res.status(500).json({message:"something wrong at the server side"})
@@ -61,7 +64,8 @@ export async function register(req, res) {
         user = await User.create({
             email: email,
             username: username,
-            password: hash_password
+            password: hash_password,
+            role:"user"
         })
 
         return res.status(201).json({ message: `hello  ${username} register done` })

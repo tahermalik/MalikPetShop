@@ -60,7 +60,11 @@ const userSchema = new mongoose.Schema({
             rating: { type: Number, min: 1, max: 5 ,default:3},
             createdAt: { type: Date, default: () => new Date()},
         }
-    ]
+    ],
+    role:{
+        type:String,
+        required:true
+    }
 })
 
 const User = mongoose.model("User", userSchema);
