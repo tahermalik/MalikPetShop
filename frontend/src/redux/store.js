@@ -4,6 +4,7 @@ import layoutReducer from "./slices/layoutSlice.js"
 import filterReducer from "./slices/filterSlice.js"
 import activeReducer from "./slices/activeSlice.js"
 import productReducer from "./slices/productSlice.js"
+import cartReducer from "./slices/cartSlice.js"
 
 const store=configureStore({
     reducer:{
@@ -11,7 +12,8 @@ const store=configureStore({
         layout:layoutReducer,
         filter:filterReducer,
         active:activeReducer,
-        product:productReducer
+        product:productReducer,
+        cart:cartReducer
     }
 })
 
