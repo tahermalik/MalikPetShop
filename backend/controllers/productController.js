@@ -3,9 +3,9 @@ import Product from "../schema/productSchema.js";
 
 export async function addProduct(req,res){
     try{
-        const {name,originalPrice,company,expiry,discount,netWeight,animal,stock}=req.body
+        const {name,originalPrice,company,expiry,discountValue,netWeight,animal,stock}=req.body
 
-        if(!name || !originalPrice || !company || !expiry || !discount || !netWeight || !animal || !stock){
+        if(!name || !originalPrice || !company || !expiry || !discountValue || !netWeight || !animal || !stock){
             return res.status(400).json({message:"All the fields are mandatory"})
         }
 
@@ -14,7 +14,7 @@ export async function addProduct(req,res){
         if(!number_regex.test(Number(originalPrice))){
             return res.status(400).json({message:"only numbers are allowed"})
         }
-        if(!number_regex.test(Number(discount))){
+        if(!number_regex.test(Number(discountValue))){
             return res.status(400).json({message:"only numbers are allowed"})
         }
         if(!number_regex.test(Number(netWeight))){
@@ -39,7 +39,7 @@ export async function addProduct(req,res){
             name:name,
             originalPrice:Number(originalPrice),
             company:company,
-            discount:Number(discount),
+            discountValue:Number(discountValue),
             expiry:expiry,
             netWeight:Number(netWeight),
             animal:animal,

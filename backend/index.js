@@ -9,6 +9,7 @@ import cRouter from "./routers/couponRoutes.js";
 import cors from "cors";
 import cron from "node-cron";
 import Coupon from "./schema/couponSchema.js";
+import cartRouter from "./routers/cartRoutes.js";
 
 
 const app=express();
@@ -58,4 +59,6 @@ app.use("/user",uRouter)
 app.use("/admin",pRouter)
 app.use("/feedback",feedbackRouter)
 app.use("/coupon",cRouter)
+app.use("/cart",cartRouter)
+
 

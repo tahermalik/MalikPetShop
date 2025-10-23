@@ -1,7 +1,4 @@
 working on backend for the user
 
-backend of coupon 
-CRUD Done
-Pagination today
-Auto deletion today
-On clicking the apply button
+backend of coupon ✅
+backend of Cart 

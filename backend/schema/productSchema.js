@@ -13,10 +13,15 @@ const productSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    discount:{
+    discountValue:{
         type:Number,
         required:true,
         match:/^\d+(\.\d+)?$/
+    },
+    discountType:{
+        type:String,
+        default:"percentage",
+        enum:["percentage","flat"]
     },
     originalPrice:{
         type:Number,
