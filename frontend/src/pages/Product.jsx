@@ -76,12 +76,12 @@ const PriceRange = () => {
   );
 };
 
+export const items_flavor = ["tuna", "vegetables", "salmon", "meat", "mackerel", "seafood", "a", "f", "r", "w"]
+export const items_breed = ["mini", "medium", "maxi"]
+export const items_diet = ["veg", "non-veg"]
+export const items_pets = ["cat", "dog", "bird", "hamster", "other"]
+export const items_brands = ["grain zero", "pedigree", "smart heart", "whiskas", "meo", "purepet", "drools", "chappi", "sense", "royal canin", "maxi"]
 function Filter() {
-    const items_flavor = ["tuna", "vegetables", "salmon", "meat", "mackerel", "seafood", "a", "f", "r", "w"]
-    const items_breed = ["Mini", "Medium", "Maxi"]
-    const items_diet = ["VEG", "NON-VEG"]
-    const items_pets = ["Cat", "Dog", "Bird", "Hamster", "Other"]
-    const items_brands = ["Grain Zero", "Pedigree", "Smart Heart", "Whiskas", "Meo", "Purepet", "Drools", "Chappi", "Sense", "Royal Canin", "Maxi"]
 
     const chekcedList = useSelector((state) => state?.filter?.flavorFilter)
     const checkedListBreed = useSelector((state) => state?.filter?.breedFilter)

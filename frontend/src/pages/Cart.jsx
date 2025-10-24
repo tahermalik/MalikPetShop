@@ -4,6 +4,7 @@ import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import axios from "axios"
 import { COUPON_ENDPOINT } from "./endpoints";
 import { useRef } from "react";
+import { useSelector } from "react-redux";
 
 
 export default function CartPage() {
@@ -13,6 +14,7 @@ export default function CartPage() {
   const [coupons, setCoupons] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
   const [loading, setLoading] = useState(false);
+  const userData=useSelector((state)=>state?.user?.userData)
 
   const hadfetched=useRef(false);
   const [cartItems, setCartItems] = useState([
@@ -50,8 +52,12 @@ export default function CartPage() {
     );
   };
 
-  const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  function removeItem(id){
+    if(!userData){
+      setCartItems((prev) => prev.filter((item) => item.id !== id));
+    }else{
+      //// bakcend remove Item will be called
+    }
   };
 
   const subtotal = cartItems.reduce(

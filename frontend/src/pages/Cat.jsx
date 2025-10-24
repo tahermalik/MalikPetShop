@@ -5,6 +5,7 @@ import { useState } from "react";
 
 function CatProduct(props) {
     const dispatch=useDispatch();
+    const userData=useSelector((state)=>state?.user?.userData)
     // const imgCounter=useSelector((state)=>state?.active?.imgCounter)
     const [imgCounter,setImgCounter]=useState(0)
 
@@ -21,6 +22,18 @@ function CatProduct(props) {
         let discuntedPrice = discountCalc(price, discount);
         let totalGrams = netQuantity * 1000;
         return (100 * (discuntedPrice / totalGrams)).toFixed(2)
+    }
+
+    function addToCart(){
+        /////// user is not logged in and still clicking the button add to cart
+        if(!userData){ 
+            //// redux add to cart will be called
+
+        }else{      // user is logged in so backend stuff will be called
+            /// backend add to cart API
+
+        }
+
     }
 
     return (
@@ -42,7 +55,7 @@ function CatProduct(props) {
             </div>
 
             <div className="flex flex-row justify-center items-center h-[15%] w-[100%] rounded-2xl">
-                <button className="flex flex-row justify-center items-center w-[100%] h-[100%] bg-orange-600 rounded-b-2xl cursor-pointer text-white hover:underline" onClick={(e)=>{e.stopPropagation();e.preventDefault();}}>Add to Cart</button>
+                <button className="flex flex-row justify-center items-center w-[100%] h-[100%] bg-orange-600 rounded-b-2xl cursor-pointer text-white hover:underline" onClick={(e)=>{e.stopPropagation();e.preventDefault();addToCart()}}>Add to Cart</button>
             </div>
 
         </div>

@@ -182,140 +182,71 @@ function SmoothUnderline(){
     )
 }
 
+
+export const cat={
+    "cat food":["dry food","wet food","kitten food","veterinary food"],
+    "treats":["biscuits","meat treats","creamy treats","wet treats"],
+    "clothing":["fancy accessories","occassion wears"],
+    "litter & accessories":["ball shaped litters","cat litter trays","sand litter","scoopers"],
+    "toys":["cat nip toys","interactive toys","squeaky toys","steaky toys"],
+    "grooming":["brushes & combs","ceodrants","cloves","nail cutters","powders","shampoo & soaps","towels & wipes"],
+    "cage":["cage"]
+}
+
 function CatStuff() {
     return (
         <div className="flex flex-row gap-10 justify-center w-[100%]">
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Cat Food</span></div>
-                <div className="sm:text-sm">
-                    <div><Link to="/product/cat"><span className="relative group">Dry Food {<SmoothUnderline/>}</span></Link></div>
-                    <div><span className="relative group">Wet Food {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Kitten Food {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Veterinary Food {<SmoothUnderline/>}</span></div>
+            {Object.keys(cat).map((categories) => (
+                <div>
+                    <div className="font-semibold sm:text-md md:text-lg" key={categories}><span>{categories}</span></div>
+                    <div className="sm:text-sm">
+                        {
+                            cat[categories].map((item)=>(
+                                <div key={item}><Link to="/product/cat"><span className="relative group">{item} {<SmoothUnderline/>}</span></Link></div>
+                            ))
+                        }
+                    </div>
                 </div>
-            </div>
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Treats</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Biscuits {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Meat Treats {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group"> Creamy Treats {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Wet Treats {<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Clothing</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Fancy Accessories{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Occassion Wears{<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
-
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Litter & Accessories</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Ball Shaped Litters{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Cat Litter Trays{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Sand Litter{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Scoopers{<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
-
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Toys</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Cat Nip Toys{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Interactive Toys{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Squeaky Toys{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Steaky Toys{<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
-
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Grooming</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Brushes & Combs{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Deodrants{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Gloves{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Nail Cutters{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Powders{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Shampoo & Soaps{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Towels & Wipes{<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
+            ))}
 
         </div>
     )
 }
 
+
+export const dog = {
+  "dog food": ["dry food", "wet food", "puppy food", "veterinary food"],
+  "treats": ["biscuits", "meat treats", "creamy treats", "wet treats"],
+  "clothing": ["t-shirts", "occassion wears", "winter wears", "shoes"],
+  "bedding": ["beds", "blankets", "cooling mats", "cushions"],
+  "toys": ["leather toys", "interactive toys", "squeaky toys", "rope toys", "flush toys"],
+  "grooming": ["brushes & combs", "deodrants", "gloves", "nail cutters", "powders", "shampoo & soaps", "towels & wipes"],
+  "cage":["cage"]
+};
 function DogStuff() {
     return (
         <div className="flex flex-row gap-10 justify-center w-[100%]">
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Dog Food</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Dry Food {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Wet Food {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Puppy Food {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Veterinary Food {<SmoothUnderline/>}</span></div>
+            {Object.keys(dog).map((categories) => (
+                <div>
+                    <div className="font-semibold sm:text-md md:text-lg" key={categories}><span>{categories}</span></div>
+                    <div className="sm:text-sm">
+                        {
+                            dog[categories].map((item)=>(
+                                <div key={item}><Link to="/product/cat"><span className="relative group">{item} {<SmoothUnderline/>}</span></Link></div>
+                            ))
+                        }
+                    </div>
                 </div>
-            </div>
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Treats</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Biscuits{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Meat Treats{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Creamy Treats {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Wet Treats{<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Clothing</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">T-Shirts{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Occassion Wears {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Winter Wears{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Shoes{<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
-
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Bedding</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Beds {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Blankets {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Cooling Mats{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Cushions{<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
-
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Toys</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Leather Toys{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Interactive Toys{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Squeaky Toys {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Rope Toys{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Flush Toys {<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
-
-            <div>
-                <div className="font-semibold sm:text-md md:text-lg"><span>Grooming</span></div>
-                <div className="sm:text-sm">
-                    <div><span className="relative group">Brushes & Combs{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Deodrants{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Gloves{<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Nail Cutters {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Powders {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Shampoo & Soaps {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Towels & Wipes {<SmoothUnderline/>}</span></div>
-                </div>
-            </div>
-
+            ))}
         </div>
     )
 }
+
+export const birds = ["bowls", "cage", "food", "health supplements"];
+export const hamster = ["ball", "cage", "food", "toys"];
+export const rabbit = ["cage", "food", "health supplements"];
+export const turtle = ["food", "health supplements"];
+
 
 function SmallPetStuff() {
     return (
@@ -323,42 +254,47 @@ function SmallPetStuff() {
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Bird</span></div>
                 <div className="sm:text-sm">
-                    <div><span className="relative group">Bowls {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Cage {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Food {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Health Supplements {<SmoothUnderline/>}</span></div>
+                    {
+                        birds.map((item)=>(
+                            <div><span className="relative group">{item} {<SmoothUnderline/>}</span></div>
+                        ))
+                    }
                 </div>
             </div>
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Hamster</span></div>
                 <div className="sm:text-sm">
-                    <div><span className="relative group">Ball {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Cage {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Food {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Toys {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Cage {<SmoothUnderline/>}</span></div>
+                    {
+                        hamster.map((item)=>(
+                            <div><span className="relative group">{item} {<SmoothUnderline/>}</span></div>
+                        ))
+                    }
                 </div>
             </div>
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Rabbit</span></div>
                 <div className="sm:text-sm">
-                    <div><span className="relative group">Food {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Cage {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Health Supplements {<SmoothUnderline/>}</span></div>
+                    {
+                        rabbit.map((item)=>(
+                            <div><span className="relative group">{item} {<SmoothUnderline/>}</span></div>
+                        ))
+                    }
                 </div>
             </div>
 
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Turtle</span></div>
                 <div className="sm:text-sm">
-                    <div><span className="relative group">Food {<SmoothUnderline/>}</span></div>
-                    <div><span className="relative group">Health Supplements {<SmoothUnderline/>}</span></div>
+                    {
+                        turtle.map((item)=>(
+                            <div><span className="relative group">{item} {<SmoothUnderline/>}</span></div>
+                        ))
+                    }
                 </div>
             </div>
         </div>
     )
 }
-
 
 export function Header() {
     const dispatch = useDispatch();

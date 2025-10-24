@@ -11,6 +11,7 @@ import ProductDisplay from "./pages/ProductDisplay";
 import Cart from "./pages/Cart";
 import OfferSection from "./pages/Offer";
 import CouponRuleCreator from "./pages/CoupanManagement";
+import AddProduct from "./pages/addProduct";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/ProductDisplay" element={<ProductDisplay/>}></Route>
           <Route path="/cart" element={<Cart/>}></Route>
           <Route path="/offer" element={<OfferSection/>}></Route>
+          <Route path="/addProduct" element={<AddProduct/>}></Route>
           <Route path="/CouponRuleCreator" element={<CouponRuleCreator/>}></Route>
         </Routes>
       </BrowserRouter>
