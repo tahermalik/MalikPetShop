@@ -56,9 +56,10 @@ app.use(cookieParser())
 app.listen(process.env.PORT_NUM,()=>console.log(`${process.env.PORT_NUM}`))
 
 app.use("/user",uRouter)
-app.use("/admin",pRouter)
+app.use("/product",pRouter)
 app.use("/feedback",feedbackRouter)
 app.use("/coupon",cRouter)
 app.use("/cart",cartRouter)
+
 
 

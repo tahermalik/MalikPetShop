@@ -1,45 +1,54 @@
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
-    name:{
+    productName:{
         type:String,
-        required:true
     },
-    expiry:{
+    expiryDate:{
         type:String,
-        required:true
+        
     },
-    company:{
+    manufactureDate:{
         type:String,
-        required:true
+    },
+    brand:{
+        type:String,
+    },
+    category:{
+        type:String,
+    },
+    type:{
+        type:String,
     },
     discountValue:{
         type:Number,
-        required:true,
         match:/^\d+(\.\d+)?$/
     },
     discountType:{
         type:String,
-        default:"percentage",
-        enum:["percentage","flat"]
+        default:"percent",
+        enum:["percent","flat"]
     },
     originalPrice:{
         type:Number,
-        required:true,
         match:/^\d+(\.\d+)?$/
     },
     netWeight:{
         type:Number,
         match:/^\d+(\.\d+)?$/
     },
-    animal:{
+    pet:{
         type:String,
-        required:true,
         match:/^[A-Za-z]+$/
     },
     stock:{
         type:Number,
-        required:true
+    },
+    breed:{
+        type:String,
+    },
+    diet:{
+        type:String,
     },
 
 
@@ -48,15 +57,10 @@ const productSchema = new mongoose.Schema({
         type:String,
         match:/^[A-Za-z]+$/
     },
-    ingredients:{
-        type:Array
-    },
-
 
     //// cloth schema
     size:{
-        type:String,
-        match:/^[A-Za-z]+$/
+        type:Number,
     },
     color:{
         type:String,

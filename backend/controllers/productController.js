@@ -3,11 +3,32 @@ import Product from "../schema/productSchema.js";
 
 export async function addProduct(req,res){
     try{
-        const {name,originalPrice,company,expiry,discountValue,netWeight,animal,stock}=req.body
+        console.log("inside add Product")
+        const productData=req.body
 
-        if(!name || !originalPrice || !company || !expiry || !discountValue || !netWeight || !animal || !stock){
-            return res.status(400).json({message:"All the fields are mandatory"})
-        }
+        const {
+            pet,
+            category,
+            type,
+            flavor,
+            breed,
+            diet,
+            brand,
+            productName,
+            originalPrice,
+            netWeight,
+            discountValue,
+            discountType,
+            stock,
+            color,
+            material,
+            size,
+            height,
+            length,
+            width,
+            expiryDate,
+            manufactureDate
+        } = productData;
 
         const number_regex=/^\d+(\.\d+)?$/
 
@@ -21,35 +42,40 @@ export async function addProduct(req,res){
             return res.status(400).json({message:"only numbers are allowed"})
         }
 
-
-        const string_regex=/^[A-Za-z]+$/
-        if(!string_regex.test(animal)){
-            return res.status(400).json({message:"only letter are allowed in animal"})
-        }
-
-
+        
         //// identifying the product uniquely on the basis of name, netWeight and company
-        const product_db=await Product.findOne({name:name,netWeight:Number(netWeight),company:company})
+        const product_db=await Product.findOne({productName:productName,netWeight:Number(netWeight),brand:brand})
 
         if(product_db){
+            // console.log("Product is already there in the DB")
             return res.status(409).json({message:"Product is already there in the DB"})
         }
 
         const product=await Product.create({
-            name:name,
+            productName:productName,
             originalPrice:Number(originalPrice),
-            company:company,
+            brand:brand,
+            category:category,
+            type:type,
+            flavor:flavor,
+            discountType:discountType,
+            breed:breed,
+            diet:diet,
             discountValue:Number(discountValue),
-            expiry:expiry,
+            expiryDate:expiryDate,
+            manufactureDate:manufactureDate,
             netWeight:Number(netWeight),
-            animal:animal,
-            stock:stock
+            pet:pet,
+            stock:stock,
+            height:Number(height),
+            width:Number(width),
+            length:Number(length),
+            color:color,
+            size:Number(size),
+            material:material
         })
 
         return res.status(201).json({message:"Product successfully added into the DB"})
-
-
-
 
     }catch(error){
         console.log("wrong in addProduct",error)

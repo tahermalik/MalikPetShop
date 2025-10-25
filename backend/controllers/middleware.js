@@ -41,6 +41,7 @@ export async function findProduct(req,res,next){
 
 export async function authenticateAdmin(req,res,next){
     try{
+        console.log("Inside authenticate admin")
         const token=req.cookies?.token;
         if(!token){
             return res.status(401).json({message:"No token found"})
