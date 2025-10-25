@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { Upload } from "lucide-react";
+import { Upload } from "lucide-react";``
 import Select from "react-select";
 import { cat ,dog,hamster,birds,turtle,rabbit} from "./LandingPage";
 import { items_flavor,items_brands,items_breed,items_diet } from "./Product";
+import { PRODUCT_ENDPOINTS } from "./endpoints";
 
 export default function AddProduct() {
   const [path,setPath]=useState(
@@ -26,7 +27,9 @@ export default function AddProduct() {
       size:"",
       height:"",
       length:"",
-      width:""
+      width:"",
+      manufactureDate:"",
+      expiryDate:""
     }
   ) // to know what the admin has selected
   const optionPets = [
@@ -139,11 +142,20 @@ export default function AddProduct() {
       size:"",
       height:"",
       length:"",
-      width:""
+      width:"",
+      manufactureDate:"",
+      expiryDate:""
     });
     setOptionsCategory([]);
     setOptionsType([]);
   }
+
+  async function handleSubmit(){
+    const res=await axios.post(`${PRODUCT_ENDPOINTS}/addProduct`,path,{withCredentials:true})
+    console.log(res)
+
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-6">
       <motion.div
@@ -162,6 +174,7 @@ export default function AddProduct() {
                 placeholder="Select Pet"
                 styles={customStyles}
                 value={options.find(o => o.value === path.pet) || null}
+                required
             />
 
             <Select
@@ -170,6 +183,7 @@ export default function AddProduct() {
                 placeholder="Select Product Category"
                 styles={customStyles}
                 value={optionsCategory?.find(o => o.value === path.category) || null}
+                required
             />
 
             {(path["pet"]==="cat" || path["pet"]==="dog") && <Select
@@ -178,6 +192,7 @@ export default function AddProduct() {
                 placeholder="Select Product Type"
                 styles={customStyles}
                 value={optionsType?.find(o => o.value === path.type) || null}
+                required
             />
             }
 
@@ -187,6 +202,7 @@ export default function AddProduct() {
                 placeholder="Select Product Flavor"
                 styles={customStyles}
                 value={optionsFlavor?.find(o => o.value === path.flavor) || null}
+                required
             />
             }
 
@@ -196,6 +212,7 @@ export default function AddProduct() {
                 placeholder="Select Breed"
                 styles={customStyles}
                 value={optionsBreed?.find(o => o.value === path.breed) || null}
+                required
             />
             }
 
@@ -205,6 +222,7 @@ export default function AddProduct() {
                 placeholder="Select Veg/Non-Veg"
                 styles={customStyles}
                 value={optionsDiet?.find(o => o.value === path.diet) || null}
+                required
             />
             }
 
@@ -214,32 +232,42 @@ export default function AddProduct() {
                 placeholder="Select Brand"
                 styles={customStyles}
                 value={optionsBrand?.find(o => o.value === path.brand) || null}
+                required
             />
 
             <div className="border border-blue-500 rounded-xl p-2">
               <div className="text-blue-700 mb-2 underline">Product Details</div>
               <div className="productInfo w-full h-auto grid grid-cols-3 items-center gap-x-4 gap-y-4">
-                <div className="flex justify-center"><input type="text" name="" id="" placeholder="Name of the product" value={path.productName} onChange={(e) => setPath({...path, productName: e.target.value})} className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
-                <div className="flex justify-center"><input type="Number" name="" id="" placeholder="MRP" value={path.originalPrice} onChange={(e) => setPath({...path, originalPrice: e.target.value})} className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
-                <div className="flex justify-center"><input type="Number" name="" id="" placeholder="Net Weight in KG" value={path.netWeight} onChange={(e) => setPath({...path, netWeight: e.target.value})}  className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
-                <div className="flex justify-center"><input type="Number" name="" id="" placeholder="Discount Value" value={path.discountValue} onChange={(e) => setPath({...path, discountValue: e.target.value})}  className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="text" name="" id="" placeholder="Name of the product" value={path.productName} onChange={(e) => setPath({...path, productName: e.target.value})} className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="MRP" value={path.originalPrice} onChange={(e) => setPath({...path, originalPrice: e.target.value})} className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Net Weight in KG" value={path.netWeight} onChange={(e) => setPath({...path, netWeight: e.target.value})}  className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Discount Value" value={path.discountValue} onChange={(e) => setPath({...path, discountValue: e.target.value})}  className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
                 <Select
                   options={[{label:"percent",value:"percent"},{label:"flat",value:"flat"}]}
                   onChange={(e)=>handleDiscountType(e.label)}
                   placeholder="Select Discount Type"
                   styles={customStyles}
                   value={[{label:"percent",value:"percent"},{label:"flat",value:"flat"}]?.find(o => o.value === path.discountType) || null}
+                  required
                 />
-                <div className="flex justify-center"><input type="Number" name="" id="" placeholder="Enter the Quantity" value={path.stock} onChange={(e) => setPath({...path, stock: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Enter the Quantity" value={path.stock} onChange={(e) => setPath({...path, stock: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex flex-col justify-center">
+                  <label htmlFor="manufactureDate" className="text-blue-500 text-sm ">Manufacture Date</label>
+                  <input required type="date" id="manufactureDate" value={path.manufactureDate} onChange={(e) => setPath({ ...path, manufactureDate: e.target.value })} className="peer border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/>
+                </div>
+                <div className="flex flex-col justify-center">
+                  <label htmlFor="expiryDate" className="text-blue-500 text-sm ">Expiry Date</label>
+                  <input required type="date" id="expiryDate" value={path.expiryDate} onChange={(e) => setPath({ ...path, expiryDate: e.target.value })} className="peer border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/>
+                </div>
               </div>
             </div>
 
             {path["category"]==="clothing" && <div className="border border-blue-500 rounded-xl p-2">
               <div className="text-blue-700 mb-2 underline">Cloth Details</div>
               <div className="productInfo w-full h-auto grid grid-cols-3 items-center gap-x-4 gap-y-4">
-                <div className="flex justify-center"><input type="Number" name="" id="" placeholder="Size in CM" value={path.size} onChange={(e) => setPath({...path, size: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
-                <div className="flex justify-center"><input type="text" name="" id="" placeholder="Color"  value={path.color} onChange={(e) => setPath({...path, color: e.target.value})}  className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
-                <div className="flex justify-center"><input type="text" name="" id="" placeholder="Material" value={path.material} onChange={(e) => setPath({...path, material: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Size in CM" value={path.size} onChange={(e) => setPath({...path, size: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="text" name="" id="" placeholder="Color"  value={path.color} onChange={(e) => setPath({...path, color: e.target.value})}  className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="text" name="" id="" placeholder="Material" value={path.material} onChange={(e) => setPath({...path, material: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
               </div>
             </div>
             }
@@ -247,17 +275,16 @@ export default function AddProduct() {
             {path["category"]==="cage" && <div className="border border-blue-500 rounded-xl p-2">
               <div className="text-blue-700 mb-2 underline">Cage Details</div>
               <div className="productInfo w-full h-auto grid grid-cols-3 items-center gap-x-4 gap-y-4">
-                <div className="flex justify-center"><input type="Number" name="" id="" placeholder="Length" value={path.length} onChange={(e) => setPath({...path, length: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
-                <div className="flex justify-center"><input type="Number" name="" id="" placeholder="Width" value={path.width} onChange={(e) => setPath({...path, width: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
-                <div className="flex justify-center"><input type="Number" name="" id="" placeholder="Height" value={path.height} onChange={(e) => setPath({...path, height: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Length" value={path.length} onChange={(e) => setPath({...path, length: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Width" value={path.width} onChange={(e) => setPath({...path, width: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
+                <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Height" value={path.height} onChange={(e) => setPath({...path, height: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
               </div>
             </div>
             }
 
             <div className="flex w-full justify-end gap-2">
-              <button className="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors duration-200">Submit</button>
+              <button type="submit" onClick={()=>handleSubmit()} className="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors duration-200">Submit</button>
               <button type="button" onClick={()=>handleReset()} className="border border-gray-400 text-gray-700 font-semibold px-6 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">Reset</button>
-
             </div>
         </form>
       </motion.div>
