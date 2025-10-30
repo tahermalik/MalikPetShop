@@ -6,6 +6,9 @@ const userSlice = createSlice({
     userData:null,categoryState:false, upperHeader:false
   },
   reducers: {
+    setUserData:(state,action)=>{
+      state.userData=action.payload
+    },
     setCategoryState:(state)=>{
         state.categoryState=!state.categoryState
     },
@@ -15,5 +18,5 @@ const userSlice = createSlice({
   }
 })
 
-export const { setCategoryState ,setUpperHeader} = userSlice.actions;
+export const { setCategoryState ,setUpperHeader,setUserData} = userSlice.actions;
 export default userSlice.reducer;

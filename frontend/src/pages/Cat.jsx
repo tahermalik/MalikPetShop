@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from "react-redux"
 import { Link } from "react-router-dom"
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useGetAllProduct } from "../hooks/useGetAllProducts.js";
 
 
 function CatProduct(props) {
@@ -40,16 +41,16 @@ function CatProduct(props) {
         // initially setting 0th product to be displayed whicle clicking on the product
         <div className="w-[250px] h-[450px] bg-white flex flex-col rounded-2xl hover:shadow-lg">
             <div className="sm:text-[13px] bg-emerald-100 h-[5%] w-[100%] rounded-t-2xl p-1">Extra <span className="font-sans">5%</span> discount , use the code <span className="font-semibold">MPSCH</span></div>
-            <div className="h-[40%] w-[100%]"><img className="h-[100%] w-[100%] object-contain" src={`/${props.imagesArray[imgCounter]}`} alt={`${props.imagesArray[imgCounter]}`} /></div>
-            <div className="flex flex-col justify-evenly h-[40%] w-[100%]">
-                <div className="product-data line-clamp-3 w-[100%]">Lorem ipsum dolor sit amet consectetur adipisicing elit. Provident, dolores.</div>
-                <div className="price font-sans"><span className="font-sans sm:text-lg lg:text-xl">&#8377;</span>{discountCalc(props.originalPriceArray[imgCounter],props.discountArray[imgCounter])} <span className="font-sans sm:text-sm">(&#8377;{gramAmountCalc(props.originalPriceArray[imgCounter],props.discountArray[imgCounter],props.netQuantityArray[imgCounter])}/100g)</span> <p><span className="line-through font-sans sm:text-sm">&#8377;{props.originalPriceArray[imgCounter]}</span> <span className="sm:text-sm">Discount {props.discountArray[imgCounter]}%</span></p></div>
+            <div className="h-[40%] w-[100%] pl-0.5 pr-0.5"><img className="h-[100%] w-[100%] object-contain" src={`http://localhost:3000/${props.imagesArray[imgCounter]}`} alt={`${props.imagesArray[imgCounter]}`} /></div>
+            <div className="flex flex-col justify-evenly h-[40%] w-[100%] pl-1 pr-1">
+                <div className="product-data line-clamp-3 w-[100%]">{props.productName}</div>
+                <div className="price font-sans"><span className="font-sans sm:text-lg lg:text-xl">&#8377;</span>{discountCalc(props.originalPriceArray[imgCounter],props.discountArray[imgCounter])} <span className="font-sans sm:text-sm">(&#8377;{gramAmountCalc(props.originalPriceArray[imgCounter],props.discountArray[imgCounter],props.netWeightArray[imgCounter])}/100g)</span> <p><span className="line-through font-sans sm:text-sm">&#8377;{props.originalPriceArray[imgCounter]}</span> <span className="sm:text-sm">Discount {props.discountArray[imgCounter]}%</span></p></div>
                 <div className="flex flex-row gap-1 font-sans text-[10px]">
-                    {props.netQuantityArray.map((offer, index) => (
+                    {props.netWeightArray.map((offer, index) => (
                         <div className={`border border-black flex flex-row justify-center items-center px-1 py-0.2 font-semibold cursor-pointer hover:underline ${imgCounter===index? "border-2 border-orange-400":""}`} onClick={(e)=>{
                             setImgCounter(index);
                             e.stopPropagation();
-                            e.preventDefault()}}>{props.netQuantityArray[index]} kg</div>
+                            e.preventDefault()}}>{props.netWeightArray[index]} kg</div>
                     ))}
                 </div>
             </div>
@@ -62,24 +63,6 @@ function CatProduct(props) {
     )
 }
 export default function Cat() {
-
-    /// this is the array which we are going to recevice via backend by using axios
-    const netQuantityArray = ["2", "4", "7", "15", "20"]; /// receving in Kg
-    const originalPriceArray = ["200", "300", "400", "500", "600"];
-    const discountArray = ["10", "5", "15", "20", "10"]
-    const imagesArray = ["pedigree.jpg", "photo_21.jpg", "smartheart.jpg", "whiskas_product.jpg", "whiskas.jpg"]
-
-
-    return (
-        <>
-            <Link to="/ProductDisplay"><CatProduct imagesArray={imagesArray} netQuantityArray={netQuantityArray} originalPriceArray={originalPriceArray} discountArray={discountArray}/></Link>
-            <CatProduct imagesArray={imagesArray} netQuantityArray={netQuantityArray} originalPriceArray={originalPriceArray} discountArray={discountArray}/>
-            <CatProduct imagesArray={imagesArray} netQuantityArray={netQuantityArray} originalPriceArray={originalPriceArray} discountArray={discountArray}/>
-            <CatProduct imagesArray={imagesArray} netQuantityArray={netQuantityArray} originalPriceArray={originalPriceArray} discountArray={discountArray}/>
-            <CatProduct imagesArray={imagesArray} netQuantityArray={netQuantityArray} originalPriceArray={originalPriceArray} discountArray={discountArray}/>
-            <CatProduct imagesArray={imagesArray} netQuantityArray={netQuantityArray} originalPriceArray={originalPriceArray} discountArray={discountArray}/>
-            <CatProduct imagesArray={imagesArray} netQuantityArray={netQuantityArray} originalPriceArray={originalPriceArray} discountArray={discountArray}/>
-            <CatProduct imagesArray={imagesArray} netQuantityArray={netQuantityArray} originalPriceArray={originalPriceArray} discountArray={discountArray}/>
-        </>
-    )
+    //// this array i will get from backend
+    
 }

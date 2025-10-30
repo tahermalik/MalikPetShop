@@ -4,12 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCategoryState, setUpperHeader } from "../redux/slices/userSlice";
 import { RiArrowDropDownLine, RiArrowDropUpLine, RiTwitterXLine } from "react-icons/ri";
 import { FaWhatsapp, FaInstagram, FaFacebook } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { HiHeart, HiOutlineMail } from "react-icons/hi";
 import { FaPhoneAlt, FaRegHeart, FaUser } from "react-icons/fa";
 import { IoIosContact } from "react-icons/io";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { setHeaderHight } from "../redux/slices/layoutSlice";
+import { setPets, setTypeFilter } from "../redux/slices/filterSlice";
 
 
 function Brands(props) {
@@ -26,66 +27,6 @@ function Brands(props) {
                 <div className="h-[100%] w-[30%] flex flex-row justify-center items-center text-[#212121]"><span className="xs:text-md md:text-lg lg:text-2xl">{props.info}</span></div>
             </div>
         </div>
-    )
-}
-
-//////
-function ManualBrandSlider() {
-    const [activeSlide, setActiveSlide] = useState(0);
-    const startX = useRef(0);
-    const isDragging = useRef(false);
-
-    const slides = [
-        <Brands brand="pedigree" info="Pedigree is not just about origin, it’s about the excellence that carries forward." color="yellow" />,
-        <Brands brand="whiskas" info="Whiskas: Because every cat deserves a taste of joy." color="purple" />,
-        <Brands brand="smartheart" info="SmartHeart: Smart food for a happy heart." color="blue" />,
-    ];
-
-
-    //////// syntax for manual slider
-    const handleMouseDown = (e) => {
-        isDragging.current = true;
-        startX.current = e.clientX;
-    };
-
-    const handleMouseMove = (e) => {
-        if (!isDragging.current) return;
-        const diff = e.clientX - startX.current;
-        if (Math.abs(diff) > 50) {
-            if (diff < 0)
-                setActiveSlide((prev) => (prev + 1) % slides.length);
-            else
-                setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
-            startX.current = e.clientX;
-        }
-    };
-
-    const handleMouseUp = () => (isDragging.current = false);
-
-    //  syntax for automatic slider
-
-
-
-    return (
-        <div
-            className="relative w-full h-[600px] select-none cursor-grab overflow-x-hidden bg-blue-300"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-        >
-            <div
-                className="flex transition-transform duration-500 ease-in-out h-full w-[100%] bg-orange-500"
-                style={{ transform: `translateX(-${activeSlide * 100}%)` }}
-            >
-                {slides.map((slide, index) => (
-                    <div key={index} className="w-[100%] flex-shrink-0 bg-purple-500">
-                        {slide}
-                    </div>
-                ))}
-            </div>
-        </div>
-
     )
 }
 
@@ -194,6 +135,7 @@ export const cat={
 }
 
 function CatStuff() {
+    const dispatch=useDispatch()
     return (
         <div className="flex flex-row gap-10 justify-center w-[100%]">
             {Object.keys(cat).map((categories) => (
@@ -202,7 +144,7 @@ function CatStuff() {
                     <div className="sm:text-sm">
                         {
                             cat[categories].map((item)=>(
-                                <div key={item}><Link to="/product/cat"><span className="relative group">{item} {<SmoothUnderline/>}</span></Link></div>
+                                <div key={item}><Link to="/product"><span className="relative group" onClick={()=>{dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></Link></div>
                             ))
                         }
                     </div>
@@ -232,7 +174,7 @@ function DogStuff() {
                     <div className="sm:text-sm">
                         {
                             dog[categories].map((item)=>(
-                                <div key={item}><Link to="/product/cat"><span className="relative group">{item} {<SmoothUnderline/>}</span></Link></div>
+                                <div key={item}><Link to="/product"><span className="relative group" onClick={()=>{dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></Link></div>
                             ))
                         }
                     </div>
@@ -249,6 +191,7 @@ export const turtle = ["food", "health supplements"];
 
 
 function SmallPetStuff() {
+    const dispatch=useDispatch()
     return (
         <div className="flex flex-row gap-10 justify-center w-[100%]">
             <div>
@@ -256,7 +199,7 @@ function SmallPetStuff() {
                 <div className="sm:text-sm">
                     {
                         birds.map((item)=>(
-                            <div><span className="relative group">{item} {<SmoothUnderline/>}</span></div>
+                            <div><span className="relative group" onClick={()=>{dispatch(setPets("bird")); dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></div>
                         ))
                     }
                 </div>
@@ -266,7 +209,7 @@ function SmallPetStuff() {
                 <div className="sm:text-sm">
                     {
                         hamster.map((item)=>(
-                            <div><span className="relative group">{item} {<SmoothUnderline/>}</span></div>
+                            <div><span className="relative group" onClick={()=>{dispatch(setPets("hamster")); dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></div>
                         ))
                     }
                 </div>
@@ -276,7 +219,7 @@ function SmallPetStuff() {
                 <div className="sm:text-sm">
                     {
                         rabbit.map((item)=>(
-                            <div><span className="relative group">{item} {<SmoothUnderline/>}</span></div>
+                            <div><span className="relative group" onClick={()=>{dispatch(setPets("rabbit")); dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></div>
                         ))
                     }
                 </div>
@@ -287,7 +230,7 @@ function SmallPetStuff() {
                 <div className="sm:text-sm">
                     {
                         turtle.map((item)=>(
-                            <div><span className="relative group">{item} {<SmoothUnderline/>}</span></div>
+                            <div><span className="relative group" onClick={()=>{dispatch(setPets("turtle")); dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></div>
                         ))
                     }
                 </div>
@@ -302,6 +245,7 @@ export function Header() {
     const showUpperHeader = useSelector((state) => state?.user?.upperHeader) // initally going to be false
     const [data, setData] = useState("cat")
     const [showDetails,setShowDetails]=useState("user")
+    const navigate=useNavigate()
 
     const headerRef = useRef(null);
 
@@ -309,6 +253,7 @@ export function Header() {
         const parentDiv=e.currentTarget;
         const firstChildDiv=parentDiv.querySelector("div:first-child")
         setData(firstChildDiv.textContent.toLowerCase())
+        dispatch(setPets(firstChildDiv.textContent.toLowerCase()))
         if (!show) dispatch(setCategoryState())
     }
 
@@ -354,6 +299,16 @@ export function Header() {
         };
     }, [show, dispatch, showUpperHeader]);
 
+    const [query,setQuery]=useState("");
+
+    function handleKeyDown(e){
+        if(e.key==="Enter"){
+            navigate("/product", { state: { query:query, data:"search" } });
+        }
+    }
+
+
+
     return (
         <>
             <div ref={headerRef} className="header flex flex-col h-[100px]  w-[100%] gap-0 sticky top-0 z-2 bg-[#E3F2FD]">
@@ -370,7 +325,10 @@ export function Header() {
                             <img src="/search_logo.svg" alt="search_icon" />
                         </div>
                         <div className="search_bar w-[100%]">
-                            <input className="w-[100%] h-[100%] outline-0 placeholder: xs:text-xs placeholder:sm:text-sm placeholder:md:text-md placeholder:lg:text-lg" type="text" placeholder="Search for more then 100 products" />
+                            <input className="w-[100%] h-[100%] outline-0 placeholder: xs:text-xs placeholder:sm:text-sm placeholder:md:text-md placeholder:lg:text-lg" type="text" placeholder="Search for more then 100 products" 
+                            onChange={(e)=>setQuery(e.target.value)}
+                            onKeyDown={(e)=>handleKeyDown(e)}
+                            />
                         </div>
                     </div>
                     <div className="r-upper-header flex flex-row justify-evenly items-center gap-4">

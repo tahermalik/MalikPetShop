@@ -10,6 +10,8 @@ import cors from "cors";
 import cron from "node-cron";
 import Coupon from "./schema/couponSchema.js";
 import cartRouter from "./routers/cartRoutes.js";
+import { fileURLToPath } from "url";
+import path from "path"
 
 
 const app=express();
@@ -17,6 +19,11 @@ app.use(cors({
   origin: "http://localhost:5173",  // your React frontend URL
   credentials: true                 // if you use cookies or auth
 }));
+
+// ✅ Serve static images
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 dotenv.config({
     path:"../.env"

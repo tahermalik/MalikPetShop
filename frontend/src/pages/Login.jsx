@@ -1,10 +1,65 @@
+import axios from "axios";
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { USER_ENDPOINTS } from "./endpoints";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { setCategoryState, setUpperHeader, setUserData } from "../redux/slices/userSlice";
 
 function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const location= useLocation();
   const {user}=location.state; /// user will either be normal user or the admin
+  const [username,setUserName]=useState("")
+  const [email,setEMail]=useState("")
+  const [password,setPassword]=useState("")
+  const [confirmPassword,setConfirmPassword]=useState("");
+  const navigate=useNavigate()
+  const dispatch=useDispatch()
+  const upperHeader=useSelector((state)=>state?.user?.upperHeader)
+  const categoryState=useSelector((state)=>state?.user?.categoryState)
+
+  async function loginUser(){
+    try{
+      const res= await axios.post(`${USER_ENDPOINTS}/login/${user}`,{email:email,password:password},{withCredentials:true})
+      let result=res?.data?.bool
+      // console.log(result)
+      if(result){
+        dispatch(setUserData(res?.data?.user))
+        if(upperHeader===true) dispatch(setUpperHeader())
+        if(categoryState===true) dispatch(setCategoryState())
+        navigate("/")
+      }
+    }catch(error){
+      console.log("Wrong in user login")
+    }
+
+  }
+
+  async function registerUser(){
+    try{
+
+      if(password!==confirmPassword){
+        console.log(password,confirmPassword)
+        console.log("both password and its confirmation should be same")
+      }else{
+        const res= await axios.post(`${USER_ENDPOINTS}/register`,{email:email,password:password,username:username},{withCredentials:true})
+        // console.log(res)
+        let result=res?.data?.bool
+        if(result){
+          if(upperHeader===true) dispatch(setUpperHeader())
+          if(categoryState===true) dispatch(setCategoryState())
+          setIsLoginMode(true)
+          setUserName("")
+          setEMail("")
+          setPassword("")
+          setConfirmPassword("")
+        }
+      }
+    }catch(error){
+      console.log("Wrong in user register")
+    }
+  }
   
   return (
     <div className="grid w-screen h-screen place-items-center bg-blue-200">
@@ -51,6 +106,8 @@ function Login() {
               type="text"
               placeholder="Name"
               required
+              value={username}
+              onChange={(e)=>setUserName(e.target.value)}
               className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
             />
           )}
@@ -60,12 +117,16 @@ function Login() {
             type="email"
             placeholder="Email Address"
             required
+            value={email}
+            onChange={(e)=>setEMail(e.target.value)}
             className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
           />
           <input
             type="password"
             placeholder="Password"
             required
+            value={password}
+            onChange={(e)=>setPassword(e.target.value)}
             className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
           />
 
@@ -75,6 +136,8 @@ function Login() {
               type="password"
               placeholder="Confirm Password"
               required
+              value={confirmPassword}
+              onChange={(e)=>setConfirmPassword(e.target.value)}
               className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
             />
           )}
@@ -89,7 +152,8 @@ function Login() {
           )}
 
           {/* shared button  */}
-          <button className="w-full p-3 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 text-white rounded-full text-lg font-medium hover:opacity-90 transition cursor-pointer">
+          <button type="button" className="w-full p-3 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 text-white rounded-full text-lg font-medium hover:opacity-90 transition cursor-pointer"
+            onClick={(e)=>{e.preventDefault();isLoginMode ? loginUser():registerUser()}}>
             {isLoginMode ? "Login" : "Signup"}
           </button>
 

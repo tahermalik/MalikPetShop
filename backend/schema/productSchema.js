@@ -5,11 +5,10 @@ const productSchema = new mongoose.Schema({
         type:String,
     },
     expiryDate:{
-        type:String,
-        
+        type:[String],
     },
     manufactureDate:{
-        type:String,
+        type:[String],
     },
     brand:{
         type:String,
@@ -21,28 +20,25 @@ const productSchema = new mongoose.Schema({
         type:String,
     },
     discountValue:{
-        type:Number,
-        match:/^\d+(\.\d+)?$/
+        type:[Number],
     },
     discountType:{
-        type:String,
-        default:"percent",
+        type:[String],
+        default:["percent"],
         enum:["percent","flat"]
     },
     originalPrice:{
-        type:Number,
-        match:/^\d+(\.\d+)?$/
+        type:[Number],
     },
     netWeight:{
-        type:Number,
-        match:/^\d+(\.\d+)?$/
+        type:[Number],
     },
     pet:{
         type:String,
         match:/^[A-Za-z]+$/
     },
     stock:{
-        type:Number,
+        type:[Number],
     },
     breed:{
         type:String,
@@ -50,12 +46,21 @@ const productSchema = new mongoose.Schema({
     diet:{
         type:String,
     },
+    image:{
+        type:[String],
+    },
+
+    ///// Every product will have its own String so that they can be serached by the humans
+    productString:{
+        type:String
+    },
 
 
     /// snack schema
     flavor:{
         type:String,
-        match:/^[A-Za-z]+$/
+        match:/^[A-Za-z]+$/,
+        required:false
     },
 
     //// cloth schema
@@ -76,16 +81,16 @@ const productSchema = new mongoose.Schema({
     /// cage schema
     length:{
         type:Number,
-        match:/^\d+(\.\d+)?$/
+        min:0
         
     },
     width:{
         type:Number,
-        match:/^\d+(\.\d+)?$/
+        min:0
     },
     height:{
         type:Number,
-        match:/^\d+(\.\d+)?$/
+        min:0
     }
 
 },{timestamps:true})

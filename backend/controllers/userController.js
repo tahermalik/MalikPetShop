@@ -8,22 +8,25 @@ export async function login(req, res) {
     try {
         console.log("in this login component")
         const {email,password}=req.body;
-        const role=req.params?.role;
+        const role=req.params?.role || "user";
+
+        console.log("role",role)
+        
         if(!email || !password){
-            return res.status(400).json({message:"All the fields are mandatory"});
+            return res.status(400).json({message:"All the fields are mandatory",bool:false});
         }
 
         const user=await User.findOne({email:email})
         if(!user){
-            return res.status(400).json({message:"either email or password is not correct"});
+            return res.status(400).json({message:"either email or password is not correct",bool:false});
         }
 
         const isMatch=await bcrypt.compare(password,user.password);
         if(!isMatch){
-            return res.status(400).json({message:"either email or password is not correct"});
+            return res.status(400).json({message:"either email or password is not correct",bool:false});
         }
 
-        if(user.role!==role) return res.status(400).json({message:"either email or password is not correct"});
+        if(user.role!==role) return res.status(400).json({message:"either email or password is not correct",bool:false});
 
         //// if the code is reached till here that user is genuine
         const token = jwt.sign(
@@ -31,10 +34,10 @@ export async function login(req, res) {
             process.env.JWT_SECRET,
             { expiresIn: "1h" } // token valid for 1 hour
         );
-        return res.status(200).cookie("token",token,{httpOnly:true,sameSite:"None",maxAge: 3600000}).json({ message: `login ${user.username}` })
+        return res.status(200).cookie("token",token,{httpOnly:true,sameSite:"None",maxAge: 3600000}).json({ message: `login ${user.username}`,bool:true,user:user })
     } catch (error) {
         console.log("wrong in login", error)
-        return res.status(500).json({message:"something wrong at the server side"})
+        return res.status(500).json({message:"something wrong at the server side",bool:false})
     }
 }
 
@@ -47,17 +50,17 @@ export async function register(req, res) {
 
         // if any data comes null
         if (!username || !email || !password) {
-            return res.status(400).json({ message: "All fields are required" });
+            return res.status(400).json({ message: "All fields are required" ,bool:false});
         }
 
         const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
         if (!emailRegex.test(email)) {
-            return res.status(400).json({ message: "Invalid email format" });
+            return res.status(400).json({ message: "Invalid email format" ,bool:false});
         }
 
         let user = await User.findOne({ email: email });
         if (user) {
-            return res.status(400).json({ message: "user already is registered" })
+            return res.status(400).json({ message: "user already is registered" ,bool:false})
         }
 
         const hash_password = await bcrypt.hash(password, 10);
@@ -68,10 +71,10 @@ export async function register(req, res) {
             role:"user"
         })
 
-        return res.status(201).json({ message: `hello  ${username} register done` })
+        return res.status(201).json({ message: `hello  ${username} register done`,bool:true })
     } catch (error) {
         console.log("wrong in register", error)
-        return res.status(500).json({message:"error at the server side"})
+        return res.status(500).json({message:"error at the server side",bool:false})
     }
 }
 

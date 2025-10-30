@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const filterSlice = createSlice({
   name: "filter",
   initialState: {
-    flavorFilter:[],breedFilter:[],diet:[],pets:[],brands:[]
+    flavorFilter:[],breedFilter:[],diet:[],pet:"",brandsFilter:[],typeFilter:"",
   },
   reducers: {
     setFlavor:(state,action)=>{
@@ -22,17 +22,18 @@ const filterSlice = createSlice({
       }else state.diet.push(action.payload)
     },
     setPets:(state,action)=>{
-      if(state.pets.includes(action.payload)){
-        state.pets=state.pets.filter(item=>item!==action.payload)
-      }else state.pets.push(action.payload)
+      state.pet=action.payload
     },
     setBrands:(state,action)=>{
-      if(state.brands.includes(action.payload)){
-        state.brands=state.brands.filter(item=>item!==action.payload)
-      }else state.brands.push(action.payload)
+      if(state.brandsFilter.includes(action.payload)){
+        state.brandsFilter=state.brandsFilter.filter(item=>item!==action.payload)
+      }else state.brandsFilter.push(action.payload)
+    },
+    setTypeFilter:(state,action)=>{
+      state.typeFilter=action.payload
     }
   }
 })
 
-export const { setFlavor,setBreed,setDiet,setPets,setBrands} = filterSlice.actions;
+export const { setFlavor,setBreed,setDiet,setPets,setBrands,setTypeFilter} = filterSlice.actions;
 export default filterSlice.reducer;

@@ -148,13 +148,48 @@ export default function AddProduct() {
     });
     setOptionsCategory([]);
     setOptionsType([]);
+
+    /// to reset the image
+    setImage(null)
+    setPreview(null)
   }
 
-  async function handleSubmit(){
-    const res=await axios.post(`${PRODUCT_ENDPOINTS}/addProduct`,path,{withCredentials:true})
-    console.log(res)
+  async function handleSubmit(e){
+    e.preventDefault();
+
+    try{
+      const formData = new FormData();
+
+      Object.keys(path).forEach((key) => {
+        formData.append(key, path[key]);
+      });
+
+      if(image){
+        formData.append("image", image);
+      }else{
+        console.log("Upload the product image")
+        return
+      } 
+      const res=await axios.post(`${PRODUCT_ENDPOINTS}/addProduct`,formData,{withCredentials:true,headers:{"Content-Type":"multipart/form-data"}})
+      console.log(res)
+
+
+    }catch(error){
+      console.log("error occured in add Product in frontend")
+    }
 
   }
+
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+
+  const handleChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-6">
@@ -237,7 +272,7 @@ export default function AddProduct() {
 
             <div className="border border-blue-500 rounded-xl p-2">
               <div className="text-blue-700 mb-2 underline">Product Details</div>
-              <div className="productInfo w-full h-auto grid grid-cols-3 items-center gap-x-4 gap-y-4">
+              <div className="productInfo w-full h-auto grid grid-cols-1 sm:grid-cols-3 items-center gap-x-4 gap-y-4">
                 <div className="flex justify-center"><input required type="text" name="" id="" placeholder="Name of the product" value={path.productName} onChange={(e) => setPath({...path, productName: e.target.value})} className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
                 <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="MRP" value={path.originalPrice} onChange={(e) => setPath({...path, originalPrice: e.target.value})} className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
                 <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Net Weight in KG" value={path.netWeight} onChange={(e) => setPath({...path, netWeight: e.target.value})}  className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
@@ -264,7 +299,7 @@ export default function AddProduct() {
 
             {path["category"]==="clothing" && <div className="border border-blue-500 rounded-xl p-2">
               <div className="text-blue-700 mb-2 underline">Cloth Details</div>
-              <div className="productInfo w-full h-auto grid grid-cols-3 items-center gap-x-4 gap-y-4">
+              <div className="productInfo w-full h-auto grid grid-cols-1 sm:grid-cols-3 items-center gap-x-4 gap-y-4">
                 <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Size in CM" value={path.size} onChange={(e) => setPath({...path, size: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
                 <div className="flex justify-center"><input required type="text" name="" id="" placeholder="Color"  value={path.color} onChange={(e) => setPath({...path, color: e.target.value})}  className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
                 <div className="flex justify-center"><input required type="text" name="" id="" placeholder="Material" value={path.material} onChange={(e) => setPath({...path, material: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
@@ -274,7 +309,7 @@ export default function AddProduct() {
 
             {path["category"]==="cage" && <div className="border border-blue-500 rounded-xl p-2">
               <div className="text-blue-700 mb-2 underline">Cage Details</div>
-              <div className="productInfo w-full h-auto grid grid-cols-3 items-center gap-x-4 gap-y-4">
+              <div className="productInfo w-full h-auto grid grid-cols-1 sm:grid-cols-3 items-center gap-x-4 gap-y-4">
                 <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Length" value={path.length} onChange={(e) => setPath({...path, length: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
                 <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Width" value={path.width} onChange={(e) => setPath({...path, width: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
                 <div className="flex justify-center"><input required type="Number" name="" id="" placeholder="Height" value={path.height} onChange={(e) => setPath({...path, height: e.target.value})}   className="border border-[#60a5fa] rounded-2xl bg-[#eff6ff] py-2 px-4 w-[100%] focus:outline-none"/></div>
@@ -282,8 +317,41 @@ export default function AddProduct() {
             </div>
             }
 
+            {/* Image as an input */}
+            <div className="h-auto w-full flex flex-col mt-5">
+              <h3 className="text-xl font-semibold mb-4 text-gray-700">
+                Upload an Image
+              </h3>
+
+              {/* Upload area */}
+              <label
+                htmlFor="fileInput"
+                className="flex flex-col items-center justify-center w-full h-[40px] border-2 border-dashed border-gray-400 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-200"
+              >
+                Upload the Image 
+              </label>
+
+              {/* Hidden input */}
+              <input
+                type="file"
+                id="fileInput"
+                accept="image/*"
+                onChange={handleChange}
+                className="hidden"
+                required
+              />
+
+              {/* File name */}
+              {image && 
+                <div className="flex flex-row w-full mt-2 gap-5">
+                  <div className="h-[300px] w-[300px] bg-red-500"><img className="h-[100%] w-[100%] object-contain" src={`${preview}`} alt="preview_img" /></div>
+                  <div>{image.name}</div>
+                </div>
+              }
+            </div>
+
             <div className="flex w-full justify-end gap-2">
-              <button type="submit" onClick={()=>handleSubmit()} className="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors duration-200">Submit</button>
+              <button type="submit" onClick={(e)=>handleSubmit(e)} className="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors duration-200">Submit</button>
               <button type="button" onClick={()=>handleReset()} className="border border-gray-400 text-gray-700 font-semibold px-6 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">Reset</button>
             </div>
         </form>

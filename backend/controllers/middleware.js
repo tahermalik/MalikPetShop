@@ -1,5 +1,9 @@
 import jwt from "jsonwebtoken";
 import Product from "../schema/productSchema.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
 export async function authenticate(req,res,next){
     try{
         const token=req.cookies?.token;
@@ -55,5 +59,38 @@ export async function authenticateAdmin(req,res,next){
     }catch(error){
         console.log(error,"something went wrong in middleware")
         return res.status(500).json({message:"something went wrong at the server side"})
+    }
+}
+
+export function uploadImage(){
+    try{
+        // Ensure uploads folder exists
+        const uploadPath = "uploads/";
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath);
+        }
+
+        const storage = multer.diskStorage({
+            destination: (req, file, cb) => {
+                cb(null, uploadPath); // save files inside /uploads folder
+            },
+            filename: (req, file, cb) => {
+                // Extract fields from form data
+                const brand = req.body.brand ? req.body.brand.trim().replace(/\s+/g, "_") : "unknownBrand";
+                const productName = req.body.productName ? req.body.productName.trim().replace(/\s+/g, "_") : "unknownProduct";
+                const netWeight = req.body.netWeight ? req.body.netWeight.toString().trim().replace(/\s+/g, "_") : "unknownWeight";
+
+                // Construct clean filename
+                const fileName = `${brand}_${productName}_${netWeight}${path.extname(file.originalname)}`;
+
+                cb(null, fileName);
+            },
+        });
+
+        return multer({storage})
+
+    }catch(error){
+        console.log("wrong in uploadImage");
+        return res.status(500).json({maessage:"Image not uploaded"})
     }
 }
