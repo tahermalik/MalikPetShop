@@ -13,19 +13,26 @@ export function useGetAllProduct(refresh,query,data){
     const brandsArray=useSelector((state)=>state?.filter?.brandsFilter,shallowEqual)
     const type=useSelector((state)=>state?.filter?.typeFilter)
 
-    const arrayFilter = useMemo(() => [
-        { flavor: flavorArray },
-        { breed: breedArray },
-        { diet: dietArray },
-        { pet },
-        { brand: brandsArray },
-        { type },
-    ], [flavorArray, breedArray, dietArray, pet, brandsArray, type]);
-
+    
     useEffect(()=>{
         async function fetchProducts(){
             try{
-                const res = await axios.post(`${PRODUCT_ENDPOINTS}/displayProduct`,{arrayFilter},{withCredentials:true})
+                let userQuery
+                if(data!=="search"){
+                    userQuery = [
+                        ...flavorArray,
+                        ...breedArray,
+                        ...dietArray,
+                        pet,
+                        ...brandsArray,
+                        type
+                    ]
+                    .filter(Boolean) // remove undefined/empty strings
+                    .join(" ");
+                }else userQuery=query
+            
+                userQuery=userQuery.trim()
+                const res = await axios.post(`${PRODUCT_ENDPOINTS}/displayProduct`,{userQuery},{withCredentials:true})
                 // console.log("Product details res ",res.data.products)
                 setProducts(res.data.products)
             }catch(error){
@@ -34,6 +41,6 @@ export function useGetAllProduct(refresh,query,data){
         }
 
         fetchProducts()
-    },[flavorArray, breedArray, dietArray,brandsArray, type,refresh,query])
+    },[flavorArray, breedArray, dietArray,brandsArray, type,refresh,query,data]) /// refresh is used in order to handle when the variation of the product is deleted
     return products
 }

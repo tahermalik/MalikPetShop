@@ -8,6 +8,7 @@ import { useGetAllProduct } from "../hooks/useGetAllProducts"
 import axios from "axios"
 import { PRODUCT_ENDPOINTS } from "./endpoints"
 import { useLocation } from "react-router-dom"
+import { useMemo } from "react"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -244,7 +245,20 @@ function ProductCard(props) {
 }
 
 function DisplayProducts(props){
-    let productData=useGetAllProduct(props.refresh,props.query,props.data);
+    let productDataFilter=useGetAllProduct(props.refresh,props.query,props.data);
+    let productDataSearch=useGetAllProduct(props.refresh,props.query,"filter")
+
+    const productData = useMemo(() => {
+        const combined = [...productDataFilter, ...productDataSearch];
+        
+        // remove duplicates (based on _id or productName)
+        const unique = combined.filter(
+            (item, index, self) =>
+            index === self.findIndex((p) => p._id === item._id)
+        );
+
+        return unique;
+    }, [productDataFilter, productDataSearch]);
 
     if(productData.length===0){
         return(

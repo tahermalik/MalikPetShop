@@ -8,6 +8,7 @@ import Cart from "./pages/Cart";
 import OfferSection from "./pages/Offer";
 import CouponRuleCreator from "./pages/CoupanManagement";
 import AddProduct from "./pages/addProduct";
+import CreateOffer from "./pages/addOffer";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/offer" element={<OfferSection/>}></Route>
           <Route path="/addProduct" element={<AddProduct/>}></Route>
           <Route path="/CouponRuleCreator" element={<CouponRuleCreator/>}></Route>
+          <Route path="/addOffer" element={<CreateOffer/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>
