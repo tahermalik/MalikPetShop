@@ -1,7 +1,7 @@
 import { useState, useRef, useLayoutEffect } from "react"
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setCategoryState, setUpperHeader } from "../redux/slices/userSlice";
+import { setCategoryState, setDetailOption, setLoginOption } from "../redux/slices/userSlice";
 import { RiArrowDropDownLine, RiArrowDropUpLine, RiTwitterXLine } from "react-icons/ri";
 import { FaWhatsapp, FaInstagram, FaFacebook } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
@@ -242,10 +242,11 @@ function SmallPetStuff() {
 export function Header() {
     const dispatch = useDispatch();
     const show = useSelector((state) => state?.user?.categoryState)
-    const showUpperHeader = useSelector((state) => state?.user?.upperHeader) // initally going to be false
+    const showLoginOption = useSelector((state) => state?.user?.loginOption) // initally going to be false
+    const showDetailOption=useSelector((state)=>state?.user?.detailOption)  // initially false
     const [data, setData] = useState("cat")
-    const [showDetails,setShowDetails]=useState("user")
     const navigate=useNavigate()
+    let clicked="user"
 
     const headerRef = useRef(null);
 
@@ -260,13 +261,26 @@ export function Header() {
     function detailsHandler(e){
         const parentDiv=e.currentTarget;
         const firstChildDiv=parentDiv.querySelector("div:first-child")
-        setShowDetails(firstChildDiv.dataset.details.toLowerCase())
-        if (!showUpperHeader) dispatch(setUpperHeader())
+        clicked=firstChildDiv.dataset.details.toLowerCase()
+        
+        if(clicked==="user"){
+            if(!showLoginOption){
+                dispatch(setLoginOption())
+                if(showDetailOption) dispatch(setDetailOption())
+            }
+
+        }else{
+            if(!showDetailOption){
+                // console.log("heello",showDetailOption)
+                dispatch(setDetailOption())
+                if(showLoginOption) dispatch(setLoginOption())
+            }
+        }
     }
 
     const dropdownRef = useRef(null)
     const loginRef = useRef(null)
-    const contactRef = useRef(null)
+    const contactRef=useRef(null)
 
     useLayoutEffect(() => {
         if (headerRef.current) {
@@ -286,8 +300,14 @@ export function Header() {
                 }
             }
             if (loginRef.current && !loginRef.current.contains(event.target)) {
-                if (showUpperHeader) {
-                    dispatch(setUpperHeader());
+                if (showLoginOption) {
+                    dispatch(setLoginOption());
+                }
+            }
+
+            if (contactRef.current && !contactRef.current.contains(event.target)) {
+                if (showDetailOption) {
+                    dispatch(setDetailOption());
                 }
             }
         }
@@ -297,7 +317,7 @@ export function Header() {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [show, dispatch, showUpperHeader]);
+    }, [show, dispatch, showDetailOption,showLoginOption]);
 
     const [query,setQuery]=useState("");
 
@@ -307,7 +327,8 @@ export function Header() {
         }
     }
 
-
+    //// getting user role
+    const role=useSelector((state)=>state?.user?.userData?.role)
 
     return (
         <>
@@ -336,35 +357,34 @@ export function Header() {
                             <div ref={contactRef} className="cursor-pointer hover:rounded-2xl relative flex flex-row items-center w-fit ">
                                 <div className="flex flex-row justify-center items-center" onMouseEnter={(e) => detailsHandler(e)}>
                                     <div className="" data-details="details"><IoIosContact color="#00ACC1" size={30} /></div>
-                                    {(!showUpperHeader || showDetails!=="details") && <div><RiArrowDropDownLine size={20} /></div>}
-                                    {showUpperHeader && showDetails==="details" && <div><RiArrowDropUpLine size={20} /></div>}
+                                    {(!showDetailOption) && <div><RiArrowDropDownLine size={20} /></div>}
+                                    {showDetailOption && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
-                                {showDetails==="details" && showUpperHeader &&
-                                    <div className="h-auto backdrop-blur absolute top-[30px] flex flex-col gap-1 pt-1 bg-[#1565C0] pl-1 pr-1">
-                                        <Link to="/Login">
-                                            <div className=" flex flex-row items-center gap-2 pl-1">
-                                                <div><HiOutlineMail color="white" /></div>
-                                                <div className="text-white"><span>tahermalik2002@gmail.com</span></div>
-                                            </div>
-                                        </Link>
+                                {showDetailOption && 
+                                    <div className="h-auto backdrop-blur absolute top-[30px] flex flex-col gap-1 bg-[#1565C0] p-1">
+                                        <div className=" flex flex-row items-center gap-2 pl-1">
+                                            <div><HiOutlineMail color="white" /></div>
+                                            <div className="text-white"><span>tahermalik2002@gmail.com</span></div>
+                                        </div>
                                         <div className=" flex flex-row items-center gap-2 pl-1">
                                             <div><FaPhoneAlt color="white" /></div>
                                             <div className="font-sans text-white"><span className="">9152760580</span></div>
                                         </div>
+                                        {role==="admin" && <Link to="/adminSetting"><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Settings</span></div></Link>}
                                     </div>
                                 }
                             </div>
                             <div ref={loginRef} className="cursor-pointer hover:rounded-2xl flex flex-row items-center">
                                 <div className="flex flex-row" onMouseEnter={(e) => detailsHandler(e)}>
                                     <div className="flex flex-row justify-center items-center" data-details="user"><FaUser color="#00ACC1" size={20} /></div>
-                                    {(!showUpperHeader || showDetails!=="user")&& <div><RiArrowDropDownLine size={20} /></div>}
-                                    {showUpperHeader && showDetails==="user" && <div><RiArrowDropUpLine size={20} /></div>}
+                                    {(!showLoginOption || clicked!=="user")&& <div><RiArrowDropDownLine size={20} /></div>}
+                                    {showLoginOption && clicked==="user" && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
-                                {showDetails==="user" && showUpperHeader &&
-                                    <div className="w-fit h-auto backdrop-blur absolute top-[50px] flex flex-col gap-1 pt-1 bg-[#1565C0] pl-1 pr-1">
-                                        <Link to="/Login" state={{user:"user"}}><div className=" hover:bg-[#1976D2]"><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">User Login</span></div></Link>
-                                        <Link to="/Login" state={{user:"admin"}}><div className=" hover:bg-[#1976D2]"><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Login</span></div></Link>
-                                        <div className=" hover:bg-[#1976D2]"><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Logout</span></div>
+                                {showLoginOption && 
+                                    <div className="w-fit h-auto backdrop-blur absolute top-[50px] flex flex-col gap-1 bg-[#1565C0] p-1">
+                                        <Link to="/Login" state={{user:"user"}}><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">User Login</span></div></Link>
+                                        <Link to="/Login" state={{user:"admin"}}><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Login</span></div></Link>
+                                        <div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Logout</span></div>
                                     </div>
                                 }
                             </div>
@@ -405,7 +425,6 @@ export function Header() {
                     {data === "dog" && <DogStuff />}
 
                     {data === "small pets" && <SmallPetStuff />}
-
 
                 </div>}
             </div>

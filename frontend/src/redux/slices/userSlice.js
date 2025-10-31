@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const userSlice = createSlice({
   name: "user",
   initialState: {
-    userData:null,categoryState:false, upperHeader:false
+    userData:null,categoryState:false, loginOption:false,detailOption:false
   },
   reducers: {
     setUserData:(state,action)=>{
@@ -12,11 +12,15 @@ const userSlice = createSlice({
     setCategoryState:(state)=>{
         state.categoryState=!state.categoryState
     },
-    setUpperHeader:(state)=>{
-      state.upperHeader=!state.upperHeader
+    setLoginOption:(state)=>{
+      state.loginOption=!state.loginOption
+    },
+    setDetailOption:(state)=>{
+      state.detailOption=!state.detailOption
     }
+
   }
 })
 
-export const { setCategoryState ,setUpperHeader,setUserData} = userSlice.actions;
+export const { setCategoryState ,setLoginOption,setDetailOption,setUserData} = userSlice.actions;
 export default userSlice.reducer;

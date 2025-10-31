@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { USER_ENDPOINTS } from "./endpoints";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { setCategoryState, setUpperHeader, setUserData } from "../redux/slices/userSlice";
+import { setCategoryState, setDetailOption, setLoginOption, setUserData } from "../redux/slices/userSlice";
 
 function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -16,7 +16,8 @@ function Login() {
   const [confirmPassword,setConfirmPassword]=useState("");
   const navigate=useNavigate()
   const dispatch=useDispatch()
-  const upperHeader=useSelector((state)=>state?.user?.upperHeader)
+  const showLoginOption=useSelector((state)=>state?.user?.loginOption)
+  const showDetailOption=useSelector((state)=>state?.user?.detailOption)
   const categoryState=useSelector((state)=>state?.user?.categoryState)
 
   async function loginUser(){
@@ -26,7 +27,8 @@ function Login() {
       // console.log(result)
       if(result){
         dispatch(setUserData(res?.data?.user))
-        if(upperHeader===true) dispatch(setUpperHeader())
+        if(showLoginOption===true) dispatch(setLoginOption())
+        if(showDetailOption===true) dispatch(setDetailOption())
         if(categoryState===true) dispatch(setCategoryState())
         navigate("/")
       }
@@ -47,8 +49,6 @@ function Login() {
         // console.log(res)
         let result=res?.data?.bool
         if(result){
-          if(upperHeader===true) dispatch(setUpperHeader())
-          if(categoryState===true) dispatch(setCategoryState())
           setIsLoginMode(true)
           setUserName("")
           setEMail("")
