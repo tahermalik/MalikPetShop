@@ -12,6 +12,7 @@ import Coupon from "./schema/couponSchema.js";
 import cartRouter from "./routers/cartRoutes.js";
 import { fileURLToPath } from "url";
 import path from "path"
+import offerRouter from "./routers/offerRoutes.js";
 
 
 const app=express();
@@ -33,19 +34,29 @@ dotenv.config({
 connectDB()
 
 
-///// deleting the expired coupons
+///// deleting the expired coupons and expired offer
 cron.schedule("0 * * * *", async () => {
   try {
     const now = new Date();
-    const result = await Coupon.deleteMany({
+    const resultCoupon = await Coupon.deleteMany({
       couponEndDate: { $lt: now } // expired coupons
     });
 
-    if (result.deletedCount > 0) {
-      console.log(`🧹 Deleted ${result.deletedCount} expired coupons at ${now.toISOString()}`);
+    const resultOffer=await Offer.deleteMany({
+      offerEndDate:{$lt:now} // expired offer
+    })
+
+
+
+    if (resultCoupon.deletedCount > 0) {
+      console.log(`🧹 Deleted ${resultCoupon.deletedCount} expired coupons at ${now.toISOString()}`);
+    }
+
+    if (resultOffer.deletedCount > 0) {
+      console.log(`🧹 Deleted ${resultOffer.deletedCount} expired offer at ${now.toISOString()}`);
     }
   } catch (error) {
-    console.error("Error deleting expired coupons:", error);
+    console.error("Error deleting expired coupons or offer:", error);
   }
 });
 
@@ -67,6 +78,7 @@ app.use("/product",pRouter)
 app.use("/feedback",feedbackRouter)
 app.use("/coupon",cRouter)
 app.use("/cart",cartRouter)
+app.use("/offer",offerRouter)
 
 
 

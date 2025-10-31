@@ -52,7 +52,7 @@ const productSchema = new mongoose.Schema({
 
     ///// Every product will have its own String so that they can be serached by the humans
     productString:{
-        type:String
+        type:[String]
     },
 
 

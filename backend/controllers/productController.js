@@ -1,6 +1,6 @@
 import Product from "../schema/productSchema.js";
 import fs from "fs";
-import path from "path"
+import natural from "natural";
 
 
 export async function addProduct(req,res){
@@ -49,9 +49,11 @@ export async function addProduct(req,res){
 
         /// creating the product String
         console.log("product Data",productData)
-        Object.keys(productData).forEach((item)=>{
-            productString+=(productData[item]+" ")
-        })
+        const textFields = [
+            pet, category, type, flavor, breed, diet, brand, productName, color, material
+        ];
+
+        productString = textFields.filter(Boolean).join(" ") + " " + netWeight + " ";
 
         
         //// identifying the product uniquely on the basis of name, netWeight and company
@@ -83,9 +85,10 @@ export async function addProduct(req,res){
 
                 return res.status(200).json({message:"Product is alrasy present"})
             }
+            productString = productString.trim().replace(/\s+/g, " ").toLowerCase();
             await Product.updateOne(
                 { _id: product_db._id },
-                { $push: { netWeight: netWeight,discountType:discountType,discountValue:discountValue,expiryDate:expiryDate,manufactureDate:manufactureDate,stock:stock ,originalPrice:originalPrice,image: imagePath ? imagePath : null,productString:productString.trim()} }
+                { $push: { netWeight: Number(netWeight),discountType:discountType,discountValue:Number(discountValue),expiryDate:expiryDate,manufactureDate:manufactureDate,stock:Number(stock) ,originalPrice:Number(originalPrice),image: imagePath ? imagePath : null,productString:productString} }
             );
             
             return res.status(200).json({message:"Variation of existing item added"})
@@ -114,7 +117,7 @@ export async function addProduct(req,res){
             color:color,
             size:Number(size),
             material:material,
-            productString:productString.trim(),
+            productString:[productString.toLowerCase()],
             image: imagePath ? [imagePath] : [],
         })
 
@@ -128,80 +131,57 @@ export async function addProduct(req,res){
 
 export async function displayProduct(req,res){
     try{
-        const arrayFilter=req?.body?.arrayFilter
-        console.log(arrayFilter)
+        let userQuery=req?.body?.userQuery
+        userQuery = userQuery.trim().replace(/\s+/g, " ").toLowerCase();
 
-        // My arrayFilter
-        // [
-        //     {flavors: ["mackerel","tuna"]},
-        //     {breeds: []},
-        //     {diets: []},
-        //     {pet: 'cat'},
-        //     {brands: []},
-        //     {type: 'dry food'}
-        // ]
+        let queryArray=userQuery.split(" ");
 
+        const products=await Product.find()
 
-        // If no filter provided -> return all products
-        let flag=false
-        for(let i=0;i<arrayFilter.length;i++){
-            let value=Object.values(arrayFilter[i])[0]
-            if(typeof value==="string" && value.trim()!==""){
-                flag=true;
-                break;
-            }else{
-                if(Array.isArray(value) && value.length>0){
-                    flag=true;
-                    break;
-                }
-            }
-        }
+        // Filter and calculate match percentage
+        const matchedProducts = products.map((product) => {
+            if (!product.productString || product.productString.length===0) return null;
 
-        if(flag===false){
-            const allProduct=await Product.find();
-            return res.status(200).json({products:allProduct})
-        }
-        
-        //Find products that match at least one filter condition
-        const products = await Product.find({ $or: arrayFilter });
+            let maxPercentage=0
+            for(let i=0;i<product.productString.length;i++){
+                const productArray = product.productString[i]
+                .toLowerCase()
+                .split(" ")
+                .filter(Boolean);
 
-        const scoredProducts = products.map((product) => {
-            let score = 0;
-            arrayFilter.forEach((item)=>{
-                let value=Object.values(item)[0]
-                let key=Object.keys(item)[0];
-                if(Array.isArray(value) && value.length>0){
-                    if(value.includes(product[key])){
-                        score++;
+                // Count how many query words exist in product string
+                let matches=0
+                for(let p=0;p<productArray.length;p++){
+                    for(let j=0;j<queryArray.length;j++){
+                        const similarity = natural.JaroWinklerDistance(productArray[p], queryArray[j]);
+                        if(similarity>=0.8){
+                            matches+=1;
+                            break;
+                        }
                     }
                 }
-                if(typeof value==="string" && value.trim()!==""){
-                    if(value===product[key]) score++;
-                }
+                const total = productArray.length;
+                const percentage = (matches / total) * 100;
 
-            })
-            return { product, score };
-        });
+                if(percentage>=maxPercentage) maxPercentage=percentage
+            }
 
-        scoredProducts.sort((a, b) => b.score - a.score);
-        const sortedProducts = scoredProducts.map((p) => p.product);
 
-        return res.status(200).json({ products: sortedProducts });
 
+            // Return product with score
+            return { ...product._doc, matchPercentage: maxPercentage };
+        })
+        .filter((p) => p && p.matchPercentage >= 0) // keep only relevant ones
+        .sort((a, b) => b.matchPercentage - a.matchPercentage); // sort by % desc
+
+
+        console.log(queryArray,matchedProducts)
+
+        return res.status(200).json({ products: matchedProducts });
+        
     }catch(error){
         console.log("wrong in displayProduct")
         return res.status(500).json({message:"Wrong in displayProduct"})
-    }
-}
-
-export async function displayProductSearchBar(req,res){
-    try{
-
-        
-
-    }catch(error){
-        console.log("wrong in display product")
-        return res.status(500).json({message:"server fucked up at serach bar"})
     }
 }
 
