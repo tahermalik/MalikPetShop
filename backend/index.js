@@ -13,6 +13,7 @@ import cartRouter from "./routers/cartRoutes.js";
 import { fileURLToPath } from "url";
 import path from "path"
 import offerRouter from "./routers/offerRoutes.js";
+import Offer from "./schema/offerSchema.js";
 
 
 const app=express();

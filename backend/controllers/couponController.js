@@ -43,8 +43,6 @@ export async function setCoupons(req,res){
         else message=`Coupon with ${couponCode} modified`
 
         // console.log(couponStartDate,couponEndDate)
-        couponStartDate=parseDMY(couponStartDate)
-        couponEndDate=parseDMY(couponEndDate)
 
         if(couponEndDate<=couponStartDate) return res.status(400).json({message:"Enddate cant be before start date"})
         
