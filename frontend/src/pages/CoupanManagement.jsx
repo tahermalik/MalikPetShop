@@ -1,29 +1,31 @@
+import axios from "axios";
 import React, { useRef, useState } from "react";
+import { COUPON_ENDPOINT } from "./endpoints";
 
 export default function CouponRuleCreator() {
   const [coupon, setCoupon] = useState({
-    code: "",
-    description: "",
-    discountType: "percentage",
-    discountValue: "",
-    maxDiscount: "",
-    minOrder: "",
-    maxUsesPerUser: "",
-    totalUsageLimit: "",
-    newUsersOnly: false,
-    startDate: "",
-    endDate: "",
-    productID:[]
+    couponCode: "",
+    couponDesc: "",
+    couponDiscountType: "percentage",
+    couponDiscountValue: "",
+    couponMaxDiscount: "",
+    couponMinOrderAmount: "",
+    couponMaxUses: "",
+    couponTotalUsage: "",
+    newUser: false,
+    couponStartDate: "",
+    couponEndDate: "",
+    productID: []
   });
 
-  const idRef=useRef(null)
-  const [productID,setProductID]=useState("")
+  const idRef = useRef(null)
+  const [productID, setProductID] = useState("")
 
-  function submitID(){
-    if(idRef.current){
-        // console.log(idRef.current?.value)
-        setCoupon({...coupon,productID:[...coupon.productID,idRef.current?.value]})
-        setProductID("") // resetting after succesfull submission
+  function submitID() {
+    if (idRef.current) {
+      // console.log(idRef.current?.value)
+      setCoupon({ ...coupon, productID: [...coupon.productID, idRef.current?.value] })
+      setProductID("") // resetting after succesfull submission
     }
   }
 
@@ -33,10 +35,12 @@ export default function CouponRuleCreator() {
     setCoupon({ ...coupon, [name]: type === "checkbox" ? checked : value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const res=axios.post(`${COUPON_ENDPOINT}/setCoupons`,coupon,{withCredentials:true})
+    
     console.log("Coupon Rule Saved:", coupon);
-    alert("Coupon rule saved!");
+    
   };
 
   return (
@@ -57,8 +61,8 @@ export default function CouponRuleCreator() {
                 <label className="block font-medium">Coupon Code *</label>
                 <input
                   type="text"
-                  name="code"
-                  value={coupon.code}
+                  name="couponCode"
+                  value={coupon.couponCode}
                   onChange={handleChange}
                   placeholder="FESTIVE50"
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
@@ -70,8 +74,8 @@ export default function CouponRuleCreator() {
                 <label className="block font-medium">Description *</label>
                 <input
                   type="text"
-                  name="description"
-                  value={coupon.description}
+                  name="couponDesc"
+                  value={coupon.couponDesc}
                   onChange={handleChange}
                   placeholder="50% off on festive items"
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
@@ -90,8 +94,8 @@ export default function CouponRuleCreator() {
               <div>
                 <label className="block font-medium">Discount Type</label>
                 <select
-                  name="discountType"
-                  value={coupon.discountType}
+                  name="couponDiscountType"
+                  value={coupon.couponDiscountType}
                   onChange={handleChange}
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
                 >
@@ -103,8 +107,8 @@ export default function CouponRuleCreator() {
                 <label className="block font-medium">Discount Value *</label>
                 <input
                   type="number"
-                  name="discountValue"
-                  value={coupon.discountValue}
+                  name="couponDiscountValue"
+                  value={coupon.couponDiscountValue}
                   onChange={handleChange}
                   placeholder="50"
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
@@ -115,8 +119,8 @@ export default function CouponRuleCreator() {
                 <label className="block font-medium">Max Discount</label>
                 <input
                   type="number"
-                  name="maxDiscount"
-                  value={coupon.maxDiscount}
+                  name="couponMaxDiscount"
+                  value={coupon.couponMaxDiscount}
                   onChange={handleChange}
                   placeholder="500"
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
@@ -135,8 +139,8 @@ export default function CouponRuleCreator() {
                 <label className="block font-medium">Minimum Order Amount</label>
                 <input
                   type="number"
-                  name="minOrder"
-                  value={coupon.minOrder}
+                  name="couponMinOrderAmount"
+                  value={coupon.couponMinOrderAmount}
                   onChange={handleChange}
                   placeholder="999"
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
@@ -146,8 +150,8 @@ export default function CouponRuleCreator() {
                 <label className="block font-medium">Max Uses per User</label>
                 <input
                   type="number"
-                  name="maxUsesPerUser"
-                  value={coupon.maxUsesPerUser}
+                  name="couponMaxUses"
+                  value={coupon.couponMaxUses}
                   onChange={handleChange}
                   placeholder="1"
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
@@ -157,8 +161,8 @@ export default function CouponRuleCreator() {
                 <label className="block font-medium">Total Usage Limit</label>
                 <input
                   type="number"
-                  name="totalUsageLimit"
-                  value={coupon.totalUsageLimit}
+                  name="couponTotalUsage"
+                  value={coupon.couponTotalUsage}
                   onChange={handleChange}
                   placeholder="100"
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
@@ -169,8 +173,8 @@ export default function CouponRuleCreator() {
             <div className="flex items-center mt-3 space-x-2">
               <input
                 type="checkbox"
-                name="newUsersOnly"
-                checked={coupon.newUsersOnly}
+                name="newUser"
+                checked={coupon.newUser}
                 onChange={handleChange}
                 className="w-4 h-4 text-blue-600"
               />
@@ -187,15 +191,15 @@ export default function CouponRuleCreator() {
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <div className="flex flex-row items-center justify-between mb-2">
-                    <label className="block font-medium">Enter the Product ID </label>
-                    <div onClick={()=>submitID()} className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 cursor-pointer">Submit Product ID</div>
+                  <label className="block font-medium">Enter the Product ID </label>
+                  <div onClick={() => submitID()} className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 cursor-pointer">Submit Product ID</div>
                 </div>
                 <input
                   ref={idRef}
                   type="text"
                   name="productID"
                   value={productID}
-                  onChange={(e)=>setProductID(e.currentTarget.value)}
+                  onChange={(e) => setProductID(e.currentTarget.value)}
                   placeholder="Enter the Product ID"
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
                 />
@@ -214,8 +218,8 @@ export default function CouponRuleCreator() {
                 <label className="block font-medium">Start Date</label>
                 <input
                   type="date"
-                  name="startDate"
-                  value={coupon.startDate}
+                  name="couponStartDate"
+                  value={coupon.couponStartDate}
                   onChange={handleChange}
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
                 />
@@ -224,8 +228,8 @@ export default function CouponRuleCreator() {
                 <label className="block font-medium">End Date</label>
                 <input
                   type="date"
-                  name="endDate"
-                  value={coupon.endDate}
+                  name="couponEndDate"
+                  value={coupon.couponEndDate}
                   onChange={handleChange}
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
                 />
@@ -239,13 +243,13 @@ export default function CouponRuleCreator() {
               Coupon Summary
             </h2>
             <p className="text-sm text-gray-700">
-              Code: <strong>{coupon.code || "—"}</strong> <br />
-              Type: {coupon.discountType} ({coupon.discountValue || 0})
-              {coupon.discountType === "percentage" ? "%" : "₹"} <br />
-              Max Discount: ₹{coupon.maxDiscount || "—"} <br />
-              Min Order: ₹{coupon.minOrder || "—"} <br />
-              Valid: {coupon.startDate || "—"} to {coupon.endDate || "—"} <br />
-              {coupon.newUsersOnly && (
+              Code: <strong>{coupon.couponCode || "—"}</strong> <br />
+              Type: {coupon.couponDiscountType} ({coupon.couponDiscountValue || 0})
+              {coupon.couponDiscountType === "percentage" ? "%" : "₹"} <br />
+              Max Discount: ₹{coupon.couponMaxDiscount || "—"} <br />
+              Min Order: ₹{coupon.couponMinOrderAmount || "—"} <br />
+              Valid: {coupon.couponStartDate || "—"} to {coupon.couponEndDate || "—"} <br />
+              {coupon.newUser && (
                 <span className="text-blue-600 font-medium">
                   (New users only)
                 </span>
@@ -261,18 +265,18 @@ export default function CouponRuleCreator() {
               className="border border-blue-400 text-blue-500 px-4 py-2 rounded-lg hover:bg-blue-100"
               onClick={() =>
                 setCoupon({
-                  code: "",
-                  description: "",
-                  discountType: "percentage",
-                  discountValue: "",
-                  maxDiscount: "",
-                  minOrder: "",
-                  maxUsesPerUser: "",
-                  totalUsageLimit: "",
-                  newUsersOnly: false,
-                  startDate: "",
-                  endDate: "",
-                  productID:[]
+                  couponCode: "",
+                  couponDesc: "",
+                  couponDiscountType: "percentage",
+                  couponDiscountValue: "",
+                  couponMaxDiscount: "",
+                  couponMinOrderAmount: "",
+                  couponMaxUses: "",
+                  couponTotalUsage: "",
+                  newUser: false,
+                  couponStartDate: "",
+                  couponEndDate: "",
+                  productID: []
                 })
               }
             >

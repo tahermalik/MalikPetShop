@@ -7,7 +7,7 @@ import { Range } from "react-range";
 import { useGetAllProduct } from "../hooks/useGetAllProducts"
 import axios from "axios"
 import { PRODUCT_ENDPOINTS } from "./endpoints"
-import { useLocation } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { useMemo } from "react"
 
 function CheckBoxes(props) {
@@ -247,6 +247,7 @@ function ProductCard(props) {
 function DisplayProducts(props){
     let productDataFilter=useGetAllProduct(props.refresh,props.query,props.data);
     let productDataSearch=useGetAllProduct(props.refresh,props.query,"filter")
+    const navigate=useNavigate()
 
     const productData = useMemo(() => {
         const combined = [...productDataFilter, ...productDataSearch];
@@ -260,6 +261,10 @@ function DisplayProducts(props){
         return unique;
     }, [productDataFilter, productDataSearch]);
 
+    function productClicked(products){
+        navigate("/singleProductDisplay",{state:products})
+    }
+
     if(productData.length===0){
         return(
             <div>Loading...</div>
@@ -272,7 +277,9 @@ function DisplayProducts(props){
             <>
                 {productData.map((products)=>{
                     return(
-                        <ProductCard imagesArray={products.image} netWeightArray={products.netWeight} originalPriceArray={products.originalPrice} discountArray={products.discountValue} productName={products.productName} productId={products._id} refresh={props.refresh} setRefresh={props.setRefresh}/>
+                        <div onClick={()=>productClicked(products)}>
+                            <ProductCard imagesArray={products.image} netWeightArray={products.netWeight} originalPriceArray={products.originalPrice} discountArray={products.discountValue} productName={products.productName} productId={products._id} refresh={props.refresh} setRefresh={props.setRefresh}/>
+                        </div>
                     )
                 })}
             </>

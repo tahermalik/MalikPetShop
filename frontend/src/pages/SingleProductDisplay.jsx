@@ -2,6 +2,7 @@ import { Header,Footer } from "./LandingPage";
 import { useDispatch, useSelector } from "react-redux";
 import { useLayoutEffect, useState } from "react";
 import { setImageCounter } from "../redux/slices/activeSlice";
+import { useLocation } from "react-router-dom";
 
 function OfferComponent(props) {
     const dispath = useDispatch();
@@ -34,7 +35,7 @@ function OfferComponent(props) {
     )
 }
 
-function ProductInfo() {
+function ProductInfo(props) {
     const nutrition = useSelector((state) => state?.product?.nutrition)
     const calories = useSelector((state) => state?.product?.calories)
     const skinHealth = useSelector((state) => state?.product?.skinHealth)
@@ -42,9 +43,14 @@ function ProductInfo() {
     const dentalHealth = useSelector((state) => state?.product?.dentalHealth)
 
     /// this is the array which we are going to recevice via backend
-    const netQuantityArray = ["2", "4", "7", "15", "20"]; /// receving in Kg
-    const originalPriceArray = ["200", "300", "400", "500", "600"];
-    const discountArray = ["10", "5", "15", "20", "10"]
+    // const netQuantityArray = ["2", "4", "7", "15", "20"]; /// receving in Kg
+    // const originalPriceArray = ["200", "300", "400", "500", "600"];
+    // const discountArray = ["10", "5", "15", "20", "10"]
+
+    const netQuantityArray=props.netQuantityArray
+    const originalPriceArray = props.originalPriceArray;
+    const discountValueArray = props.discountValueArray
+
 
     const details = [
         { title: "nutrition", value: nutrition },
@@ -60,7 +66,7 @@ function ProductInfo() {
             <div className="line-clamp-3 w-[100%] sm:text-md md:text-xl lg:text-2xl"><span>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem quaerat molestias, non quo neque iure quia sequi! Recusandae, tempora possimus!</span></div>
             <div className="flex flex-row gap-4 w-[100%] overflow-x-auto scrollbar-hide">
                 {netQuantityArray.map((offer, index) => (
-                    <OfferComponent index={index} netQuantity={netQuantityArray[index]} originalPrice={originalPriceArray[index]} discount={discountArray[index]} />
+                    <OfferComponent index={index} netQuantity={netQuantityArray[index]} originalPrice={originalPriceArray[index]} discount={discountValueArray[index]} />
                 ))}
             </div>
             <div className="flex flex-row items-center w-[100%] rounded-2xl py-2 px-2 border-2 border-black sm:text-lg lg:text-2xl cursor-pointer"><span className="hover:underline">Offers</span></div>
@@ -88,8 +94,8 @@ function ProductImg(props) {
     console.log(counter, typeof (counter), "hello")
     return (
         <>
-            <div className="w-[500px] h-[500px] bg-red-400 flex flex-col">
-                <img className="w-[100%] h-[100%] object-contain" src={`/${props.imagesArray[counter]}`} alt={`${props.imagesArray[counter]}`} />
+            <div className="w-[500px] h-[500px] flex flex-col">
+                <img className="w-[100%] h-[100%] object-contain" src={`http://localhost:3000/${props.imagesArray[counter]}`} alt={`${props.imagesArray[counter]}`} />
             </div>
         </>
     )
@@ -131,10 +137,14 @@ function SecondaryDetails(){
     )
 }
 
-export default function ProductDisplay() {
+export default function SingleProductDisplay() {
     const headerHeight = useSelector((state) => state?.layout?.headerHeight)
     const [productHeight, setProductHeight] = useState(0);
     const dispatch=useDispatch()
+    const location=useLocation()
+
+    const productData=location?.state;
+
     useLayoutEffect(() => {
         const windowHeight = window.innerHeight
         setProductHeight(windowHeight - headerHeight)
@@ -144,14 +154,20 @@ export default function ProductDisplay() {
 
     /// herebackend call will be done with the help of product id to get all the information about a product
     // all the infomation will be stored in the product slice and then from there this information will be used further
-    const imagesArray = ["pedigree.jpg", "photo_21.jpg", "smartheart.jpg", "whiskas_product.jpg", "whiskas.jpg"]
+    // const imagesArray = ["pedigree.jpg", "photo_21.jpg", "smartheart.jpg", "whiskas_product.jpg", "whiskas.jpg"]
+
+    if(!productData){
+        return(
+            <div>Loading...</div>
+        )
+    }
 
     return (
         <>
             <Header />
             <div className={`w-[100%] flex flex-row`} style={{ height: `${productHeight}px` }}>
-                <div className="bg-blue-100 w-[40%] h-[100%] overflow-auto scrollbar-hide flex flex-col items-center justify-center"><ProductImg productHeight={productHeight} imagesArray={imagesArray} /></div>
-                <div className="w-[60%] h-auto p-2 flex flex-row flex-wrap justify-evenly gap-x-2 gap-y-10 overflow-auto scrollbar-hide"><ProductInfo /></div>
+                <div className="bg-blue-100 w-[40%] h-[100%] overflow-auto scrollbar-hide flex flex-col items-center justify-center"><ProductImg productHeight={productHeight} imagesArray={productData?.image} /></div>
+                <div className="w-[60%] h-auto p-2 flex flex-row flex-wrap justify-evenly gap-x-2 gap-y-10 overflow-auto scrollbar-hide"><ProductInfo netQuantityArray={productData.netWeight} originalPriceArray={productData.originalPrice} discountValueArray={productData.discountValue}/></div>
             </div>
             <SecondaryDetails/>
             <Footer/>
