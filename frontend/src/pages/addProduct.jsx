@@ -175,7 +175,7 @@ export default function AddProduct() {
 
 
     }catch(error){
-      console.log("error occured in add Product in frontend")
+      console.log("error occured in add Product in frontend",error)
     }
 
   }

@@ -17,10 +17,16 @@ const userSlice = createSlice({
     },
     setDetailOption:(state)=>{
       state.detailOption=!state.detailOption
+    },
+    setProductIdInUserWishList:(state,action)=>{
+      if(state?.userData){
+        if(!state?.userData?.wishList.includes(action.payload)) state?.userData?.wishList.push(action.payload)
+        else state.userData.wishList = state?.userData?.wishList.filter((productId)=>productId!==action.payload)
+      }
     }
 
   }
 })
 
-export const { setCategoryState ,setLoginOption,setDetailOption,setUserData} = userSlice.actions;
+export const { setCategoryState ,setLoginOption,setDetailOption,setUserData,setProductIdInUserWishList} = userSlice.actions;
 export default userSlice.reducer;

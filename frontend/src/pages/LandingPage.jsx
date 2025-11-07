@@ -11,6 +11,9 @@ import { IoIosContact } from "react-icons/io";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { setHeaderHight } from "../redux/slices/layoutSlice";
 import { setPets, setTypeFilter } from "../redux/slices/filterSlice";
+import axios from "axios";
+import { USER_ENDPOINTS } from "./endpoints.js";
+import { useGetAllFeedBack } from "../hooks/useGetAllFeedBack.js";
 
 
 function Brands(props) {
@@ -32,53 +35,52 @@ function Brands(props) {
 
 
 function AutoBrandSlider() {
-  const [activeSlide, setActiveSlide] = useState(0);
+    const [activeSlide, setActiveSlide] = useState(0);
 
-  const slides = [
-    <Brands brand="pedigree" info="Pedigree is not just about origin, it’s about the excellence that carries forward." color="yellow" />,
-    <Brands brand="whiskas" info="Whiskas: Because every cat deserves a taste of joy." color="purple" />,
-    <Brands brand="smartheart" info="SmartHeart: Smart food for a happy heart." color="blue" />,
-  ];
+    const slides = [
+        <Brands brand="pedigree" info="Pedigree is not just about origin, it’s about the excellence that carries forward." color="yellow" />,
+        <Brands brand="whiskas" info="Whiskas: Because every cat deserves a taste of joy." color="purple" />,
+        <Brands brand="smartheart" info="SmartHeart: Smart food for a happy heart." color="blue" />,
+    ];
 
-  //////// automatic slider logic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % slides.length);
-    }, 4000); // change every 4 seconds
+    //////// automatic slider logic
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveSlide((prev) => (prev + 1) % slides.length);
+        }, 4000); // change every 4 seconds
 
-    // cleanup on unmount
-    return () => clearInterval(interval);
-  }, [slides.length]);
+        // cleanup on unmount
+        return () => clearInterval(interval);
+    }, [slides.length]);
 
-  return (
-    <div
-      className="relative w-full h-[600px] select-none overflow-x-hidden bg-blue-300"
-    >
-      <div
-        className="flex transition-transform duration-700 ease-in-out h-full w-full"
-        style={{ transform: `translateX(-${activeSlide * 100}%)` }}
-      >
-        {slides.map((slide, index) => (
-          <div key={index} className="w-full flex-shrink-0">
-            {slide}
-          </div>
-        ))}
-      </div>
+    return (
+        <div
+            className="relative w-full h-[600px] select-none overflow-x-hidden bg-blue-300"
+        >
+            <div
+                className="flex transition-transform duration-700 ease-in-out h-full w-full"
+                style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+            >
+                {slides.map((slide, index) => (
+                    <div key={index} className="w-full flex-shrink-0">
+                        {slide}
+                    </div>
+                ))}
+            </div>
 
-      {/* Optional: Dots for navigation */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-3">
-        {slides.map((_, index) => (
-          <div
-            key={index}
-            onClick={() => setActiveSlide(index)}
-            className={`w-3 h-3 rounded-full cursor-pointer transition-all duration-300 ${
-              index === activeSlide ? "bg-white scale-125" : "bg-gray-400"
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  );
+            {/* Optional: Dots for navigation */}
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-3">
+                {slides.map((_, index) => (
+                    <div
+                        key={index}
+                        onClick={() => setActiveSlide(index)}
+                        className={`w-3 h-3 rounded-full cursor-pointer transition-all duration-300 ${index === activeSlide ? "bg-white scale-125" : "bg-gray-400"
+                            }`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
 }
 
 
@@ -113,8 +115,8 @@ function Owner() {
     )
 }
 
-function SmoothUnderline(){
-    return(
+function SmoothUnderline() {
+    return (
         <>
             <span
                 className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-700 ease-in-out group-hover:w-full pointer-events-none"
@@ -124,18 +126,18 @@ function SmoothUnderline(){
 }
 
 
-export const cat={
-    "cat food":["dry food","wet food","kitten food","veterinary food"],
-    "treats":["biscuits","meat treats","creamy treats","wet treats"],
-    "clothing":["fancy accessories","occassion wears"],
-    "litter & accessories":["ball shaped litters","cat litter trays","sand litter","scoopers"],
-    "toys":["cat nip toys","interactive toys","squeaky toys","steaky toys"],
-    "grooming":["brushes & combs","ceodrants","cloves","nail cutters","powders","shampoo & soaps","towels & wipes"],
-    "cage":["cage"]
+export const cat = {
+    "cat food": ["dry food", "wet food", "kitten food", "veterinary food"],
+    "treats": ["biscuits", "meat treats", "creamy treats", "wet treats"],
+    "clothing": ["fancy accessories", "occassion wears"],
+    "litter & accessories": ["ball shaped litters", "cat litter trays", "sand litter", "scoopers"],
+    "toys": ["cat nip toys", "interactive toys", "squeaky toys", "steaky toys"],
+    "grooming": ["brushes & combs", "ceodrants", "cloves", "nail cutters", "powders", "shampoo & soaps", "towels & wipes"],
+    "cage": ["cage"]
 }
 
 function CatStuff() {
-    const dispatch=useDispatch()
+    const dispatch = useDispatch()
     return (
         <div className="flex flex-row gap-10 justify-center w-[100%]">
             {Object.keys(cat).map((categories) => (
@@ -143,8 +145,8 @@ function CatStuff() {
                     <div className="font-semibold sm:text-md md:text-lg" key={categories}><span>{categories}</span></div>
                     <div className="sm:text-sm">
                         {
-                            cat[categories].map((item)=>(
-                                <div key={item}><Link to="/product"><span className="relative group" onClick={()=>{dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></Link></div>
+                            cat[categories].map((item) => (
+                                <div key={item}><Link to="/product"><span className="relative group" onClick={() => { dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></Link></div>
                             ))
                         }
                     </div>
@@ -157,13 +159,13 @@ function CatStuff() {
 
 
 export const dog = {
-  "dog food": ["dry food", "wet food", "puppy food", "veterinary food"],
-  "treats": ["biscuits", "meat treats", "creamy treats", "wet treats"],
-  "clothing": ["t-shirts", "occassion wears", "winter wears", "shoes"],
-  "bedding": ["beds", "blankets", "cooling mats", "cushions"],
-  "toys": ["leather toys", "interactive toys", "squeaky toys", "rope toys", "flush toys"],
-  "grooming": ["brushes & combs", "deodrants", "gloves", "nail cutters", "powders", "shampoo & soaps", "towels & wipes"],
-  "cage":["cage"]
+    "dog food": ["dry food", "wet food", "puppy food", "veterinary food"],
+    "treats": ["biscuits", "meat treats", "creamy treats", "wet treats"],
+    "clothing": ["t-shirts", "occassion wears", "winter wears", "shoes"],
+    "bedding": ["beds", "blankets", "cooling mats", "cushions"],
+    "toys": ["leather toys", "interactive toys", "squeaky toys", "rope toys", "flush toys"],
+    "grooming": ["brushes & combs", "deodrants", "gloves", "nail cutters", "powders", "shampoo & soaps", "towels & wipes"],
+    "cage": ["cage"]
 };
 function DogStuff() {
     return (
@@ -173,8 +175,8 @@ function DogStuff() {
                     <div className="font-semibold sm:text-md md:text-lg" key={categories}><span>{categories}</span></div>
                     <div className="sm:text-sm">
                         {
-                            dog[categories].map((item)=>(
-                                <div key={item}><Link to="/product"><span className="relative group" onClick={()=>{dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></Link></div>
+                            dog[categories].map((item) => (
+                                <div key={item}><Link to="/product"><span className="relative group" onClick={() => { dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></Link></div>
                             ))
                         }
                     </div>
@@ -191,15 +193,15 @@ export const turtle = ["food", "health supplements"];
 
 
 function SmallPetStuff() {
-    const dispatch=useDispatch()
+    const dispatch = useDispatch()
     return (
         <div className="flex flex-row gap-10 justify-center w-[100%]">
             <div>
                 <div className="font-semibold sm:text-md md:text-lg"><span>Bird</span></div>
                 <div className="sm:text-sm">
                     {
-                        birds.map((item)=>(
-                            <div><span className="relative group" onClick={()=>{dispatch(setPets("bird")); dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></div>
+                        birds.map((item) => (
+                            <div><span className="relative group" onClick={() => { dispatch(setPets("bird")); dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></div>
                         ))
                     }
                 </div>
@@ -208,8 +210,8 @@ function SmallPetStuff() {
                 <div className="font-semibold sm:text-md md:text-lg"><span>Hamster</span></div>
                 <div className="sm:text-sm">
                     {
-                        hamster.map((item)=>(
-                            <div><span className="relative group" onClick={()=>{dispatch(setPets("hamster")); dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></div>
+                        hamster.map((item) => (
+                            <div><span className="relative group" onClick={() => { dispatch(setPets("hamster")); dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></div>
                         ))
                     }
                 </div>
@@ -218,8 +220,8 @@ function SmallPetStuff() {
                 <div className="font-semibold sm:text-md md:text-lg"><span>Rabbit</span></div>
                 <div className="sm:text-sm">
                     {
-                        rabbit.map((item)=>(
-                            <div><span className="relative group" onClick={()=>{dispatch(setPets("rabbit")); dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></div>
+                        rabbit.map((item) => (
+                            <div><span className="relative group" onClick={() => { dispatch(setPets("rabbit")); dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></div>
                         ))
                     }
                 </div>
@@ -229,8 +231,8 @@ function SmallPetStuff() {
                 <div className="font-semibold sm:text-md md:text-lg"><span>Turtle</span></div>
                 <div className="sm:text-sm">
                     {
-                        turtle.map((item)=>(
-                            <div><span className="relative group" onClick={()=>{dispatch(setPets("turtle")); dispatch(setTypeFilter(item.toLowerCase()))}}>{item} {<SmoothUnderline/>}</span></div>
+                        turtle.map((item) => (
+                            <div><span className="relative group" onClick={() => { dispatch(setPets("turtle")); dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></div>
                         ))
                     }
                 </div>
@@ -243,44 +245,44 @@ export function Header() {
     const dispatch = useDispatch();
     const show = useSelector((state) => state?.user?.categoryState)
     const showLoginOption = useSelector((state) => state?.user?.loginOption) // initally going to be false
-    const showDetailOption=useSelector((state)=>state?.user?.detailOption)  // initially false
+    const showDetailOption = useSelector((state) => state?.user?.detailOption)  // initially false
     const [data, setData] = useState("cat")
-    const navigate=useNavigate()
-    let clicked="user"
+    const navigate = useNavigate()
+    let clicked = "user"
 
     const headerRef = useRef(null);
 
     function categoriesHandler(e) {
-        const parentDiv=e.currentTarget;
-        const firstChildDiv=parentDiv.querySelector("div:first-child")
+        const parentDiv = e.currentTarget;
+        const firstChildDiv = parentDiv.querySelector("div:first-child")
         setData(firstChildDiv.textContent.toLowerCase())
         dispatch(setPets(firstChildDiv.textContent.toLowerCase()))
         if (!show) dispatch(setCategoryState())
     }
 
-    function detailsHandler(e){
-        const parentDiv=e.currentTarget;
-        const firstChildDiv=parentDiv.querySelector("div:first-child")
-        clicked=firstChildDiv.dataset.details.toLowerCase()
-        
-        if(clicked==="user"){
-            if(!showLoginOption){
+    function detailsHandler(e) {
+        const parentDiv = e.currentTarget;
+        const firstChildDiv = parentDiv.querySelector("div:first-child")
+        clicked = firstChildDiv.dataset.details.toLowerCase()
+
+        if (clicked === "user") {
+            if (!showLoginOption) {
                 dispatch(setLoginOption())
-                if(showDetailOption) dispatch(setDetailOption())
+                if (showDetailOption) dispatch(setDetailOption())
             }
 
-        }else{
-            if(!showDetailOption){
+        } else {
+            if (!showDetailOption) {
                 // console.log("heello",showDetailOption)
                 dispatch(setDetailOption())
-                if(showLoginOption) dispatch(setLoginOption())
+                if (showLoginOption) dispatch(setLoginOption())
             }
         }
     }
 
     const dropdownRef = useRef(null)
     const loginRef = useRef(null)
-    const contactRef=useRef(null)
+    const contactRef = useRef(null)
 
     useLayoutEffect(() => {
         if (headerRef.current) {
@@ -289,7 +291,7 @@ export function Header() {
         }
     }, [])
 
-    const headerHeight=useSelector((state)=>state?.layout?.headerHeight)
+    const headerHeight = useSelector((state) => state?.layout?.headerHeight)
 
     /// whenever clicked outside of down scroll set toggle in the redux as false
     useEffect(() => {
@@ -317,18 +319,31 @@ export function Header() {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [show, dispatch, showDetailOption,showLoginOption]);
+    }, [show, dispatch, showDetailOption, showLoginOption]);
 
-    const [query,setQuery]=useState("");
+    const [query, setQuery] = useState("");
 
-    function handleKeyDown(e){
-        if(e.key==="Enter"){
-            navigate("/product", { state: { query:query, data:"search" } });
+    function handleKeyDown(e) {
+        if (e.key === "Enter") {
+            navigate("/product", { state: { query: query, data: "search" } });
         }
     }
 
-    //// getting user role
-    const role=useSelector((state)=>state?.user?.userData?.role)
+    //// getting user role and id
+    const role = useSelector((state) => state?.user?.userData?.role)
+    const userId= useSelector((state)=> state?.user?.userData?._id)
+
+    async function viewWishList(e){
+        try{
+            e.stopPropagation();
+            e.preventDefault();
+
+            navigate("/WishListUI",{state:{userId:userId}})
+
+        }catch(error){
+            console.log("wrong in viewWishist frontend",error);
+        }
+    } 
 
     return (
         <>
@@ -346,9 +361,9 @@ export function Header() {
                             <img src="/search_logo.svg" alt="search_icon" />
                         </div>
                         <div className="search_bar w-[100%]">
-                            <input className="w-[100%] h-[100%] outline-0 placeholder: xs:text-xs placeholder:sm:text-sm placeholder:md:text-md placeholder:lg:text-lg" type="text" placeholder="Search for more then 100 products" 
-                            onChange={(e)=>setQuery(e.target.value)}
-                            onKeyDown={(e)=>handleKeyDown(e)}
+                            <input className="w-[100%] h-[100%] outline-0 placeholder: xs:text-xs placeholder:sm:text-sm placeholder:md:text-md placeholder:lg:text-lg" type="text" placeholder="Search for more then 100 products"
+                                onChange={(e) => setQuery(e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(e)}
                             />
                         </div>
                     </div>
@@ -360,7 +375,7 @@ export function Header() {
                                     {(!showDetailOption) && <div><RiArrowDropDownLine size={20} /></div>}
                                     {showDetailOption && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
-                                {showDetailOption && 
+                                {showDetailOption &&
                                     <div className="h-auto backdrop-blur absolute top-[30px] flex flex-col gap-1 bg-[#1565C0] p-1">
                                         <div className=" flex flex-row items-center gap-2 pl-1">
                                             <div><HiOutlineMail color="white" /></div>
@@ -370,25 +385,25 @@ export function Header() {
                                             <div><FaPhoneAlt color="white" /></div>
                                             <div className="font-sans text-white"><span className="">9152760580</span></div>
                                         </div>
-                                        {role==="admin" && <Link to="/adminSetting"><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Settings</span></div></Link>}
+                                        {role === "admin" && <Link to="/adminSetting"><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Settings</span></div></Link>}
                                     </div>
                                 }
                             </div>
                             <div ref={loginRef} className="cursor-pointer hover:rounded-2xl flex flex-row items-center">
                                 <div className="flex flex-row" onMouseEnter={(e) => detailsHandler(e)}>
                                     <div className="flex flex-row justify-center items-center" data-details="user"><FaUser color="#00ACC1" size={20} /></div>
-                                    {(!showLoginOption || clicked!=="user")&& <div><RiArrowDropDownLine size={20} /></div>}
-                                    {showLoginOption && clicked==="user" && <div><RiArrowDropUpLine size={20} /></div>}
+                                    {(!showLoginOption || clicked !== "user") && <div><RiArrowDropDownLine size={20} /></div>}
+                                    {showLoginOption && clicked === "user" && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
-                                {showLoginOption && 
+                                {showLoginOption &&
                                     <div className="w-fit h-auto backdrop-blur absolute top-[50px] flex flex-col gap-1 bg-[#1565C0] p-1">
-                                        <Link to="/Login" state={{user:"user"}}><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">User Login</span></div></Link>
-                                        <Link to="/Login" state={{user:"admin"}}><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Login</span></div></Link>
+                                        <Link to="/Login" state={{ user: "user" }}><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">User Login</span></div></Link>
+                                        <Link to="/Login" state={{ user: "admin" }}><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Login</span></div></Link>
                                         <div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Logout</span></div>
                                     </div>
                                 }
                             </div>
-                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center ml-2"><FaRegHeart color="#00ACC1" size={20} /></div>
+                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center ml-2" onClick={(e)=>viewWishList(e)}><FaRegHeart color="#00ACC1" size={20} /></div>
                             <Link to="/cart"><div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center pl-2"><MdOutlineShoppingCart color="#00ACC1" size={25} /></div></Link>
                         </div>
                     </div>
@@ -398,22 +413,22 @@ export function Header() {
                     <div className="flex flex-row justify-evenly items-center w-[100%]">
                         <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
                             <div className="text-black">Cat</div>
-                            {(!show || data!=="cat") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
+                            {(!show || data !== "cat") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "cat" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
                         <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
                             <div className="text-black">Dog</div>
-                            {(!show || data!=="dog") && <div><RiArrowDropDownLine size={20} color="black"/></div>}
+                            {(!show || data !== "dog") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "dog" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
                         <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
                             <div className="text-black">Small Pets</div>
-                            {(!show || data!=="small pets") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
-                            {show && data === "small pets" && <div><RiArrowDropUpLine size={20} color="black"/></div>}
+                            {(!show || data !== "small pets") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
+                            {show && data === "small pets" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
                         <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
                             <div className="text-black">Brands</div>
-                            {(!show || data!=="brands") && <div><RiArrowDropDownLine size={20} color="black"/></div>}
+                            {(!show || data !== "brands") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "brands" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
                         <Link to="/offer"><div className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline text-black cursor-pointer"><span>Offer</span></div></Link>
@@ -432,9 +447,10 @@ export function Header() {
     )
 }
 
-function FeedBack() {
+function FeedBack(props) {
     const myRef = useRef(null)
     const [text, setText] = useState("")
+    const [rating,setRating]=useState(5);
 
     useEffect(() => {
         const el = myRef.current;
@@ -446,12 +462,33 @@ function FeedBack() {
         }
     }, [text])
 
+    const user = useSelector((state) => state?.user?.userData)
+    async function submitFeedBack() {
+
+        if (!user) console.log("user need to login first")
+        else if(text.trim().length===0) console.log("FeedBack can't be empty")
+        else {
+            const res=await axios.post(`${USER_ENDPOINTS}/createFeedBack/${user?._id}`,{message:text,rating:rating},{withCredentials:true})
+
+            if(res?.data?.bool){
+                console.log("feedback created successfully")
+            }else{
+                console.log("fucked up in feedback creation")
+            }
+            setText("")
+            setRating(0)
+        }
+
+        props.setRefresh(prev=>prev+1)
+
+    }
+
     return (
         <form action="post">
             <div className="h-[300px] w-[100%] border border-t-2 flex flex-row gap-30 justify-center items-stretch bg-[#00ACC1]">
                 <div className="flex flex-col items-center justify-center gap-3 w-[30%]">
                     <div className="w-[100%] rounded-2xl border-2 border-[#E0E0E0] bg-[#FFFFFF]"><textarea ref={myRef} name="" id="" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter you FeedBack" className="outline-0 p-2 max-h-[200px] min-h-[100px] w-[100%] overflow-y-scroll scrollbar-hide placeholder:xs:text-sm placeholder:lg:text-lg xs:text-sm lg:text-lg placeholder:text-[#555555] text-[#212121]"></textarea></div>
-                    <div className="flex flex-row justify-center items-center w-[80%] self-center border-2 border-[#0288D1] rounded-2xl cursor-pointer bg-[white] hover:bg-[#E1F5FE] text-[#0288D1] shadow-[0_4px_20px_rgba(2,136,209,0.3)]"><button className="xs:text-sm sm:text-md lg:text-xl text-white bg-[#0288D1] hover:bg-[#03A9F4] active:bg-[#0277BD] w-[100%] rounded-2xl">Submit</button></div>
+                    <div className="flex flex-row justify-center items-center w-[80%] self-center border-2 border-[#0288D1] rounded-2xl cursor-pointer bg-[white] hover:bg-[#E1F5FE] text-[#0288D1] shadow-[0_4px_20px_rgba(2,136,209,0.3)]"><button type="button" onClick={() => submitFeedBack()} className="xs:text-sm sm:text-md lg:text-xl text-white bg-[#0288D1] hover:bg-[#03A9F4] active:bg-[#0277BD] w-[100%] rounded-2xl">Submit</button></div>
                 </div>
 
                 <div className="flex flex-row justify-center items-center xs:text-xl lg:text-2xl text-[#FFFFFF]">
@@ -462,7 +499,7 @@ function FeedBack() {
     )
 }
 
-function ShowFeedBack() {
+function ShowFeedBack(props) {
     const heightRef = useRef(null);
     const outerHeightRef = useRef(null)
     const [numLines, setNumLines] = useState(0);
@@ -489,23 +526,17 @@ function ShowFeedBack() {
     }, [numBlock]); // wait until blocks are rendered
 
 
-    ///// this array we will get by using custom hooks
-    let usernames = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-    let messages = [
-        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Corrupti, quo voluptatibus nesciunt laboriosam cum illo pariatur placeat quia ab corporis quidem. Odio sequi eveniet illum soluta alias ipsam dolorum optio",
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt animi in deserunt ducimus eligendi beatae est, voluptatum facere porro cum, voluptatem aspernatur at officia illum quo nam neque unde perferendis",
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Eveniet cum dolores sit suscipit consequuntur accusamus explicabo totam corrupti voluptatum natus. Recusandae totam aliquid et, excepturi cum soluta magni mollitia! Dolore",
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio distinctio voluptatum aliquam deleniti. Ullam cumque error animi tempora esse cupiditate corporis, id expedita tenetur repellat quo? Perspiciatis optio amet iure?",
-        "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quisquam magnam deleniti temporibus eveniet quae quos praesentium fuga iure nisi reprehenderit aliquid sed, quasi iusto cum unde non consectetur adipisci. Mollitia.",
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus, non autem voluptatem voluptates praesentium facere enim aut rem veniam sed quia vel aliquam quidem nemo! Iusto ea esse odio ad.",
-        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Corrupti, quo voluptatibus nesciunt laboriosam cum illo pariatur placeat quia ab corporis quidem. Odio sequi eveniet illum soluta alias ipsam dolorum optio",
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt animi in deserunt ducimus eligendi beatae est, voluptatum facere porro cum, voluptatem aspernatur at officia illum quo nam neque unde perferendis",
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Eveniet cum dolores sit suscipit consequuntur accusamus explicabo totam corrupti voluptatum natus. Recusandae totam aliquid et, excepturi cum soluta magni mollitia! Dolore",
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio distinctio voluptatum aliquam deleniti. Ullam cumque error animi tempora esse cupiditate corporis, id expedita tenetur repellat quo? Perspiciatis optio amet iure?",
-        "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quisquam magnam deleniti temporibus eveniet quae quos praesentium fuga iure nisi reprehenderit aliquid sed, quasi iusto cum unde non consectetur adipisci. Mollitia.",
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus, non autem voluptatem voluptates praesentium facere enim aut rem veniam sed quia vel aliquam quidem nemo! Iusto ea esse odio ad.",
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsum nam voluptatibus, est quo quia qui, ea autem vitae enim totam eligendi quod, consequuntur eius sequi fuga rerum doloribus ullam. Ut!"
-    ]
+    let usernames=props.feedBack.map((feedback)=>{
+        return feedback?.username
+    })
+
+    let messages=props.feedBack.map((feedback)=>{
+        return feedback?.message
+    })
+
+    // console.log("usernames",usernames)
+    // console.log("messages",messages)
+
     useEffect(() => {
         const a = setInterval(() => {
             setCounter(counter => (counter + numBlock) % usernames.length);
@@ -595,13 +626,23 @@ export function Footer() {
 }
 
 export default function LandingPage() {
+    const [feedBackRefresh,setFeedBackRefresh]=useState(0)
+    const feedBack=useGetAllFeedBack(feedBackRefresh);
+    if(!feedBack){
+        return(
+            <div>Loading...</div>
+        )
+    }
+
+    
     return (
         <>
+            {/* {console.log("Hey taher",feedBack)} */}
             <Header />
             <AutoBrandSlider />
             <Owner />
-            <ShowFeedBack />
-            <FeedBack />
+            <ShowFeedBack feedBack={feedBack}/>
+            <FeedBack refresh={feedBackRefresh} setRefresh={setFeedBackRefresh} />
             <Footer />
         </>
     )

@@ -10,6 +10,7 @@ import AddProduct from "./pages/addProduct";
 import CreateOffer from "./pages/addOffer";
 import AdminSetting from "./pages/adminSetting";
 import SingleProductDisplay from "./pages/SingleProductDisplay";
+import WishListUI from "./pages/WishListUI";
 
 function App() {
   return (
@@ -28,8 +29,7 @@ function App() {
             <Route path="createCoupon" element={<CouponRuleCreator/>}></Route>
             <Route path="createOffer" element={<CreateOffer/>}></Route>
           </Route>
-
-
+          <Route path="/WishListUI" element={<WishListUI/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>

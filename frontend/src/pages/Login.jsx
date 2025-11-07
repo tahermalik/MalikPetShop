@@ -33,7 +33,7 @@ function Login() {
         navigate("/")
       }
     }catch(error){
-      console.log("Wrong in user login")
+      console.log("Wrong in user login",error)
     }
 
   }

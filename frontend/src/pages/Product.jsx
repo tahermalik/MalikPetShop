@@ -6,9 +6,11 @@ import { MdArrowDropDown, MdArrowDropUp , MdOutlineDeleteOutline} from "react-ic
 import { Range } from "react-range";
 import { useGetAllProduct } from "../hooks/useGetAllProducts"
 import axios from "axios"
-import { PRODUCT_ENDPOINTS } from "./endpoints"
+import { PRODUCT_ENDPOINTS, USER_ENDPOINTS } from "./endpoints"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useMemo } from "react"
+import { IoIosHeart } from "react-icons/io";
+import { setProductIdInUserWishList } from "../redux/slices/userSlice"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -172,9 +174,20 @@ function Filter() {
 
 function ProductCard(props) {
     const dispatch=useDispatch();
+    const [isPresent,setIsPresent]=useState(false)
+    
+
+    
     const userData=useSelector((state)=>state?.user?.userData)
+    const userId=userData?._id; //// here i will get the user id
     // const imgCounter=useSelector((state)=>state?.active?.imgCounter)
     const [imgCounter,setImgCounter]=useState(0)
+    
+    useLayoutEffect(()=>{
+        const userWishList=userData?.wishList
+        // console.log("loading wishList",userWishList)
+        if(userWishList.includes(props?.productId)) setIsPresent(true)
+    },[])
 
     function discountCalc(price, discount) {
         price = Number(price)
@@ -203,17 +216,38 @@ function ProductCard(props) {
 
     }
 
-    async function deleteProduct(){
+    async function deleteProduct(e){
         try{
+            e.stopPropagation();
+            e.preventDefault()
             const res=await axios.post(`${PRODUCT_ENDPOINTS}/deleteProduct/${props.productId}`,{imgCounter:imgCounter},{withCredentials:true})
             console.log(res)
 
             if(imgCounter!==0) setImgCounter(imgCounter-1)
             props.setRefresh((prev) => !prev)
         }catch(error){
-            console.log("wrong in delete product")
+            console.log("wrong in delete product",error)
         }
     }
+
+    async function favProduct(e){
+        try{
+            e.stopPropagation();
+            e.preventDefault()
+            const newIsPresent=!isPresent
+            setIsPresent(newIsPresent) /// toggling is done over here
+            dispatch(setProductIdInUserWishList(props?.productId))
+            const res=axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:props.productId,toAdd:newIsPresent},{withCredentials:true})
+
+        }catch(error){
+            console.log("wrong in favourite product")
+        }
+    }
+
+    // const productWishList=props.wishList.map((product)=>{
+    //     return product.toString();
+    // })
+    // if(productWishList.includes(userId)) setIsPresent(true)
 
     return (
         // initially setting 0th product to be displayed whicle clicking on the product
@@ -232,7 +266,8 @@ function ProductCard(props) {
                                 e.preventDefault()}}>{props.netWeightArray[index]} kg</div>
                         ))}
                     </div>
-                    {userData?.email==="taher@gmail.com" && <div onClick={()=>(deleteProduct())} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><MdOutlineDeleteOutline size={20} /></div>}
+                    {userData?.email==="taher@gmail.com" && <div onClick={(e)=>(deleteProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><MdOutlineDeleteOutline size={20} /></div>}
+                    {userData?.email!=="taher@gmail.com" && <div onClick={(e)=>(favProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><IoIosHeart size={20} color={isPresent ? "red":"white"} style={{ stroke: "red", strokeWidth: 20 }}/></div>}
                 </div>
             </div>
 
@@ -277,7 +312,7 @@ function DisplayProducts(props){
             <>
                 {productData.map((products)=>{
                     return(
-                        <div onClick={()=>productClicked(products)}>
+                        <div onClick={()=>productClicked(products)} className="h-fit">
                             <ProductCard imagesArray={products.image} netWeightArray={products.netWeight} originalPriceArray={products.originalPrice} discountArray={products.discountValue} productName={products.productName} productId={products._id} refresh={props.refresh} setRefresh={props.setRefresh}/>
                         </div>
                     )
