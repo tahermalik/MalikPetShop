@@ -3,7 +3,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Product from "../schema/productSchema.js";
 import Order from "../schema/orderSchema.js";
+import FeedBack from "../schema/feedBackSchema.js";
+import mongoose from "mongoose";
 
+/// working
 export async function login(req, res) {
     try {
         console.log("in this login component")
@@ -41,6 +44,8 @@ export async function login(req, res) {
     }
 }
 
+
+/// working
 export async function register(req, res) {
     try {
         console.log("in this register component")
@@ -167,40 +172,63 @@ export async function addCart(req,res){
     }
 }
 
-
-export async function addWhishList(req,res){
+/// working -> addition and removal of the products  ;;; user should be login for this
+export async function favourite(req,res){
     try{
-        const product_id=req.params.id;
-        let wishData=await User.findById(req?.user?.id).select("-password")
-        wishData=wishData.wishlist
+        console.log("inside favourite")
+        let {userId,productId,toAdd}=req?.body
+        // userId = new mongoose.Types.ObjectId(userId);
+        // productId = new mongoose.Types.ObjectId(productId);
 
-        let item_price=await Product.findById(product_id)
-        item_price=Math.ceil((item_price.originalPrice*item_price.discount)/100)
+        let result=await Product.findById(productId)
+        if(!result) return res.status(404).json({message:"Product not found",bool:false})
 
-        //// removing the item from the cart
-        for(let i=0;i<wishData.length;i++){
-            if(wishData[i]["product_id"]==product_id){
-                await User.findByIdAndUpdate(
-                    req?.user?.id,
-                    { $pull: { wishlist: { product_id: product_id} } },
-                    { new: true }
-                    );
-                return res.status(200).json({message:"Item removed from the wishlist"})
-            }
+        result = await User.findById(userId)
+        if(!result) return res.status(404).json({message:"User not found",bool:false})
+        // console.log(userId,productId)
+        if(toAdd){
+            console.log("Adding Product to wishList")
+            await Promise.all([
+                User.findByIdAndUpdate(userId, { $push: { wishList: productId } }),
+                Product.findByIdAndUpdate(productId, { $push: { wishList: userId } })
+            ]);
+        }else{
+            console.log("removing product from wishList")
+            /// we dont need to remove it from the wishlist
+            await Promise.all([
+                User.findByIdAndUpdate(userId, { $pull: { wishList: productId } }),
+                Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } })
+            ]);
+            return res.status(200).json({message:"Item removed from the wishlist"})
         }
-
-
-        //// adding the item into the cart
-        await User.findByIdAndUpdate(
-            req?.user?.id,
-            { $push: { wishlist: { product_id: product_id ,price:item_price} } },
-            { new: true }
-            );
         return res.status(200).json({message:"Item added succesfully to wishlist"})
 
     }catch(error){
         console.log("Something wrong at server side in addWhishList",error)
         return res.status(500).json("something wrong at server end")
+    }
+}
+
+////  user should be login for this
+export async function viewWishList(req,res){
+    try{
+        const userId=req?.params?.id /// receiving the user id
+
+        // Check if userId is valid ObjectId
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: "Invalid user ID", bool: false });
+        }
+
+        let userWishList=await User.findById(userId).select("wishList") /// just fetching out the wishList
+
+        if(!userWishList) return res.status(404).json({message:"User not found",bool:false})
+        const productIds=userWishList?.wishList        // [ new ObjectId('690b7d059b307d48b6f8aeac') ]
+
+        const productData=await Product.find({_id:{$in:productIds}})
+        return res.status(200).json({productData:productData,bool:true})
+    }catch(error){
+        console.log("error in view wishList",error)
+        return res.status(500).json({message:"Server fucked up in view WishList"})
     }
 }
 
@@ -250,8 +278,61 @@ export async function placeOrder(req,res){
 }
 
 
+//// working
+export async function createFeedBack(req,res){
+    let result
+    try{
+        const userId=req?.params;
+        let {message,rating}=req?.body
+
+        message=message.trim()
+        if(message.length===0) return res.status(400).json({message:"FeedBack cant be empty",bool:false})
+
+        result=await User.findByIdAndUpdate(userId?.id,
+            {$push:{feedbacks:{message:message,rating:rating}}},
+            {new:true}
+        )
+        return res.status(200).json({bool:true})
+    }catch(error){
+        console.log("wrong in create feedback",error)
+        return res.status(500).json({message:"server fucked up at createFeedBack",bool:false})
+    }finally{
+        topMostFeedBacks(req?.body?.message,req?.body?.rating,result?.username)
+    }
+}
 
 
+/// working
+async function topMostFeedBacks(message,rating,username){
+    try{ 
+        await FeedBack.updateOne(
+            {},
+            {
+                $push: {
+                allFeedBack: {
+                    $each: [{ message, rating ,username}], // you can push one or multiple
+                    $sort: { rating: -1 }         // -1 = descending order
+                }
+                }
+            },
+            { upsert: true }
+        );
+    }catch(error){
+        console.log("error in topMostFeedback",error)
+    }
+}
 
 
+//// custom hook will gonna call this now ; working
+export async function displayFeedBack(req,res){
+    try{
+        console.log("inside displayFeedBack")
+        const allFeedBack=await FeedBack.findOne()
+        // console.log(allFeedBack)
+        return res.status(200).json({feedBackData:allFeedBack?.allFeedBack})
+    }catch(error){
+        console.log("wrong in display FeedBack")
+        return res.status(500).json({message:"Server fucked up in display feedback"})
+    }
+}
 

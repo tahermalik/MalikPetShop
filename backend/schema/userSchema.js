@@ -8,44 +8,38 @@ const userSchema = new mongoose.Schema({
         lowercase: true,   // Converts to lowercase before saving
         match: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/ // Optional: regex to validate email format
     },
-    username:{
-        type:String,
-        required:true,
-        match:/^[A-Za-z]+(?: [A-Za-z]+)*$/
+    username: {
+        type: String,
+        required: true,
+        match: /^[A-Za-z]+(?: [A-Za-z]+)*$/
     },
-    password:{
-        type:String,
-        required:true,
-        match:/^.{8,}$/
+    password: {
+        type: String,
+        required: true,
+        match: /^.{8,}$/
     },
-    wishlist: [
+    wishList: [
         {
-            product_id:{
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Product"
-            },
-            price:{
-                type:Number,
-                required:true
-            }
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product"
         }
     ],
     orders: [
         {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Order",
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Order",
         }
     ],
     feedbacks: [
         {
             message: { type: String, required: true },
-            rating: { type: Number, min: 1, max: 5 ,default:3},
-            createdAt: { type: Date, default: () => new Date()},
+            rating: { type: Number, min: 1, max: 5, default: 3 },
+            createdAt: { type: Date, default: () => new Date() },
         }
     ],
-    role:{
-        type:String,
-        required:true
+    role: {
+        type: String,
+        required: true
     }
 })
 

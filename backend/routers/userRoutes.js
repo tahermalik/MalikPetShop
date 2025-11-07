@@ -1,5 +1,5 @@
 import express from "express"
-import { login, register ,logout, viewCompanyFood, viewFood, addCart, addWhishList, placeOrder} from "../controllers/userController.js";
+import { login, register ,logout, viewCompanyFood, viewFood, addCart, placeOrder,createFeedBack,displayFeedBack, favourite, viewWishList} from "../controllers/userController.js";
 import { authenticate } from "../controllers/middleware.js";
 
 const uRouter=express.Router();
@@ -10,7 +10,14 @@ uRouter.get("/logout",(req,res,next)=>authenticate(req,res,next),(req,res)=>logo
 uRouter.post("/viewCompanyFood",(req,res)=>viewCompanyFood(req,res))
 uRouter.post("/viewFood",(req,res)=>viewFood(req,res))
 
-uRouter.put("/addWishList/:id",(req,res,next)=>authenticate(req,res,next),(req,res)=>addWhishList(req,res))
+/// wishList Routes
+uRouter.post("/favourite",(req,res)=>favourite(req,res))
+uRouter.get("/viewWishList/:id",(req,res)=>viewWishList(req,res))
+
 uRouter.put("/addCart/:id",(req,res,next)=>authenticate(req,res,next),(req,res)=>addCart(req,res))
 uRouter.put("/placeOrder",(req,res,next)=>authenticate(req,res,next),(req,res)=>placeOrder(req,res))
+
+/// feedback routes
+uRouter.post("/createFeedBack/:id",(req,res)=>createFeedBack(req,res))
+uRouter.get("/displayFeedBack",(req,res)=>displayFeedBack(req,res))
 export default uRouter

@@ -1,99 +1,110 @@
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
-    productName:{
+    productName: {
+        type: String,
+    },
+    cleanProductName:{
         type:String,
     },
-    expiryDate:{
-        type:[String],
+    expiryDate: {
+        type: [String],
     },
-    manufactureDate:{
-        type:[String],
+    manufactureDate: {
+        type: [String],
     },
-    brand:{
-        type:String,
+    brand: {
+        type: String,
     },
-    category:{
-        type:String,
+    category: {
+        type: String,
     },
-    type:{
-        type:String,
+    type: {
+        type: String,
     },
-    discountValue:{
-        type:[Number],
+    discountValue: {
+        type: [Number],
     },
-    discountType:{
-        type:[String],
-        default:["percent"],
-        enum:["percent","flat"]
+    discountType: {
+        type: [String],
+        default: ["percent"],
+        enum: ["percent", "flat"]
     },
-    originalPrice:{
-        type:[Number],
+    originalPrice: {
+        type: [Number],
     },
-    netWeight:{
-        type:[Number],
+    netWeight: {
+        type: [Number],
     },
-    pet:{
-        type:String,
-        match:/^[A-Za-z]+$/
+    pet: {
+        type: String,
+        match: /^[A-Za-z]+$/
     },
-    stock:{
-        type:[Number],
+    stock: {
+        type: [Number],
     },
-    breed:{
-        type:String,
+    breed: {
+        type: String,
     },
-    diet:{
-        type:String,
+    diet: {
+        type: String,
     },
-    image:{
-        type:[String],
+    image: {
+        type: [String],
     },
 
+    //// wishlist added here so that to find out which product is popular among user
+    wishList: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }
+    ],
+
     ///// Every product will have its own String so that they can be serached by the humans
-    productString:{
-        type:[String]
+    productString: {
+        type: [String]
     },
 
 
     /// snack schema
-    flavor:{
-        type:String,
-        match:/^[A-Za-z]+$/,
-        required:false
+    flavor: {
+        type: String,
+        match: /^[A-Za-z]+$/,
+        required: false
     },
 
     //// cloth schema
-    size:{
-        type:Number,
+    size: {
+        type: Number,
     },
-    color:{
-        type:String,
-        match:/^[A-Za-z]+$/
+    color: {
+        type: String,
+        match: /^[A-Za-z]+$/
     },
-    material:{
-        type:String,
-        match:/^[A-Za-z]+$/
+    material: {
+        type: String,
+        match: /^[A-Za-z]+$/
     },
 
 
 
     /// cage schema
-    length:{
-        type:Number,
-        min:0
-        
+    length: {
+        type: Number,
+        min: 0
+
     },
-    width:{
-        type:Number,
-        min:0
+    width: {
+        type: Number,
+        min: 0
     },
-    height:{
-        type:Number,
-        min:0
+    height: {
+        type: Number,
+        min: 0
     }
 
-},{timestamps:true})
+}, { timestamps: true })
 
 const Product = mongoose.model("Product", productSchema);
 export default Product
