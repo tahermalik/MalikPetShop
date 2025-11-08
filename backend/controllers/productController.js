@@ -264,5 +264,20 @@ export async function deleteProduct(req, res) {
     }
 }
 
+//// function specially created for cart
+export async function getProductsViaIds(req,res){
+    try{
+        const {productIds}=req?.body
+        const productData=await Product.find({ _id:{$in:productIds}})
+        const productMap = new Map(productData.map(p => [p._id.toString(), p]));
+        const orderedProducts = productIds.map(id => productMap.get(id));
+        return res.status(200).json({productData:orderedProducts})
+
+    }catch(error){
+        console.log("server fucked up at getProductViaIds",error)
+        return res.status(500).json({message:"erver fucked up at getProductViaIds",bool:false})
+    }
+}
+
 
 

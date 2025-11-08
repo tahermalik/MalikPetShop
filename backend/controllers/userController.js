@@ -176,9 +176,7 @@ export async function addCart(req,res){
 export async function favourite(req,res){
     try{
         console.log("inside favourite")
-        let {userId,productId,toAdd}=req?.body
-        // userId = new mongoose.Types.ObjectId(userId);
-        // productId = new mongoose.Types.ObjectId(productId);
+        let {userId,productId,toAdd,productVariation}=req?.body
 
         let result=await Product.findById(productId)
         if(!result) return res.status(404).json({message:"Product not found",bool:false})
@@ -189,14 +187,14 @@ export async function favourite(req,res){
         if(toAdd){
             console.log("Adding Product to wishList")
             await Promise.all([
-                User.findByIdAndUpdate(userId, { $push: { wishList: productId } }),
+                User.findByIdAndUpdate(userId, { $push: { wishList: {productId:productId,productVariation:productVariation} } }),
                 Product.findByIdAndUpdate(productId, { $push: { wishList: userId } })
             ]);
         }else{
             console.log("removing product from wishList")
             /// we dont need to remove it from the wishlist
             await Promise.all([
-                User.findByIdAndUpdate(userId, { $pull: { wishList: productId } }),
+                User.findByIdAndUpdate(userId, { $pull: { wishList: {productId:productId,productVariation:productVariation} } }),
                 Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } })
             ]);
             return res.status(200).json({message:"Item removed from the wishlist"})
@@ -209,7 +207,7 @@ export async function favourite(req,res){
     }
 }
 
-////  user should be login for this
+////  user should be login for this ; working
 export async function viewWishList(req,res){
     try{
         const userId=req?.params?.id /// receiving the user id
@@ -222,10 +220,20 @@ export async function viewWishList(req,res){
         let userWishList=await User.findById(userId).select("wishList") /// just fetching out the wishList
 
         if(!userWishList) return res.status(404).json({message:"User not found",bool:false})
-        const productIds=userWishList?.wishList        // [ new ObjectId('690b7d059b307d48b6f8aeac') ]
+        const productIds=userWishList?.wishList        
 
-        const productData=await Product.find({_id:{$in:productIds}})
-        return res.status(200).json({productData:productData,bool:true})
+        // console.log([productIds])
+        const productVariationArray=productIds.map((obj)=>{
+            return obj["productVariation"]
+        })
+
+        const ids=productIds.map((obj)=>{
+            return obj["productId"] 
+        })
+
+        const productData=await Product.find({_id:{$in:ids}})
+        console.log("varaition",productVariationArray,ids)
+        return res.status(200).json({productData:productData,productVariationArray:productVariationArray,bool:true})
     }catch(error){
         console.log("error in view wishList",error)
         return res.status(500).json({message:"Server fucked up in view WishList"})

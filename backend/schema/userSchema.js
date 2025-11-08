@@ -20,8 +20,15 @@ const userSchema = new mongoose.Schema({
     },
     wishList: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Product"
+            productId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Product",
+                required: true
+            },
+            productVariation:{
+                type:Number,
+                default:0
+            }
         }
     ],
     orders: [

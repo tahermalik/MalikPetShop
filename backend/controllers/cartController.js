@@ -1,103 +1,37 @@
 import Cart from "../schema/cartSchema.js";
 import Product from "../schema/productSchema.js";
 
-///// this function will be called when the user is logged in
-export async function getCartItemsLogin(req,res){
-    try{
-        const user_id=req?.user?.id;
-        const cart=await Cart.findOne({user_id})
-
-        /// if the cart exists
-        if(cart){
-            return res.status(200).json({products:cart?.products,bool:true})
-        }
-
-        return res.status(200).json({bool:false})
-
-
-    }catch(error){
-        console.log("wrong in getCartItem",error);
-        return res.status(500).json({message:"Error from server end in getCartItems"})
-    }
-}
-
-
-///// function when the user is logged in ==> when the user clicks on the remove
-export async function removerCartItemLogin(req,res){
-    try{
-
-        const product_id=req?.params?.id;  /// id will be passed via the parameter
-        const user_id=req?.user?.id;
-
-        let cart=await Cart.findOne({user_id}).select("products")
-        if(!cart) return res.status(404).json({message:"Cart not found"})
-
-        const result = await Cart.updateOne(
-            {user_id:user_id},
-            { $pull: { products: { product_id: product_id } } }
-        )
-
-        const exists = cart.products.some(p => p.product_id.toString() === product_id);
-        cart=await Cart.findOne({user_id}).select("products")
-        if (!exists) {
-            return res.status(404).json({message:"Product not found"})
-        } else {
-            if(cart.products.length===0){
-                await Cart.deleteOne({ user_id: user_id });
-            }
-            return res.status(200).json({message:"Product removed from the cart"})
-        }
-    }catch(error){
-        console.log("wrong in removeCartItem",error);
-        return res.status(500).json({message:"Error from server end in removeCartItems"})
-    }
-}
-
-
-///// this function will be invoked when the user is logged in i.e when the user clicks on login button
+//// all the below codes are for the login user
+///// when the logged in user presses add to cart button
 export async function addToCart(req,res){
     try{
-        const user_id=req?.user?.id; /// getting the userId via the middleware
-        const product_id=req.params?.id;
-        const productInfo=await Product.findById(product_id)
-        const cart=await Cart.findOne({user_id})
-        if(!productInfo) return res.status(404).json({message:"product not found"})
-        
-        /// so that no enum validation fails
-        let validDiscountTypes = ["percentage", "flat"];
-        let discountType = validDiscountTypes.includes(productInfo.discountType)
-            ? productInfo.discountType
-            : "percentage"; // fallback to default
+        console.log("adding the product into cart")
+        const {userId,productId,productVariation}=req?.body;
+        const productData=await Product.findById(productId)
+        const cart=await Cart.findOne({userId})
+        if(!productData) return res.status(404).json({message:"product not found"})
 
         
-        let productDetails={
-            product_id:productInfo._id,
-            quantity:1,
-            originalPrice:productInfo?.originalPrice,
-            discountValue:productInfo?.discountValue,
-            discountType:discountType
-        }
-
-        console.log("Discount type from product:", productInfo.discountType, typeof productInfo.discountType);
-
-
         /// if already there some items in the cart
         if(cart){
-            const exists = cart.products.some(
-                p => p.product_id.toString() === product_id
+            const existingProduct = cart.products.find(
+                (p) =>
+                p.productId.toString() === productId &&
+                p.productVariation === productVariation
             );
 
-            if (!exists) {
-                await Cart.updateOne(
-                    { user_id },
-                    { $push: { products: productDetails } }
-                );
+            if (existingProduct) {
+                return res.status(200).json({ message: "Product already in cart" });
             }
+            
+            await Cart.findOneAndUpdate({userId:userId},{$push:{products:{productId:productId,productVariation:productVariation}}})
         }else{
-            let productDetailsArray=[productDetails]
             await Cart.create({
-                user_id:user_id,
-                products:productDetailsArray
+                userId:userId,
+                products:[{
+                    productId:productId,
+                    productVariation:productVariation
+                }]
             })
         }
         return res.status(200).json({message:"item added to the cart successfully"})
@@ -109,6 +43,43 @@ export async function addToCart(req,res){
     }
 }
 
+export async function getCartItems(req,res){
+    try{
+        console.log("inside getCartItems")
+        const userId=req?.params?.userId;
+        const result=await Cart.findOne({userId})
+
+        if(!result) return res.status(404).json({message:"Cart Not found",bool:false})
+        return res.status(200).json({cartData:result?.products})
+    }catch(error){
+        console.log("server fucked up at getCartItems",error)
+        return res.status(500).json({message:"server fucked up at getCartItems"})
+    }
+}
+
+export async function removerCartItem(req,res){
+    try{
+
+        const {userId,productId,productVariation}=req?.body
+        console.log("inside remove cart item")
+        let cart=await Cart.findOne({userId}).select("products")
+        if(!cart) return res.status(404).json({message:"Cart not found",bool:false})
+
+        const result = await Cart.updateOne(
+            {userId:userId},
+            { $pull: { products: { productId: productId ,productVariation:productVariation} } }
+        )
+        
+        if(result.modifiedCount === 0) return res.status(404).json({message:"Product not found",bool:false})
+
+        cart=await Cart.findOne({userId}).select("products")
+        
+        return res.status(200).json({message:"Product removed from the cart",bool:true})
+    }catch(error){
+        console.log("wrong in removeCartItem",error);
+        return res.status(500).json({message:"Error from server end in removeCartItems",bool:false})
+    }
+}
 
 /// per user there is only one cart
 export async function mergeCartItems(req,res){

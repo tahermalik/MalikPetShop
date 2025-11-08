@@ -1,11 +1,12 @@
 import express from "express"
 import { authenticate } from "../controllers/middleware.js";
-import { addToCart, removerCartItemLogin } from "../controllers/cartController.js";
+import { addToCart, removerCartItem ,getCartItems} from "../controllers/cartController.js";
 
 
 const cartRouter=express.Router();
 console.log("in this cartRoutes")
 
-cartRouter.get("/addToCart/:id",(req,res,next)=>authenticate(req,res,next),(req,res)=>addToCart(req,res))
-cartRouter.delete("/removeCartItem/:id",(req,res,next)=>authenticate(req,res,next),(req,res)=>removerCartItemLogin(req,res))
+cartRouter.post("/addToCart",(req,res)=>addToCart(req,res))
+cartRouter.get("/getCartItems/:userId",(req,res)=>getCartItems(req,res))
+cartRouter.post("/removeCartItem",(req,res)=>removerCartItem(req,res))
 export default cartRouter
