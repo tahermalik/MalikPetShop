@@ -20,8 +20,19 @@ const userSlice = createSlice({
     },
     setProductIdInUserWishList:(state,action)=>{
       if(state?.userData){
-        if(!state?.userData?.wishList.includes(action.payload)) state?.userData?.wishList.push(action.payload)
-        else state.userData.wishList = state?.userData?.wishList.filter((productId)=>productId!==action.payload)
+        const productId = action.payload["productId"];
+        const productVariation=action.payload["productVariation"] || 0
+        const index = state.userData.wishList.findIndex(
+          (obj) => obj.productId === productId
+        );
+
+        if (index !== -1) {
+          // If already exists → remove it
+          state.userData.wishList.splice(index, 1);
+        } else {
+          // If not exists → add it
+          state.userData.wishList.push({ productId :productId,productVariation:productVariation});
+        }
       }
     }
 

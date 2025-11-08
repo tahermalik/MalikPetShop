@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLayoutEffect, useState } from "react";
 import { setImageCounter } from "../redux/slices/activeSlice";
 import { useLocation } from "react-router-dom";
+import { addToCart } from "./Product";
 
 function OfferComponent(props) {
     const dispath = useDispatch();
@@ -51,6 +52,9 @@ function ProductInfo(props) {
     const originalPriceArray = props.originalPriceArray;
     const discountValueArray = props.discountValueArray
 
+    const userId=useSelector((state)=>state?.user?.userData?._id)
+    const productVariation=useSelector((state)=>state?.active?.imgCounter)
+
 
     const details = [
         { title: "nutrition", value: nutrition },
@@ -70,7 +74,7 @@ function ProductInfo(props) {
                 ))}
             </div>
             <div className="flex flex-row items-center w-[100%] rounded-2xl py-2 px-2 border-2 border-black sm:text-lg lg:text-2xl cursor-pointer"><span className="hover:underline">Offers</span></div>
-            <div className="flex flex-row items-center justify-center w-[100%] rounded-2xl py-2 px-2 border-2 border-black sm:text-lg lg:text-2xl cursor-pointer bg-blue-700 hover:bg-blue-600 hover:text-white">
+            <div className="flex flex-row items-center justify-center w-[100%] rounded-2xl py-2 px-2 border-2 border-black sm:text-lg lg:text-2xl cursor-pointer bg-blue-700 hover:bg-blue-600 hover:text-white" onClick={(e)=>addToCart(e,userId,props.productId,productVariation,!(userId===null))}>
                 <span className="hover:underline">Add to Cart</span>
             </div>
             <div className="border-black border-2 rounded-2xl p-2 flex flex-col gap-2 w-[100%]">
@@ -148,7 +152,6 @@ export default function SingleProductDisplay() {
     useLayoutEffect(() => {
         const windowHeight = window.innerHeight
         setProductHeight(windowHeight - headerHeight)
-        dispatch(setImageCounter(0))
     }, [headerHeight])
 
 
@@ -167,7 +170,7 @@ export default function SingleProductDisplay() {
             <Header />
             <div className={`w-[100%] flex flex-row`} style={{ height: `${productHeight}px` }}>
                 <div className="bg-blue-100 w-[40%] h-[100%] overflow-auto scrollbar-hide flex flex-col items-center justify-center"><ProductImg productHeight={productHeight} imagesArray={productData?.image} /></div>
-                <div className="w-[60%] h-auto p-2 flex flex-row flex-wrap justify-evenly gap-x-2 gap-y-10 overflow-auto scrollbar-hide"><ProductInfo netQuantityArray={productData.netWeight} originalPriceArray={productData.originalPrice} discountValueArray={productData.discountValue}/></div>
+                <div className="w-[60%] h-auto p-2 flex flex-row flex-wrap justify-evenly gap-x-2 gap-y-10 overflow-auto scrollbar-hide"><ProductInfo netQuantityArray={productData.netWeight} originalPriceArray={productData.originalPrice} discountValueArray={productData.discountValue} productId={productData._id}/></div>
             </div>
             <SecondaryDetails/>
             <Footer/>

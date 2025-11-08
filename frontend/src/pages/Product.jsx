@@ -6,11 +6,12 @@ import { MdArrowDropDown, MdArrowDropUp , MdOutlineDeleteOutline} from "react-ic
 import { Range } from "react-range";
 import { useGetAllProduct } from "../hooks/useGetAllProducts"
 import axios from "axios"
-import { PRODUCT_ENDPOINTS, USER_ENDPOINTS } from "./endpoints"
+import { CART_ENDPOINTS, PRODUCT_ENDPOINTS, USER_ENDPOINTS } from "./endpoints"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useMemo } from "react"
 import { IoIosHeart } from "react-icons/io";
 import { setProductIdInUserWishList } from "../redux/slices/userSlice"
+import { setImageCounter } from "../redux/slices/activeSlice"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -172,11 +173,23 @@ function Filter() {
     )
 }
 
+export async function addToCart(e,userId,productId,productVariation,logInFlag){
+    e.stopPropagation();
+    e.preventDefault();
+
+    /////// user is not logged in and still clicking the button add to cart
+    if(!logInFlag){ 
+        //// redux add to cart will be called
+
+    }else{      // user is logged in so backend stuff will be called
+        const result= await axios.post(`${CART_ENDPOINTS}/addToCart`,{userId:userId,productId:productId,productVariation:productVariation},{withCredentials:true})
+        console.log(`${productId} added successfully`)
+    }
+}
+
 function ProductCard(props) {
     const dispatch=useDispatch();
     const [isPresent,setIsPresent]=useState(false)
-    
-
     
     const userData=useSelector((state)=>state?.user?.userData)
     const userId=userData?._id; //// here i will get the user id
@@ -185,8 +198,9 @@ function ProductCard(props) {
     
     useLayoutEffect(()=>{
         const userWishList=userData?.wishList
+        const userWishListIds=userWishList.map((obj)=>{return obj["productId"]})
         // console.log("loading wishList",userWishList)
-        if(userWishList.includes(props?.productId)) setIsPresent(true)
+        if(userWishListIds.includes(props?.productId)) setIsPresent(true)
     },[])
 
     function discountCalc(price, discount) {
@@ -202,18 +216,6 @@ function ProductCard(props) {
         let discuntedPrice = discountCalc(price, discount);
         let totalGrams = netQuantity * 1000;
         return (100 * (discuntedPrice / totalGrams)).toFixed(2)
-    }
-
-    function addToCart(){
-        /////// user is not logged in and still clicking the button add to cart
-        if(!userData){ 
-            //// redux add to cart will be called
-
-        }else{      // user is logged in so backend stuff will be called
-            /// backend add to cart API
-
-        }
-
     }
 
     async function deleteProduct(e){
@@ -236,8 +238,8 @@ function ProductCard(props) {
             e.preventDefault()
             const newIsPresent=!isPresent
             setIsPresent(newIsPresent) /// toggling is done over here
-            dispatch(setProductIdInUserWishList(props?.productId))
-            const res=axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:props.productId,toAdd:newIsPresent},{withCredentials:true})
+            dispatch(setProductIdInUserWishList({productId:props?.productId,productVariation:imgCounter}))
+            const res=axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:props.productId,toAdd:newIsPresent,productVariation:imgCounter},{withCredentials:true})
 
         }catch(error){
             console.log("wrong in favourite product")
@@ -262,6 +264,7 @@ function ProductCard(props) {
                         {props.netWeightArray.map((offer, index) => (
                             <div className={`border border-black flex flex-row justify-center items-center px-1 py-0.2 font-semibold cursor-pointer hover:underline ${imgCounter===index? "border-2 border-orange-400":""}`} onClick={(e)=>{
                                 setImgCounter(index);
+                                dispatch(setImageCounter(index))
                                 e.stopPropagation();
                                 e.preventDefault()}}>{props.netWeightArray[index]} kg</div>
                         ))}
@@ -272,7 +275,7 @@ function ProductCard(props) {
             </div>
 
             <div className="flex flex-row justify-center items-center h-[15%] w-[100%] rounded-2xl">
-                <button className="flex flex-row justify-center items-center w-[100%] h-[100%] bg-orange-600 rounded-b-2xl cursor-pointer text-white hover:underline" onClick={(e)=>{e.stopPropagation();e.preventDefault();addToCart()}}>Add to Cart</button>
+                <button className="flex flex-row justify-center items-center w-[100%] h-[100%] bg-orange-600 rounded-b-2xl cursor-pointer text-white hover:underline" onClick={(e)=>{addToCart(e,userId,props.productId,imgCounter,!(userData===null))}}>Add to Cart</button>
             </div>
 
         </div>

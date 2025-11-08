@@ -14,26 +14,28 @@ export default function WishListUI() {
     const location=useLocation()
     const userId=location?.state?.userId
     const [refresh,setRefresh]=useState(0)
-    const exampleProducts=useGetWishListData(userId,refresh)
+    const {productData,productVariationData}=useGetWishListData(userId,refresh)
 
     const dispatch=useDispatch()
 
-    console.log("example",exampleProducts)
-    if(!exampleProducts){
+    console.log("example",productData)
+    if(!productData){
         return(
             <div>Loading...</div>
         )
     }
 
-    async function removeFavourite(e,productId){
+    async function removeFavourite(e,productId,productVariation){
         try{
             e.stopPropagation();
             e.preventDefault();
 
             console.log("inside remove btn",userId,productId)
-            dispatch(setProductIdInUserWishList(productId))
+            dispatch(setProductIdInUserWishList({productId:productId,productVariation:productVariation}))
+
+            console.log("holaaaaaa")
+            const result= await axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:productId,toAdd:false,productVariation:productVariation},{withCredentials:true})
             setRefresh(prev=>prev+1)
-            const result= await axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:productId,toAdd:false},{withCredentials:true})
         }catch(error){
             console.log("wrong in remove favourite",error)
             setRefresh(prev => prev + 1) // fallback refetch if something failed
@@ -45,11 +47,11 @@ export default function WishListUI() {
             <Link to="/product" className="p-2 hover:bg-gray-300 rounded-full w-fit ml-2 mt-2"><FaArrowLeft size={20} /></Link>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-                {exampleProducts.map((product) => (
+                {productData.map((product,index) => (
                     <div key={product._id} className="w-full bg-blue-50 flex flex-col rounded-2xl shadow hover:shadow-lg hover:bg-blue-100 transition duration-200">
                         <div className="h-[200px] w-full p-2 flex justify-center items-center">
                             <img
-                                src={`http://localhost:3000/${product.image[0]}`}
+                                src={`http://localhost:3000/${product.image[productVariationData[index]]}`}
                                 alt={product.productName}
                                 className="h-full w-full object-contain rounded-xl"
                             />
@@ -58,16 +60,16 @@ export default function WishListUI() {
                             <div className="font-semibold line-clamp-2 text-blue-900">{product.productName}</div>
                             <div className="flex flex-col gap-1 text-blue-800">
                                 <span className="text-lg font-sans">
-                                    &#8377;{product.originalPrice[0] - Math.floor((product.originalPrice[0] * product.discountValue[0]) / 100)}
+                                    &#8377;{product.originalPrice[productVariationData[index]] - Math.floor((product.originalPrice[productVariationData[index]] * product.discountValue[productVariationData[index]]) / 100)}
                                 </span>
-                                <span className="line-through text-sm">&#8377;{product.originalPrice[0]}</span>
-                                <span className="text-sm">Discount {product.discountValue[0]}%</span>
+                                <span className="line-through text-sm">&#8377;{product.originalPrice[productVariationData[index]]}</span>
+                                <span className="text-sm">Discount {product.discountValue[productVariationData[index]]}%</span>
                             </div>
                             <div className="flex justify-between items-center mt-2">
-                                <div className="flex items-center px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200" onClick={(e)=>removeFavourite(e,product._id)}>
+                                <div className="flex items-center px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200" onClick={(e)=>removeFavourite(e,product._id,productVariationData[index])}>
                                     <IoIosHeart size={18} className="mr-1" /> Remove
                                 </div>
-                                <span className="text-sm text-blue-700">{product.netWeight[0]} kg</span>
+                                <span className="text-sm text-blue-700">{product.netWeight[productVariationData[index]]} kg</span>
                             </div>
                         </div>
                     </div>

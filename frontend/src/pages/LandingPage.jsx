@@ -345,6 +345,17 @@ export function Header() {
         }
     } 
 
+    async function viewCart(e){
+        try{
+            e.stopPropagation();
+            e.preventDefault();
+            navigate("/cart",{state:{userId:userId}})
+
+        }catch(error){
+            console.log("wrong in viewWishist frontend",error);
+        }
+    }
+
     return (
         <>
             <div ref={headerRef} className="header flex flex-col h-[100px]  w-[100%] gap-0 sticky top-0 z-2 bg-[#E3F2FD]">
@@ -404,7 +415,7 @@ export function Header() {
                                 }
                             </div>
                             <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center ml-2" onClick={(e)=>viewWishList(e)}><FaRegHeart color="#00ACC1" size={20} /></div>
-                            <Link to="/cart"><div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center pl-2"><MdOutlineShoppingCart color="#00ACC1" size={25} /></div></Link>
+                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center pl-2" onClick={(e)=>viewCart(e)}><MdOutlineShoppingCart color="#00ACC1" size={25} /></div>
                         </div>
                     </div>
                 </div>
