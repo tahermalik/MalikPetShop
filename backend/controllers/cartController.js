@@ -3,6 +3,8 @@ import Product from "../schema/productSchema.js";
 
 //// all the below codes are for the login user
 ///// when the logged in user presses add to cart button
+
+/// wroking
 export async function addToCart(req,res){
     try{
         console.log("adding the product into cart")
@@ -43,6 +45,7 @@ export async function addToCart(req,res){
     }
 }
 
+/// working
 export async function getCartItems(req,res){
     try{
         console.log("inside getCartItems")
@@ -57,6 +60,7 @@ export async function getCartItems(req,res){
     }
 }
 
+/// working
 export async function removerCartItem(req,res){
     try{
 
@@ -84,49 +88,38 @@ export async function removerCartItem(req,res){
 /// per user there is only one cart
 export async function mergeCartItems(req,res){
     try{
-
-        const user_id=req?.params?.id;
+        // console.log("helllo")
+        const userId=req?.params?.id;
 
         //// it only contains 2 things one product id and then its quantity
-        const items=req.body?.items; /// object where key is productId and its value is quantity
-        const cart=await Cart.findOne({user_id})
-        if(cart){
-            let already_present=await Cart.findOne({user_id}).select("products") // this will again be the array of objects
-            already_present=already_present["products"]
-            for(let i=0;i<already_present.length;i++){
-                if(already_present[i]["product_id"] in items){
-                    items[already_present[i]["product_id"]]+=already_present[i]["quantity"];
-                }else items[already_present[i]["product_id"]]=already_present[i]["quantity"]
+        const {reduxCartData}=req?.body; /// array of objects
+
+        // console.log(userId,reduxCartData,"inside mergeCartItems")
+        let existingProducts=await Cart.findOne({userId}).select("products")
+
+        //// if existingProduct is found
+        if(existingProducts){
+            existingProducts=existingProducts["products"]
+
+            //// both reduxCartData and existingProducts are the array of objects
+            // console.log(existingProducts)
+
+            const newItems = reduxCartData.filter(
+                (r) =>
+                    !existingProducts.some(
+                    (e) => e.productId === r.productId && e.productVariation === r.productVariation
+                )
+            );
+
+            if (newItems.length > 0) {
+                await Cart.updateOne(
+                    { userId },
+                    { $push: { products: { $each: newItems } } }
+                );
             }
-
         }
-
-        //// my items object will contain key - value pair in the combined format
-        const productIds = Object.keys(items);
-        const products = await Product.find({ _id: { $in: productIds } }).select("_id name discount originalPrice"); // [{}]
-        products.forEach(p => {
-            const pid = p._id.toString();
-            p.quantity = items[pid] || 1;
-        });
-
-
-        //// creating the merge product array of objects
-        const mergedProducts = products.map(p => ({
-            product_id: p._id,
-            name: p.name,
-            discount: p.discount,
-            originalPrice: p.originalPrice,
-            quantity: p.quantity || 1
-        }));
-
-
-        // 5️5 Update existing cart or create a new one
-        if (cart) {
-            cart.products = mergedProducts; // update products
-            await cart.save();              // save changes
-        } else {
-            cart = new Cart({ user_id, products: mergedProducts });
-            await cart.save();              // save new cart
+        else if (reduxCartData?.length > 0) {
+            await Cart.create({ userId, products: reduxCartData });
         }
 
         return res.status(200).json({ message: "Cart merged successfully"});

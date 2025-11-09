@@ -275,7 +275,7 @@ export async function getProductsViaIds(req,res){
 
     }catch(error){
         console.log("server fucked up at getProductViaIds",error)
-        return res.status(500).json({message:"erver fucked up at getProductViaIds",bool:false})
+        return res.status(500).json({message:"server fucked up at getProductViaIds",bool:false})
     }
 }
 

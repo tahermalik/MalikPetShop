@@ -19,7 +19,7 @@ export async function login(req, res) {
             return res.status(400).json({message:"All the fields are mandatory",bool:false});
         }
 
-        const user=await User.findOne({email:email})
+        const user=await User.findOne({email:email}).select("-email")
         if(!user){
             return res.status(400).json({message:"either email or password is not correct",bool:false});
         }
@@ -240,6 +240,49 @@ export async function viewWishList(req,res){
     }
 }
 
+export async function mergeWishList(req,res){
+    try{
+        // console.log("helllo")
+        const userId=req?.params?.id;
+
+        //// it only contains 2 things one product id and then its quantity
+        const {reduxWishListData}=req?.body; /// array of objects
+
+        // console.log(userId,reduxCartData,"inside mergeCartItems")
+        let existingProducts=await User.findById(userId).select("wishList")
+
+        // console.log(userId,reduxWishListData,existingProducts)
+
+        //// if existingProduct is found
+        if(existingProducts){
+        
+            existingProducts=existingProducts["wishList"]
+            //// both reduxCartData and existingProducts are the array of objects
+            // console.log(existingProducts)
+
+            const newItems = reduxWishListData.filter(
+                (r) =>
+                    !existingProducts.some(
+                    (e) => e.productId === r.productId && e.productVariation === r.productVariation
+                )
+            );
+
+            if (newItems.length > 0) {
+                await User.findByIdAndUpdate(
+                    userId ,
+                    { $push: { wishList: { $each: newItems } } }
+                );
+            }
+        }
+        return res.status(200).json({ message: "WishList Data merger successfully"});
+        
+        
+    }catch(error){
+        console.log("wrong in mergeWishList",error);
+        return res.status(500).json({message:"Error from server end in mergeWishList"})
+    }
+}
+
 
 export async function placeOrder(req,res){
     try{
@@ -343,4 +386,7 @@ export async function displayFeedBack(req,res){
         return res.status(500).json({message:"Server fucked up in display feedback"})
     }
 }
+
+
+
 

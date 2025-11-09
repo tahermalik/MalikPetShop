@@ -1,5 +1,5 @@
 import express from "express"
-import { login, register ,logout, viewCompanyFood, viewFood, addCart, placeOrder,createFeedBack,displayFeedBack, favourite, viewWishList} from "../controllers/userController.js";
+import { login, register ,logout, viewCompanyFood, viewFood, addCart, placeOrder,createFeedBack,displayFeedBack, favourite, viewWishList, mergeWishList} from "../controllers/userController.js";
 import { authenticate } from "../controllers/middleware.js";
 
 const uRouter=express.Router();
@@ -13,6 +13,7 @@ uRouter.post("/viewFood",(req,res)=>viewFood(req,res))
 /// wishList Routes
 uRouter.post("/favourite",(req,res)=>favourite(req,res))
 uRouter.get("/viewWishList/:id",(req,res)=>viewWishList(req,res))
+uRouter.post("/mergeWishList/:id",(req,res)=>mergeWishList(req,res))
 
 uRouter.put("/addCart/:id",(req,res,next)=>authenticate(req,res,next),(req,res)=>addCart(req,res))
 uRouter.put("/placeOrder",(req,res,next)=>authenticate(req,res,next),(req,res)=>placeOrder(req,res))
