@@ -8,11 +8,12 @@ import axios from "axios";
 import { useState } from "react";
 import { USER_ENDPOINTS } from "./endpoints";
 import { useDispatch } from "react-redux";
-import { setProductIdInUserWishList } from "../redux/slices/userSlice";
+import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/slices/userSlice";
 
 export default function WishListUI() {
     const location=useLocation()
     const userId=location?.state?.userId
+
     const [refresh,setRefresh]=useState(0)
     const {productData,productVariationData}=useGetWishListData(userId,refresh)
 
@@ -31,10 +32,18 @@ export default function WishListUI() {
             e.preventDefault();
 
             console.log("inside remove btn",userId,productId)
-            dispatch(setProductIdInUserWishList({productId:productId,productVariation:productVariation}))
 
-            console.log("holaaaaaa")
-            const result= await axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:productId,toAdd:false,productVariation:productVariation},{withCredentials:true})
+            if(userId!==undefined){
+                dispatch(setProductIdInUserWishList({productId:productId,productVariation:productVariation}))
+                console.log("holaaaaaa")
+                const result= await axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:productId,toAdd:false,productVariation:productVariation},{withCredentials:true})
+            }else{
+                const obj={
+                    productId:productId,
+                    productVariation:productVariation
+                }
+                dispatch(setFavouriteNotLoggedIn(obj))
+            }
             setRefresh(prev=>prev+1)
         }catch(error){
             console.log("wrong in remove favourite",error)

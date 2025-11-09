@@ -37,6 +37,7 @@ function OfferComponent(props) {
 }
 
 function ProductInfo(props) {
+    const dispatch=useDispatch()
     const nutrition = useSelector((state) => state?.product?.nutrition)
     const calories = useSelector((state) => state?.product?.calories)
     const skinHealth = useSelector((state) => state?.product?.skinHealth)
@@ -74,7 +75,7 @@ function ProductInfo(props) {
                 ))}
             </div>
             <div className="flex flex-row items-center w-[100%] rounded-2xl py-2 px-2 border-2 border-black sm:text-lg lg:text-2xl cursor-pointer"><span className="hover:underline">Offers</span></div>
-            <div className="flex flex-row items-center justify-center w-[100%] rounded-2xl py-2 px-2 border-2 border-black sm:text-lg lg:text-2xl cursor-pointer bg-blue-700 hover:bg-blue-600 hover:text-white" onClick={(e)=>addToCart(e,userId,props.productId,productVariation,!(userId===null))}>
+            <div className="flex flex-row items-center justify-center w-[100%] rounded-2xl py-2 px-2 border-2 border-black sm:text-lg lg:text-2xl cursor-pointer bg-blue-700 hover:bg-blue-600 hover:text-white" onClick={(e)=>addToCart(e,userId,props.productId,productVariation,!(userId===null),dispatch)}>
                 <span className="hover:underline">Add to Cart</span>
             </div>
             <div className="border-black border-2 rounded-2xl p-2 flex flex-col gap-2 w-[100%]">

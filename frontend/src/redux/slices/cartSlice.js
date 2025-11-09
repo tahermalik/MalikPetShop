@@ -4,30 +4,24 @@ import { createSlice } from "@reduxjs/toolkit";
 const cartSlice = createSlice({
   name: "cart",
   initialState: {
-    products:{}
+    products:[] // this will be array of objects
   },
   reducers: {
     /// action.payload will be object
 
     //// when the user clicks on add to cart button && when the user tries to increment the item
     addProduct:(state,action)=>{
-        if(action.payload in state.products){
-            state.products[action.payload]+=1;
-        }else state.products[action.payload]=1;
+      /// if the product is already present then it will be simply skipped
+      const exists=state.products.some((item)=> item["productId"]===action.payload.productId && item["productVariation"]===action.payload.productVariation)
+      if(!exists) state.products.push(action.payload)
     },
 
     removeProduct:(state,action)=>{
-        if(action.payload in state.products) delete state.products[action.payload]
-    },
-
-    subProduct:(state,action)=>{
-        if(action.payload in state.products){
-            state.products[action.payload]-=1;
-            if(state.products[action.payload]===0) delete state.products[action.payload]
-        }
-    }    
+      const exists=state.products.some((item)=> item["productId"]===action.payload.productId && item["productVariation"]===action.payload.productVariation)
+      if(exists) state.products.push(action.payload)
+    },  
   }
 })
 
-export const { addProduct,removeProduct,subProduct} = cartSlice.actions;
+export const { addProduct,removeProduct} = cartSlice.actions;
 export default cartSlice.reducer;

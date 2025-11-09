@@ -10,8 +10,9 @@ import { CART_ENDPOINTS, PRODUCT_ENDPOINTS, USER_ENDPOINTS } from "./endpoints"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useMemo } from "react"
 import { IoIosHeart } from "react-icons/io";
-import { setProductIdInUserWishList } from "../redux/slices/userSlice"
+import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/slices/userSlice"
 import { setImageCounter } from "../redux/slices/activeSlice"
+import { addProduct } from "../redux/slices/cartSlice"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -173,13 +174,20 @@ function Filter() {
     )
 }
 
-export async function addToCart(e,userId,productId,productVariation,logInFlag){
+/// function written for both loggedIn user & user who is not loggedIn
+export async function addToCart(e,userId,productId,productVariation,logInFlag,dispatch){
     e.stopPropagation();
     e.preventDefault();
 
     /////// user is not logged in and still clicking the button add to cart
     if(!logInFlag){ 
-        //// redux add to cart will be called
+        // console.log("Hollllla")
+        const obj={
+            productId:productId,
+            productVariation:productVariation
+        }
+
+        dispatch(addProduct(obj))   /// just adding an product to the cart
 
     }else{      // user is logged in so backend stuff will be called
         const result= await axios.post(`${CART_ENDPOINTS}/addToCart`,{userId:userId,productId:productId,productVariation:productVariation},{withCredentials:true})
@@ -192,15 +200,25 @@ function ProductCard(props) {
     const [isPresent,setIsPresent]=useState(false)
     
     const userData=useSelector((state)=>state?.user?.userData)
+    const userDataNotLoggedIn=useSelector((state)=>state?.user?.userDataNotLoggedIn)
     const userId=userData?._id; //// here i will get the user id
     // const imgCounter=useSelector((state)=>state?.active?.imgCounter)
     const [imgCounter,setImgCounter]=useState(0)
     
     useLayoutEffect(()=>{
-        const userWishList=userData?.wishList
-        const userWishListIds=userWishList.map((obj)=>{return obj["productId"]})
-        // console.log("loading wishList",userWishList)
-        if(userWishListIds.includes(props?.productId)) setIsPresent(true)
+        if(userData){
+            const userWishList=userData?.wishList
+            const userWishListIds=userWishList.map((obj)=>{return obj["productId"]})
+            // console.log("loading wishList",userWishList)
+            if(userWishListIds.includes(props?.productId)) setIsPresent(true)
+        }else{
+            const userWishList=userDataNotLoggedIn["wishList"]
+            console.log("taha",userWishList)
+            const userWishListIds=userWishList.map((obj)=>{return obj["productId"]})
+            // console.log("loading wishList",userWishList)
+            if(userWishListIds.includes(props?.productId)) setIsPresent(true)
+            
+        }
     },[])
 
     function discountCalc(price, discount) {
@@ -238,8 +256,17 @@ function ProductCard(props) {
             e.preventDefault()
             const newIsPresent=!isPresent
             setIsPresent(newIsPresent) /// toggling is done over here
-            dispatch(setProductIdInUserWishList({productId:props?.productId,productVariation:imgCounter}))
-            const res=axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:props.productId,toAdd:newIsPresent,productVariation:imgCounter},{withCredentials:true})
+
+            if(userData){
+                dispatch(setProductIdInUserWishList({productId:props?.productId,productVariation:imgCounter}))
+                const res=axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:props.productId,toAdd:newIsPresent,productVariation:imgCounter},{withCredentials:true})
+            }else{
+                const obj={
+                    productId:props?.productId,
+                    productVariation:imgCounter
+                }
+                dispatch(setFavouriteNotLoggedIn(obj))
+            }
 
         }catch(error){
             console.log("wrong in favourite product")
@@ -275,7 +302,7 @@ function ProductCard(props) {
             </div>
 
             <div className="flex flex-row justify-center items-center h-[15%] w-[100%] rounded-2xl">
-                <button className="flex flex-row justify-center items-center w-[100%] h-[100%] bg-orange-600 rounded-b-2xl cursor-pointer text-white hover:underline" onClick={(e)=>{addToCart(e,userId,props.productId,imgCounter,!(userData===null))}}>Add to Cart</button>
+                <button className="flex flex-row justify-center items-center w-[100%] h-[100%] bg-orange-600 rounded-b-2xl cursor-pointer text-white hover:underline" onClick={(e)=>{addToCart(e,userId,props.productId,imgCounter,!(userData===null),dispatch)}}>Add to Cart</button>
             </div>
 
         </div>

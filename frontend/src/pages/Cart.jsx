@@ -6,6 +6,7 @@ import { CART_ENDPOINTS, COUPON_ENDPOINT } from "./endpoints";
 import { useRef } from "react";
 import { useSelector } from "react-redux";
 import { useGetAllCartItems } from "../hooks/useGetAllCartItems";
+import { removeProduct } from "../redux/slices/cartSlice";
 
 
 export default function CartPage() {
@@ -19,6 +20,7 @@ export default function CartPage() {
   const hadfetched = useRef(false);
   const [checkTime,setCheckTime]=useState(0)
 
+  
   const [refresh,setRefresh]=useState(0) /// specially when item is removed from the cart
   const [cartItems,setCartItems]=useState([])
   const {cartData,productVariationData}=useGetAllCartItems(userData?._id,refresh)
@@ -54,10 +56,14 @@ export default function CartPage() {
     })
   };
 
-
+  /// when the user is loggedIn and when the user is not loggedIn
   async function removeItem(e,productId,userId,productVariation) {
     if (!userData) {
-      setCartItems((prev) => prev.filter((item) => item.id !== id));
+      const obj={
+        productId:productId,
+        productVariation:productVariation
+      }
+      dispatch(removeProduct(obj))
     } else {
       const result=await axios.post(`${CART_ENDPOINTS}/removeCartItem`,{userId,productId,productVariation},{withCredentials:true})
       setRefresh(prev=>prev+1)

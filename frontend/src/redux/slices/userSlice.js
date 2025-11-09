@@ -3,7 +3,10 @@ import { createSlice } from "@reduxjs/toolkit";
 const userSlice = createSlice({
   name: "user",
   initialState: {
-    userData:null,categoryState:false, loginOption:false,detailOption:false
+    userData:null,categoryState:false, loginOption:false,detailOption:false,
+    userDataNotLoggedIn:{
+      "wishList":[] /// it is going to array of objects 1. productId 2. productVariation
+    }
   },
   reducers: {
     setUserData:(state,action)=>{
@@ -34,10 +37,32 @@ const userSlice = createSlice({
           state.userData.wishList.push({ productId :productId,productVariation:productVariation});
         }
       }
+    },
+
+    setFavouriteNotLoggedIn:(state,action)=>{
+      if(!state?.userData){
+        const userWishList=state?.userDataNotLoggedIn?.wishList
+
+        const exists = userWishList.some(
+          (item) => item.productId === action.payload.productId && item.productVariation===action.payload.productVariation 
+        );
+
+        if(!exists){
+          // console.log("Hola",action.payload)
+          userWishList.push(action.payload)
+        }
+        else{ // as we are now removing it
+          // console.log("Helo")
+          state.userDataNotLoggedIn.wishList=state.userDataNotLoggedIn.wishList.filter((item)=>!(item.productId === action.payload.productId && item.productVariation===action.payload.productVariation))
+        }
+      }
+
     }
+
+
 
   }
 })
 
-export const { setCategoryState ,setLoginOption,setDetailOption,setUserData,setProductIdInUserWishList} = userSlice.actions;
+export const { setCategoryState ,setLoginOption,setDetailOption,setUserData,setProductIdInUserWishList,setFavouriteNotLoggedIn} = userSlice.actions;
 export default userSlice.reducer;

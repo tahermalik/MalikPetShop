@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { USER_ENDPOINTS } from "./endpoints";
+import { CART_ENDPOINTS, USER_ENDPOINTS } from "./endpoints";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCategoryState, setDetailOption, setLoginOption, setUserData } from "../redux/slices/userSlice";
@@ -20,6 +20,9 @@ function Login() {
   const showDetailOption=useSelector((state)=>state?.user?.detailOption)
   const categoryState=useSelector((state)=>state?.user?.categoryState)
 
+  const wishListDataNotLoggedIn=useSelector((state)=>state?.user?.userDataNotLoggedIn?.wishList)
+  const cartDataNotLoggedIn=useSelector((state)=>state?.cart?.products)
+
   async function loginUser(){
     try{
       const res= await axios.post(`${USER_ENDPOINTS}/login/${user}`,{email:email,password:password},{withCredentials:true})
@@ -30,6 +33,8 @@ function Login() {
         if(showLoginOption===true) dispatch(setLoginOption())
         if(showDetailOption===true) dispatch(setDetailOption())
         if(categoryState===true) dispatch(setCategoryState())
+        await axios.post(`${CART_ENDPOINTS}/mergeCartItems/${res?.data?.user?._id}`,{reduxCartData:cartDataNotLoggedIn},{withCredentials:true})
+        await axios.post(`${USER_ENDPOINTS}/mergeWishList/${res?.data?.user?._id}`,{reduxWishListData:wishListDataNotLoggedIn},{withCredentials:true})
         navigate("/")
       }
     }catch(error){
