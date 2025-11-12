@@ -5,12 +5,13 @@ import Product from "../schema/productSchema.js";
 import Order from "../schema/orderSchema.js";
 import FeedBack from "../schema/feedBackSchema.js";
 import mongoose from "mongoose";
+import { mergeCartItems } from "./cartController.js";
 
 /// working
 export async function login(req, res) {
     try {
         console.log("in this login component")
-        const {email,password}=req.body;
+        const {email,password,reduxCartData,reduxWishListData}=req.body;
         const role=req.params?.role || "user";
 
         console.log("role",role)
@@ -37,7 +38,11 @@ export async function login(req, res) {
             process.env.JWT_SECRET,
             { expiresIn: "1h" } // token valid for 1 hour
         );
-        return res.status(200).cookie("token",token,{httpOnly:true,sameSite:"None",maxAge: 3600000}).json({ message: `login ${user.username}`,bool:true,user:user })
+        await mergeWishList(user._id,reduxWishListData)
+        await mergeCartItems(user._id,reduxCartData)
+
+        const updatedUser= await User.findById(user._id).select("-email")
+        return res.status(200).cookie("token",token,{httpOnly:true,sameSite:"None",maxAge: 3600000}).json({ message: `login ${user.username}`,bool:true,user:updatedUser })
     } catch (error) {
         console.log("wrong in login", error)
         return res.status(500).json({message:"something wrong at the server side",bool:false})
@@ -231,8 +236,18 @@ export async function viewWishList(req,res){
             return obj["productId"] 
         })
 
-        const productData=await Product.find({_id:{$in:ids}})
-        console.log("varaition",productVariationArray,ids)
+
+        let productData=await Product.find({_id:{$in:ids}}).lean()
+
+        const productDataObj={}
+        for(let i=0;i<productData.length;i++){
+            productDataObj[productData[i]._id]=productData[i]
+        }
+
+        productData=ids.map((id)=>productDataObj[id])
+
+
+        // console.log("varaition",productData)
         return res.status(200).json({productData:productData,productVariationArray:productVariationArray,bool:true})
     }catch(error){
         console.log("error in view wishList",error)
@@ -240,46 +255,43 @@ export async function viewWishList(req,res){
     }
 }
 
-export async function mergeWishList(req,res){
+export async function mergeWishList(userId,reduxWishListData){
     try{
-        // console.log("helllo")
-        const userId=req?.params?.id;
-
-        //// it only contains 2 things one product id and then its quantity
-        const {reduxWishListData}=req?.body; /// array of objects
-
+        userId=userId.toString()
         // console.log(userId,reduxCartData,"inside mergeCartItems")
         let existingProducts=await User.findById(userId).select("wishList")
 
-        // console.log(userId,reduxWishListData,existingProducts)
-
+        console.log("Prinitng this for debugging")
+        
         //// if existingProduct is found
         if(existingProducts){
-        
+            
             existingProducts=existingProducts["wishList"]
             //// both reduxCartData and existingProducts are the array of objects
             // console.log(existingProducts)
-
+            
             const newItems = reduxWishListData.filter(
                 (r) =>
                     !existingProducts.some(
-                    (e) => e.productId === r.productId && e.productVariation === r.productVariation
-                )
-            );
+                        (e) => e.productId.toString() === r.productId && e.productVariation === r.productVariation
+                    )
+                );
+            console.log(userId,reduxWishListData,newItems)
+
+
+        //     console.log("new items",newItems)
 
             if (newItems.length > 0) {
                 await User.findByIdAndUpdate(
                     userId ,
-                    { $push: { wishList: { $each: newItems } } }
+                    { $addToSet: { wishList: { $each: newItems } } }
                 );
             }
         }
-        return res.status(200).json({ message: "WishList Data merger successfully"});
         
         
     }catch(error){
         console.log("wrong in mergeWishList",error);
-        return res.status(500).json({message:"Error from server end in mergeWishList"})
     }
 }
 

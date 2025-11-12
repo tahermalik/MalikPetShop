@@ -23,7 +23,7 @@ export async function addToCart(req,res){
             );
 
             if (existingProduct) {
-                return res.status(200).json({ message: "Product already in cart" });
+                return res.status(200).json({ message: "Product already in cart" ,bool:false,comment:"Already Present"});
             }
             
             await Cart.findOneAndUpdate({userId:userId},{$push:{products:{productId:productId,productVariation:productVariation}}})
@@ -37,7 +37,6 @@ export async function addToCart(req,res){
             })
         }
         return res.status(200).json({message:"item added to the cart successfully"})
-
 
     }catch(error){
         console.log("wrong in add to cart",error);
@@ -69,7 +68,7 @@ export async function removerCartItem(req,res){
         let cart=await Cart.findOne({userId}).select("products")
         if(!cart) return res.status(404).json({message:"Cart not found",bool:false})
 
-        const result = await Cart.updateOne(
+        const result = await Cart.findOneAndUpdate(
             {userId:userId},
             { $pull: { products: { productId: productId ,productVariation:productVariation} } }
         )
@@ -86,14 +85,10 @@ export async function removerCartItem(req,res){
 }
 
 /// per user there is only one cart
-export async function mergeCartItems(req,res){
+export async function mergeCartItems(userId,reduxCartData){
     try{
-        // console.log("helllo")
-        const userId=req?.params?.id;
-
-        //// it only contains 2 things one product id and then its quantity
-        const {reduxCartData}=req?.body; /// array of objects
-
+        
+        userId=userId.toString()
         // console.log(userId,reduxCartData,"inside mergeCartItems")
         let existingProducts=await Cart.findOne({userId}).select("products")
 
@@ -107,7 +102,7 @@ export async function mergeCartItems(req,res){
             const newItems = reduxCartData.filter(
                 (r) =>
                     !existingProducts.some(
-                    (e) => e.productId === r.productId && e.productVariation === r.productVariation
+                    (e) => e.productId.toString() === r.productId && e.productVariation === r.productVariation
                 )
             );
 
@@ -121,12 +116,7 @@ export async function mergeCartItems(req,res){
         else if (reduxCartData?.length > 0) {
             await Cart.create({ userId, products: reduxCartData });
         }
-
-        return res.status(200).json({ message: "Cart merged successfully"});
-        
-        
     }catch(error){
         console.log("wrong in mergeCartItems",error);
-        return res.status(500).json({message:"Error from server end in mergeCartItems"})
     }
 }
