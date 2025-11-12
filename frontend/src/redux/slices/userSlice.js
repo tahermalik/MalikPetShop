@@ -26,7 +26,7 @@ const userSlice = createSlice({
         const productId = action.payload["productId"];
         const productVariation=action.payload["productVariation"] || 0
         const index = state.userData.wishList.findIndex(
-          (obj) => obj.productId === productId
+          (obj) => obj.productId === productId && obj.productVariation===productVariation
         );
 
         if (index !== -1) {
@@ -44,7 +44,7 @@ const userSlice = createSlice({
         const userWishList=state?.userDataNotLoggedIn?.wishList
 
         const exists = userWishList.some(
-          (item) => item.productId === action.payload.productId && item.productVariation===action.payload.productVariation 
+          (item) => item.productId === action.payload.productId && item.productVariation===action.payload.productVariation
         );
 
         if(!exists){

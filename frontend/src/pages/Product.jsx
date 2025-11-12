@@ -191,7 +191,9 @@ export async function addToCart(e,userId,productId,productVariation,logInFlag,di
 
     }else{      // user is logged in so backend stuff will be called
         const result= await axios.post(`${CART_ENDPOINTS}/addToCart`,{userId:userId,productId:productId,productVariation:productVariation},{withCredentials:true})
-        console.log(`${productId} added successfully`)
+        if(result?.data?.comment==="Already Present") console.log("Already present")
+        else if(result?.data?.bool===false) console.log("Some problem in product addition to cart")
+        else console.log(`${productId} added successfully`)
     }
 }
 
@@ -206,20 +208,27 @@ function ProductCard(props) {
     const [imgCounter,setImgCounter]=useState(0)
     
     useLayoutEffect(()=>{
-        if(userData){
-            const userWishList=userData?.wishList
-            const userWishListIds=userWishList.map((obj)=>{return obj["productId"]})
-            // console.log("loading wishList",userWishList)
-            if(userWishListIds.includes(props?.productId)) setIsPresent(true)
-        }else{
-            const userWishList=userDataNotLoggedIn["wishList"]
-            console.log("taha",userWishList)
-            const userWishListIds=userWishList.map((obj)=>{return obj["productId"]})
-            // console.log("loading wishList",userWishList)
-            if(userWishListIds.includes(props?.productId)) setIsPresent(true)
-            
+        let userWishList
+
+        /// for the loggedIn user
+        if(userData) userWishList=userData?.wishList   
+        else userWishList=userDataNotLoggedIn["wishList"]   /// for the user who is not loggedIn 
+
+        const userWishListIds=userWishList.map((obj)=>{return obj["productId"]})
+        console.log("loading wishList",userWishList)
+        //// product is there present in the wishList
+        if(userWishListIds.includes(props?.productId)){
+
+            //// implementing this so that the user can add variation of prouct in the wishList
+            const productVariationData=userWishList.map((obj)=>{
+                if(obj["productId"]===props?.productId) return obj["productVariation"]
+            })
+
+            //// now need to check for the variation
+            if(productVariationData.includes(imgCounter)) setIsPresent(true)
+            else setIsPresent(false)
         }
-    },[])
+    },[isPresent,imgCounter])
 
     function discountCalc(price, discount) {
         price = Number(price)
@@ -269,7 +278,7 @@ function ProductCard(props) {
             }
 
         }catch(error){
-            console.log("wrong in favourite product")
+            console.log("wrong in favourite product",error)
         }
     }
 
@@ -296,8 +305,8 @@ function ProductCard(props) {
                                 e.preventDefault()}}>{props.netWeightArray[index]} kg</div>
                         ))}
                     </div>
-                    {userData?.email==="taher@gmail.com" && <div onClick={(e)=>(deleteProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><MdOutlineDeleteOutline size={20} /></div>}
-                    {userData?.email!=="taher@gmail.com" && <div onClick={(e)=>(favProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><IoIosHeart size={20} color={isPresent ? "red":"white"} style={{ stroke: "red", strokeWidth: 20 }}/></div>}
+                    {userData?.role==="admin" && <div onClick={(e)=>(deleteProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><MdOutlineDeleteOutline size={20} /></div>}
+                    {userData?.email!=="user" && <div onClick={(e)=>(favProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><IoIosHeart size={20} color={isPresent ? "red":"white"} style={{ stroke: "red", strokeWidth: 20 }}/></div>}
                 </div>
             </div>
 

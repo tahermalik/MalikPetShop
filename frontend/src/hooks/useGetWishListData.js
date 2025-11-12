@@ -12,7 +12,7 @@ export default function useGetWishListData(userId,refresh){
             try{
                 if(userId){
                     const result=await axios.get(`${USER_ENDPOINTS}/viewWishList/${userId}`)
-                    // console.log(result?.data?.productData)
+                    console.log("inside the wishlist UI & the user is logged in")
                     setProductData(result?.data?.productData)
                     setProductVaraitionData(result?.data?.productVariationArray)
                 }else{

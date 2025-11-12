@@ -4,7 +4,7 @@ import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import axios from "axios"
 import { CART_ENDPOINTS, COUPON_ENDPOINT } from "./endpoints";
 import { useRef } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useGetAllCartItems } from "../hooks/useGetAllCartItems";
 import { removeProduct } from "../redux/slices/cartSlice";
 
@@ -19,6 +19,7 @@ export default function CartPage() {
   const userData = useSelector((state) => state?.user?.userData)
   const hadfetched = useRef(false);
   const [checkTime,setCheckTime]=useState(0)
+  const dispatch=useDispatch()
 
   
   const [refresh,setRefresh]=useState(0) /// specially when item is removed from the cart
@@ -58,16 +59,19 @@ export default function CartPage() {
 
   /// when the user is loggedIn and when the user is not loggedIn
   async function removeItem(e,productId,userId,productVariation) {
+    e.preventDefault()
+    e.stopPropagation()
     if (!userData) {
       const obj={
         productId:productId,
         productVariation:productVariation
       }
+      console.log("fucking removing the product")
       dispatch(removeProduct(obj))
     } else {
       const result=await axios.post(`${CART_ENDPOINTS}/removeCartItem`,{userId,productId,productVariation},{withCredentials:true})
-      setRefresh(prev=>prev+1)
     }
+    setRefresh(prev=>prev+1)
   };
   
   function discountAmount(price, discount) {
@@ -181,7 +185,6 @@ export default function CartPage() {
           <div className="space-y-6">
             {cartItems.map((item,index) => (
               <div
-                key={item._id}
                 className="flex items-center justify-between border-b border-gray-200 pb-4"
               >
                 <div className="flex items-center gap-4">

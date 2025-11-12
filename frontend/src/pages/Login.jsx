@@ -25,16 +25,16 @@ function Login() {
 
   async function loginUser(){
     try{
-      const res= await axios.post(`${USER_ENDPOINTS}/login/${user}`,{email:email,password:password},{withCredentials:true})
+      // console.log("Playing around with admin")
+      const res= await axios.post(`${USER_ENDPOINTS}/login/${user}`,{email:email,password:password,reduxCartData:cartDataNotLoggedIn,reduxWishListData:wishListDataNotLoggedIn},{withCredentials:true})
       let result=res?.data?.bool
       // console.log(result)
       if(result){
+        console.log("Printing to check what the fuck is happening",res?.data?.user)
         dispatch(setUserData(res?.data?.user))
         if(showLoginOption===true) dispatch(setLoginOption())
         if(showDetailOption===true) dispatch(setDetailOption())
         if(categoryState===true) dispatch(setCategoryState())
-        await axios.post(`${CART_ENDPOINTS}/mergeCartItems/${res?.data?.user?._id}`,{reduxCartData:cartDataNotLoggedIn},{withCredentials:true})
-        await axios.post(`${USER_ENDPOINTS}/mergeWishList/${res?.data?.user?._id}`,{reduxWishListData:wishListDataNotLoggedIn},{withCredentials:true})
         navigate("/")
       }
     }catch(error){
