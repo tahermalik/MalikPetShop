@@ -306,7 +306,7 @@ function ProductCard(props) {
                         ))}
                     </div>
                     {userData?.role==="admin" && <div onClick={(e)=>(deleteProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><MdOutlineDeleteOutline size={20} /></div>}
-                    {userData?.email!=="user" && <div onClick={(e)=>(favProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><IoIosHeart size={20} color={isPresent ? "red":"white"} style={{ stroke: "red", strokeWidth: 20 }}/></div>}
+                    {userData?.role!=="admin" && <div onClick={(e)=>(favProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><IoIosHeart size={20} color={isPresent ? "red":"white"} style={{ stroke: "red", strokeWidth: 20 }}/></div>}
                 </div>
             </div>
 
