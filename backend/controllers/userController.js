@@ -192,16 +192,22 @@ export async function favourite(req,res){
         if(toAdd){
             console.log("Adding Product to wishList")
             await Promise.all([
-                User.findByIdAndUpdate(userId, { $push: { wishList: {productId:productId,productVariation:productVariation} } }),
-                Product.findByIdAndUpdate(productId, { $push: { wishList: userId } })
+                User.findByIdAndUpdate(userId, { $addToSet: { wishList: {productId:productId,productVariation:productVariation} } }),
+                Product.findByIdAndUpdate(productId, { $addToSet: { wishList: userId } })
             ]);
         }else{
             console.log("removing product from wishList")
             /// we dont need to remove it from the wishlist
-            await Promise.all([
-                User.findByIdAndUpdate(userId, { $pull: { wishList: {productId:productId,productVariation:productVariation} } }),
-                Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } })
-            ]);
+            
+            await User.findByIdAndUpdate(userId, { $pull: { wishList: {productId:productId,productVariation:productVariation} } })
+            
+            result = await User.findById(userId).select("wishList")
+            const exists=result.wishList.some((item)=>item["productId"].toString()===productId)
+
+            if(!exists) await Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } })
+
+            ///// this is done in order to delete the userId from product on cart removal
+            
             return res.status(200).json({message:"Item removed from the wishlist"})
         }
         return res.status(200).json({message:"Item added succesfully to wishlist"})
@@ -269,7 +275,16 @@ export async function mergeWishList(userId,reduxWishListData){
             existingProducts=existingProducts["wishList"]
             //// both reduxCartData and existingProducts are the array of objects
             // console.log(existingProducts)
-            
+
+            ///// code is written so that product can have info about who has added it to the wishList
+            const newItemForProductsWishList=reduxWishListData.filter(
+                (r) =>{
+                    if(!existingProducts.some((e) => e.productId.toString() === r.productId)){
+                        return true
+                    }
+                }
+            ).map(r=>r.productId.toString())
+
             const newItems = reduxWishListData.filter(
                 (r) =>
                     !existingProducts.some(
@@ -286,6 +301,10 @@ export async function mergeWishList(userId,reduxWishListData){
                     userId ,
                     { $addToSet: { wishList: { $each: newItems } } }
                 );
+            }
+
+            if(newItemForProductsWishList.length>0){
+                await Product.updateMany({_id:{$in:newItemForProductsWishList}},{$addToSet:{wishList:userId}})
             }
         }
         
@@ -396,6 +415,22 @@ export async function displayFeedBack(req,res){
     }catch(error){
         console.log("wrong in display FeedBack")
         return res.status(500).json({message:"Server fucked up in display feedback"})
+    }
+}
+
+export async function wishListCleanUp(productId,productVariation){
+    try{
+        let wishListUserIds=await Product.findById(productId).select("wishList")
+        wishListUserIds=wishListUserIds["wishList"] /// it will be array of ids
+
+        await Promise.all(
+            wishListUserIds.map(async id => {
+               await User.findByIdAndUpdate(id,{$pull:{wishList:{productId:productId,productVariation:productVariation}}})
+            })
+        )
+
+    }catch(error){
+        console.log("error in wishList cleanup",error)
     }
 }
 

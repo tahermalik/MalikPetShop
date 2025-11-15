@@ -2,6 +2,8 @@ import Product from "../schema/productSchema.js";
 import fs from "fs";
 import natural from "natural";
 import User from "../schema/userSchema.js";
+import { cartCleanUp } from "./cartController.js";
+import { wishListCleanUp } from "./userController.js";
 
 
 export async function addProduct(req, res) {
@@ -205,6 +207,7 @@ export async function displayProduct(req, res) {
     }
 }
 
+/// working
 export async function deleteProduct(req, res) {
     try {
         const productId = req?.params?.id;
@@ -232,9 +235,17 @@ export async function deleteProduct(req, res) {
         console.log(productObj, keyArray)
         let hasUpdated = false
 
+        /// so that both can execute in parallel
+        await Promise.all([
+            cartCleanUp(productId,imgCounter), /// productId,productVariation
+            wishListCleanUp(productId,imgCounter)
+        ])
+
         for (let i = 0; i < keyArray.length; i++) {
             let value = productObj[keyArray[i]];
-            if (Array.isArray(value) && keyArray[i]!=="wishList") {
+
+            //// condition is written to ensure the deletion of variation and not the complete product
+            if (Array.isArray(value) && keyArray[i]!=="wishList" && keyArray[i]!="cart") {
                 if (value.length > 1) {
                     /// invalid stuff
                     if (imgCounter >= value.length) return res.status(400).json({ message: "Dont mess with the system" })
@@ -249,10 +260,11 @@ export async function deleteProduct(req, res) {
                     }
                     await Product.deleteOne({ _id: productId })
                     console.log("Deleting the entire product")
-                    return res.status(200).json({ message: "Product got deleted" })
                 }
             }
         }
+
+        /// exceuted when the product variation is deleted
         if (hasUpdated) {
             await product.save()
         }
@@ -264,7 +276,7 @@ export async function deleteProduct(req, res) {
     }
 }
 
-//// function specially created for cart
+//// function specially created for cart; ///working
 export async function getProductsViaIds(req,res){
     try{
         const {productIds}=req?.body

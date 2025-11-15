@@ -61,6 +61,13 @@ const productSchema = new mongoose.Schema({
         }
     ],
 
+    cart:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }
+    ],
+
     ///// Every product will have its own String so that they can be serached by the humans
     productString: {
         type: [String]

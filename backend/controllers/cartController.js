@@ -10,7 +10,9 @@ export async function addToCart(req,res){
         console.log("adding the product into cart")
         const {userId,productId,productVariation}=req?.body;
         const productData=await Product.findById(productId)
-        const cart=await Cart.findOne({userId})
+        const cart=await Cart.findOne({userId:userId})
+
+        console.log("Cart",cart,userId)
         if(!productData) return res.status(404).json({message:"product not found"})
 
         
@@ -36,6 +38,10 @@ export async function addToCart(req,res){
                 }]
             })
         }
+
+        ///// adding the userID into the cart; it only contains unique userId
+        await Product.findByIdAndUpdate(productId,{$addToSet:{cart:userId}})
+
         return res.status(200).json({message:"item added to the cart successfully"})
 
     }catch(error){
@@ -52,6 +58,7 @@ export async function getCartItems(req,res){
         const result=await Cart.findOne({userId})
 
         if(!result) return res.status(404).json({message:"Cart Not found",bool:false})
+            // console.log(result?.products)
         return res.status(200).json({cartData:result?.products})
     }catch(error){
         console.log("server fucked up at getCartItems",error)
@@ -68,7 +75,7 @@ export async function removerCartItem(req,res){
         let cart=await Cart.findOne({userId}).select("products")
         if(!cart) return res.status(404).json({message:"Cart not found",bool:false})
 
-        const result = await Cart.findOneAndUpdate(
+        const result = await Cart.updateOne(
             {userId:userId},
             { $pull: { products: { productId: productId ,productVariation:productVariation} } }
         )
@@ -76,6 +83,12 @@ export async function removerCartItem(req,res){
         if(result.modifiedCount === 0) return res.status(404).json({message:"Product not found",bool:false})
 
         cart=await Cart.findOne({userId}).select("products")
+
+        ///// this is done in order to delete the userId from product on cart removal
+        const exists=cart.products.some((item)=> item["productId"].toString()===productId)
+        if(!exists){
+            await Product.findByIdAndUpdate(productId,{$pull:{cart:userId}});
+        }
         
         return res.status(200).json({message:"Product removed from the cart",bool:true})
     }catch(error){
@@ -90,7 +103,7 @@ export async function mergeCartItems(userId,reduxCartData){
         
         userId=userId.toString()
         // console.log(userId,reduxCartData,"inside mergeCartItems")
-        let existingProducts=await Cart.findOne({userId}).select("products")
+        let existingProducts=await Cart.findOne({userId}).select("products").lean() /// adding the lean function just for the performance purpose
 
         //// if existingProduct is found
         if(existingProducts){
@@ -106,17 +119,52 @@ export async function mergeCartItems(userId,reduxCartData){
                 )
             );
 
+            const newItemForProductsCart=reduxCartData.filter(
+                (r) =>{
+                    if(!existingProducts.some((e) => e.productId.toString() === r.productId)){
+                        return true
+                    }
+                }
+            ).map(r=>r.productId.toString())
+
             if (newItems.length > 0) {
                 await Cart.updateOne(
                     { userId },
                     { $push: { products: { $each: newItems } } }
                 );
             }
+
+            if(newItemForProductsCart.length>0){
+                await Product.updateMany({_id:{$in:newItemForProductsCart}},{$addToSet:{cart:userId}})
+            }
         }
         else if (reduxCartData?.length > 0) {
-            await Cart.create({ userId, products: reduxCartData });
+            const newItemForProductsCart=reduxCartData.map(r=>r.productId.toString())
+
+            await Promise.all([
+                Cart.create({ userId, products: reduxCartData }),
+                Product.updateMany({_id:{$in:newItemForProductsCart}},{$addToSet:{cart:userId}})
+            ])
         }
+
+
     }catch(error){
         console.log("wrong in mergeCartItems",error);
+    }
+}
+
+export async function cartCleanUp(productId,productVariation){
+    try{
+        let cartUserIds=await Product.findById(productId).select("cart")
+        cartUserIds=cartUserIds["cart"] /// it will be array of ids
+
+        await Promise.all(
+            cartUserIds.map(async id => {
+               await Cart.findOneAndUpdate({userId:id},{$pull:{products:{productId:productId,productVariation:productVariation}}})
+            })
+        )
+
+    }catch(error){
+        console.log("error in cart cleanup",error)
     }
 }
