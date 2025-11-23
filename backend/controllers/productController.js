@@ -154,9 +154,29 @@ export async function addProduct(req, res) {
 export async function displayProduct(req, res) {
     try {
         let userQuery = req?.body?.userQuery
+        if(!userQuery) return res.status(400).json({message:"You cant directly visit this web page"})
+            
         userQuery = userQuery.trim().replace(/\s+/g, " ").toLowerCase();
 
-        let queryArray = userQuery.split(" ");
+        /// this userQuery can have multiple common words possible due to same word in search bar and filter
+        console.log("User query at the server side is "+userQuery)
+
+        let uniqueQueryArray=[]
+        let queryArray = userQuery.split(" ");  //// some pre processing need to be done on this in order to remove the duplicate words
+        for(let i=0;i<queryArray.length;i++){
+            let flag=false;
+            for(let j=0;j<uniqueQueryArray.length;j++){
+                const similarity = natural.JaroWinklerDistance(uniqueQueryArray[j],queryArray[i]);
+                if(similarity>=0.8){
+                    flag=true;
+                    break;
+                }
+            }
+
+            if(flag==false) uniqueQueryArray.push(queryArray[i]);
+
+        }
+        
 
         const products = await Product.find()
 
@@ -174,8 +194,8 @@ export async function displayProduct(req, res) {
                 // Count how many query words exist in product string
                 let matches = 0
                 for (let p = 0; p < productArray.length; p++) {
-                    for (let j = 0; j < queryArray.length; j++) {
-                        const similarity = natural.JaroWinklerDistance(productArray[p], queryArray[j]);
+                    for (let j = 0; j < uniqueQueryArray.length; j++) {
+                        const similarity = natural.JaroWinklerDistance(productArray[p], uniqueQueryArray[j]);
                         if (similarity >= 0.8) {
                             matches += 1;
                             break;
