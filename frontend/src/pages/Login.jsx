@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { CART_ENDPOINTS, USER_ENDPOINTS } from "./endpoints";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,7 +9,7 @@ import { setCategoryState, setDetailOption, setLoginOption, setUserData } from "
 function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const location= useLocation();
-  const {user}=location.state; /// user will either be normal user or the admin
+  const {user}=location.state || "user"; /// user will either be normal user or the admin
   const [username,setUserName]=useState("")
   const [email,setEMail]=useState("")
   const [password,setPassword]=useState("")
@@ -150,9 +150,9 @@ function Login() {
           {/* Login field  */}
           {isLoginMode && (
             <div className="text-right">
-              <a href="#" className="text-orange-600 hover:underline">
+              <Link to="/forgotPassword" className="text-orange-600 hover:underline">
                 Forgot password?
-              </a>
+              </Link>
             </div>
           )}
 
