@@ -319,21 +319,9 @@ function ProductCard(props) {
 }
 
 function DisplayProducts(props){
-    let productDataFilter=useGetAllProduct(props.refresh,props.query,props.data);
-    let productDataSearch=useGetAllProduct(props.refresh,props.query,"filter")
+    let productData=useGetAllProduct(props.refresh,props.query);
+
     const navigate=useNavigate()
-
-    const productData = useMemo(() => {
-        const combined = [...productDataFilter, ...productDataSearch];
-        
-        // remove duplicates (based on _id or productName)
-        const unique = combined.filter(
-            (item, index, self) =>
-            index === self.findIndex((p) => p._id === item._id)
-        );
-
-        return unique;
-    }, [productDataFilter, productDataSearch]);
 
     function productClicked(products){
         navigate("/singleProductDisplay",{state:products})
@@ -372,6 +360,8 @@ export default function Product() {
 
     const location=useLocation()
     const {query,data}=location.state || {}
+
+    console.log("query :"+query+" data :"+data)
 
     return (
         <>

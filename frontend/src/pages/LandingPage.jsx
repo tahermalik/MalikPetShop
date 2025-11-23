@@ -331,58 +331,71 @@ export function Header() {
 
     //// getting user role and id
     const role = useSelector((state) => state?.user?.userData?.role)
-    const userId= useSelector((state)=> state?.user?.userData?._id)
+    const userId = useSelector((state) => state?.user?.userData?._id)
 
-    async function viewWishList(e){
-        try{
+    async function viewWishList(e) {
+        try {
             e.stopPropagation();
             e.preventDefault();
 
-            navigate("/WishListUI",{state:{userId:userId}})
+            navigate("/WishListUI", { state: { userId: userId } })
 
-        }catch(error){
-            console.log("wrong in viewWishist frontend",error);
+        } catch (error) {
+            console.log("wrong in viewWishist frontend", error);
         }
-    } 
+    }
 
-    async function viewCart(e){
-        try{
+    async function viewCart(e) {
+        try {
             e.stopPropagation();
             e.preventDefault();
-            navigate("/cart",{state:{userId:userId}})
+            navigate("/cart", { state: { userId: userId } })
 
-        }catch(error){
-            console.log("wrong in viewWishist frontend",error);
+        } catch (error) {
+            console.log("wrong in viewWishist frontend", error);
         }
     }
 
     return (
         <>
             <div ref={headerRef} className="header flex flex-col h-[100px]  w-[100%] gap-0 sticky top-0 z-2 bg-[#E3F2FD]">
-                <div className="upper_header flex flex-row justify-evenly h-[60%] items-center gap-3 w-[100%] bg-[#E3F2FD] text-[#0D47A1]">
-                    <div className="l-upper-header flex flex-row gap-1">
-                        <div className="flex flex-row justify-center items-center"><img src="/header_logo.svg" alt="paws_img" /></div>
-                        <div className="flex flex-col text-[#212121] leading-3 p-1">
-                            <span className="font-semibold xs:text-md lg:text-xl">Malik</span>
+                <div className="upper_header flex flex-col sm:flex-row justify-center sm:justify-evenly items-center gap-3 py-2 w-full bg-[#E3F2FD] text-[#0D47A1]">
+                    <div className="l-upper-header flex flex-row gap-2 items-center">
+
+                        <div className="hidden sm:flex justify-center items-center">
+                            <img src="/header_logo.svg" alt="paws_img" className="w-8 h-8 sm:w-auto sm:h-auto" />
+                        </div>
+
+                        {/* Hide name on mobile, show on laptop */}
+                        <div className="hidden sm:flex flex-col text-[#212121] leading-3 p-1">
+                            <span className="font-semibold text-md lg:text-xl">Malik</span>
                             <span>Pet Shop</span>
                         </div>
+
                     </div>
-                    <div className="m-upper-header bg-white w-[50%] flex flex-row gap-2 p-2 rounded-2xl border border-[#1976D2]">
-                        <div className="search_logo">
-                            <img src="/search_logo.svg" alt="search_icon" />
+
+                    <div className="flex flex-row gap-2 w-[90%] sm:w-[50%]">
+                        {/* Hamburger for mobile */}
+                        <div className="sm:hidden flex items-center text-[#0D47A1] text-3xl cursor-pointer">
+                            ☰
                         </div>
-                        <div className="search_bar w-[100%]">
-                            <input className="w-[100%] h-[100%] outline-0 placeholder: xs:text-xs placeholder:sm:text-sm placeholder:md:text-md placeholder:lg:text-lg" type="text" placeholder="Search for more then 100 products"
-                                onChange={(e) => setQuery(e.target.value)}
-                                onKeyDown={(e) => handleKeyDown(e)}
-                            />
+                        <div className="m-upper-header bg-white w-[100%] flex flex-row gap-2 p-2 rounded-2xl border border-[#1976D2]">
+                            <div className="search_logo">
+                                <img src="/search_logo.svg" alt="search_icon" />
+                            </div>
+                            <div className="search_bar w-[100%]">
+                                <input className="w-[100%] h-[100%] outline-0 placeholder: xs:text-xs placeholder:sm:text-sm placeholder:md:text-md placeholder:lg:text-lg" type="text" placeholder="Search for more then 100 products"
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(e)}
+                                />
+                            </div>
                         </div>
                     </div>
-                    <div className="r-upper-header flex flex-row justify-evenly items-center gap-4">
-                        <div className="flex flex-row gap-1">
+                    <div className="r-upper-header flex flex-row sm:flex-row justify-center sm:justify-evenly items-center gap-3 sm:gap-4 sm:mt-0 w-[90%] sm:w-[20%] h-fit">
+                        <div className="flex flex-row gap-1 w-[100%] justify-evenly items-center">
                             <div ref={contactRef} className="cursor-pointer hover:rounded-2xl relative flex flex-row items-center w-fit ">
                                 <div className="flex flex-row justify-center items-center" onMouseEnter={(e) => detailsHandler(e)}>
-                                    <div className="" data-details="details"><IoIosContact color="#00ACC1" size={30} /></div>
+                                    <div className="" data-details="details"><IoIosContact color="#00ACC1" size={40} /></div>
                                     {(!showDetailOption) && <div><RiArrowDropDownLine size={20} /></div>}
                                     {showDetailOption && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
@@ -400,9 +413,9 @@ export function Header() {
                                     </div>
                                 }
                             </div>
-                            <div ref={loginRef} className="cursor-pointer hover:rounded-2xl flex flex-row items-center">
-                                <div className="flex flex-row" onMouseEnter={(e) => detailsHandler(e)}>
-                                    <div className="flex flex-row justify-center items-center" data-details="user"><FaUser color="#00ACC1" size={20} /></div>
+                            <div ref={loginRef} className="cursor-pointer hover:rounded-2xl flex flex-row justify-center items-center">
+                                <div className="flex flex-row items-center justify-center" onMouseEnter={(e) => detailsHandler(e)}>
+                                    <div className="flex flex-row justify-center items-center" data-details="user"><FaUser color="#00ACC1" size={30} /></div>
                                     {(!showLoginOption || clicked !== "user") && <div><RiArrowDropDownLine size={20} /></div>}
                                     {showLoginOption && clicked === "user" && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
@@ -414,8 +427,8 @@ export function Header() {
                                     </div>
                                 }
                             </div>
-                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center ml-2" onClick={(e)=>viewWishList(e)}><FaRegHeart color="#00ACC1" size={20} /></div>
-                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center pl-2" onClick={(e)=>viewCart(e)}><MdOutlineShoppingCart color="#00ACC1" size={25} /></div>
+                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center ml-2" onClick={(e) => viewWishList(e)}><FaRegHeart color="#00ACC1" size={30} /></div>
+                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center pl-2" onClick={(e) => viewCart(e)}><MdOutlineShoppingCart color="#00ACC1" size={35} /></div>
                         </div>
                     </div>
                 </div>
@@ -461,7 +474,7 @@ export function Header() {
 function FeedBack(props) {
     const myRef = useRef(null)
     const [text, setText] = useState("")
-    const [rating,setRating]=useState(5);
+    const [rating, setRating] = useState(5);
 
     useEffect(() => {
         const el = myRef.current;
@@ -477,20 +490,20 @@ function FeedBack(props) {
     async function submitFeedBack() {
 
         if (!user) console.log("user need to login first")
-        else if(text.trim().length===0) console.log("FeedBack can't be empty")
+        else if (text.trim().length === 0) console.log("FeedBack can't be empty")
         else {
-            const res=await axios.post(`${USER_ENDPOINTS}/createFeedBack/${user?._id}`,{message:text,rating:rating},{withCredentials:true})
+            const res = await axios.post(`${USER_ENDPOINTS}/createFeedBack/${user?._id}`, { message: text, rating: rating }, { withCredentials: true })
 
-            if(res?.data?.bool){
+            if (res?.data?.bool) {
                 console.log("feedback created successfully")
-            }else{
+            } else {
                 console.log("fucked up in feedback creation")
             }
             setText("")
             setRating(0)
         }
 
-        props.setRefresh(prev=>prev+1)
+        props.setRefresh(prev => prev + 1)
 
     }
 
@@ -537,11 +550,11 @@ function ShowFeedBack(props) {
     }, [numBlock]); // wait until blocks are rendered
 
 
-    let usernames=props.feedBack.map((feedback)=>{
+    let usernames = props.feedBack.map((feedback) => {
         return feedback?.username
     })
 
-    let messages=props.feedBack.map((feedback)=>{
+    let messages = props.feedBack.map((feedback) => {
         return feedback?.message
     })
 
@@ -637,22 +650,22 @@ export function Footer() {
 }
 
 export default function LandingPage() {
-    const [feedBackRefresh,setFeedBackRefresh]=useState(0)
-    const feedBack=useGetAllFeedBack(feedBackRefresh);
-    if(!feedBack){
-        return(
+    const [feedBackRefresh, setFeedBackRefresh] = useState(0)
+    const feedBack = useGetAllFeedBack(feedBackRefresh);
+    if (!feedBack) {
+        return (
             <div>Loading...</div>
         )
     }
 
-    
+
     return (
         <>
             {/* {console.log("Hey taher",feedBack)} */}
             <Header />
             <AutoBrandSlider />
             <Owner />
-            <ShowFeedBack feedBack={feedBack}/>
+            <ShowFeedBack feedBack={feedBack} />
             <FeedBack refresh={feedBackRefresh} setRefresh={setFeedBackRefresh} />
             <Footer />
         </>

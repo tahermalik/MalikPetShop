@@ -4,7 +4,7 @@ import { PRODUCT_ENDPOINTS } from "../pages/endpoints"
 import { shallowEqual, useSelector } from "react-redux"
 import { useMemo } from "react"
 
-export function useGetAllProduct(refresh,query,data){
+export function useGetAllProduct(refresh,query=""){
     const [products,setProducts]=useState([])
     const flavorArray=useSelector((state)=>state?.filter?.flavorFilter,shallowEqual)
     const breedArray=useSelector((state)=>state?.filter?.breedFilter,shallowEqual)
@@ -18,29 +18,33 @@ export function useGetAllProduct(refresh,query,data){
         async function fetchProducts(){
             try{
                 let userQuery
-                if(data!=="search"){
-                    userQuery = [
-                        ...flavorArray,
-                        ...breedArray,
-                        ...dietArray,
-                        pet,
-                        ...brandsArray,
-                        type
-                    ]
-                    .filter(Boolean) // remove undefined/empty strings
-                    .join(" ");
-                }else userQuery=query
-            
+                
+                /// constructing userQuery for filter
+                userQuery = [
+                    ...flavorArray,
+                    ...breedArray,
+                    ...dietArray,
+                    pet,
+                    ...brandsArray,
+                    type
+                ]
+                .filter(Boolean) // remove undefined/empty strings
+                .join(" ");
+                
+                userQuery+=" ";
+                userQuery+=query;  /// adding this query for the search bar
+
+                console.log("User query :"+userQuery)
                 userQuery=userQuery.trim()
                 const res = await axios.post(`${PRODUCT_ENDPOINTS}/displayProduct`,{userQuery},{withCredentials:true})
                 // console.log("Product details res ",res.data.products)
                 setProducts(res.data.products)
             }catch(error){
-
+                console.log("server went down at the time of fetching the product"+error);
             }
         }
 
         fetchProducts()
-    },[flavorArray, breedArray, dietArray,brandsArray, type,refresh,query,data]) /// refresh is used in order to handle when the variation of the product is deleted
+    },[flavorArray, breedArray, dietArray,brandsArray, type,refresh,query]) /// refresh is used in order to handle when the variation of the product is deleted
     return products
 }
