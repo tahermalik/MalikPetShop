@@ -6,6 +6,8 @@ import Order from "../schema/orderSchema.js";
 import FeedBack from "../schema/feedBackSchema.js";
 import mongoose from "mongoose";
 import { mergeCartItems } from "./cartController.js";
+import ForgotPassword from "../schema/forgotPassword.js";
+import nodemailer from "nodemailer";
 
 /// working
 export async function login(req, res) {
@@ -418,6 +420,7 @@ export async function displayFeedBack(req,res){
     }
 }
 
+// working
 export async function wishListCleanUp(productId,productVariation){
     try{
         let wishListUserIds=await Product.findById(productId).select("wishList")
@@ -434,6 +437,122 @@ export async function wishListCleanUp(productId,productVariation){
     }
 }
 
+export async function sendOTPEmail(transporter,toEmail, otp) {
+    try {
+        const mailOptions = {
+            from: `"MalikPetShop" <${process.env.COMPANY_MAIL_ID}>`,
+            to: toEmail,
+            subject: "Your OTP for Password Reset",
+            html: `
+                <div style="font-family: Arial; color: #333;">
+                    <h2 style="color: #0d6efd;">Your OTP Code</h2>
+                    <p>Use the following OTP to reset your password. It is valid for <strong>10 minutes</strong>.</p>
+                    <h3 style="background: #f0f0f0; padding: 10px; display: inline-block;">${otp}</h3>
+                </div>
+            `
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log("OTP email sent:", info.messageId);
+        return true;
+    } catch (error) {
+        console.error("Error sending OTP email:", error);
+        throw error;
+    }
+}
+
+
+export async function forgotPassword(req,res){
+    try{
+        const userEmail=req?.body?.userEmail;
+        if(!userEmail) return res.status(404).json({message:"Email not found",bool:false})
+        const mailRegex=/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+        if(!mailRegex.test(userEmail)) return res.status(400).json({message:"Enter the valid email address",bool:false})
+
+        const userId=await User.findOne({email:userEmail}).select("_id");
+        if(!userId) return res.status(404).json({message:"User is not registered",bool:false})
+
+        const OTP=Math.floor(100000 + Math.random() * 900000); // 6-digit number
+
+        await ForgotPassword.findOneAndUpdate({userId:userId._id},{otp:OTP,expiryDate:new Date(Date.now() + 10 * 60 * 1000)},{upsert:true})
+
+
+        const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",      // or your SMTP host
+            port: 465,                   // 465 for SSL, 587 for TLS
+            secure: true,                // true for port 465
+            auth: {
+                user: process.env.COMPANY_MAIL_ID,   // your email
+                pass: process.env.EMAIL_PASSWD    // app password or SMTP password
+            }
+        });
+
+        await sendOTPEmail(transporter,userEmail,OTP)
+
+
+
+        return res.status(200).json({message:"OTP sent to you mail"})
+
+
+    }catch(error){
+        console.log("Server fucked up at forgotPasswd",error)
+        return res.status(500).json({message:"Server fucked up",bool:false})
+    }
+}
+
+export async function verifyOTP(req,res){
+    try{
+        console.log("inside verify OTP")
+        const {OTPArray,userEmail}=req?.body;
+        if(!OTPArray || !userEmail) return res.status(400).json({message:"Both the fields are mandatory",bool:false})
+        let userId=await User.findOne({email:userEmail}).select("_id")
+        if(!userId) return res.status(404).json({message:"Either OTP or email is not correct",bool:false})
+        userId=userId._id
+
+        
+        let OTPData=await ForgotPassword.findOne({userId:userId}).select("otp expiryDate")
+        if (!OTPData) {
+            return res.status(404).json({ message: "OTP not found", bool: false });
+        }
+        const OTP=OTPData.otp;
+
+        const now=new Date();
+        const expiry = new Date(OTPData.expiryDate);
+        if((now-expiry)/(1000*60)>10) return res.status(400).json({message:"either OTP or mail is not correct",bool:false})
+
+        const sentOTP=Number(OTPArray.join(""))
+
+        if(OTP===sentOTP) return res.json({message:"OTP is correct",bool:true})
+        return res.json({message:"OTP is not correct",bool:false})
+        
+    }catch(error){
+        console.log("server fucked up in verify OTP",error);
+        return res.status(500).json({message:"server fucked up in verify OTP",bool:false})
+    }
+}
+
+export async function resetPassword(req,res){
+    try{
+        const {password,email}=req?.body;
+        const oldPasswordObj=await User.findOne({email:email}).select("password");
+
+        if(!oldPasswordObj) return res.status(404).json({message:"User not found",bool:false});
+        const oldPassword=oldPasswordObj["password"];
+        const isSamePassword=await bcrypt.compare(password,oldPassword);
+        if(isSamePassword) return res.status(400).json({message:"You cant have the same password as of your old one",bool:false})
+        
+        
+        const newHashedPassword=await bcrypt.hash(password,10);
+        console.log("password changed")
+        await User.updateOne({email:email},{password:newHashedPassword});
+
+        return res.status(200).json({message:"Password rest succesfully",bool:true});
+
+
+    }catch(error){
+        return res.status(500).json({message:"Server fucked up at reset password"});
+    }
+}
 
 
 

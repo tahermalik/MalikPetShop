@@ -14,6 +14,7 @@ import { fileURLToPath } from "url";
 import path from "path"
 import offerRouter from "./routers/offerRoutes.js";
 import Offer from "./schema/offerSchema.js";
+import ForgotPassword from "./schema/forgotPassword.js";
 
 
 const app=express();
@@ -35,7 +36,7 @@ dotenv.config({
 connectDB()
 
 
-///// deleting the expired coupons and expired offer
+///// deleting the expired coupons, offers & OTP
 cron.schedule("0 * * * *", async () => {
   try {
     const now = new Date();
@@ -47,7 +48,9 @@ cron.schedule("0 * * * *", async () => {
       offerEndDate:{$lt:now} // expired offer
     })
 
-
+    const resultOTP=await ForgotPassword.deleteMany({
+      expiryDate:{$lt:now} /// expired OTP
+    })
 
     if (resultCoupon.deletedCount > 0) {
       console.log(`🧹 Deleted ${resultCoupon.deletedCount} expired coupons at ${now.toISOString()}`);
@@ -56,8 +59,12 @@ cron.schedule("0 * * * *", async () => {
     if (resultOffer.deletedCount > 0) {
       console.log(`🧹 Deleted ${resultOffer.deletedCount} expired offer at ${now.toISOString()}`);
     }
+
+    if (resultOTP.deletedCount > 0) {
+      console.log(`🧹 Deleted ${resultOTP.deletedCount} expired OTP at ${now.toISOString()}`);
+    }
   } catch (error) {
-    console.error("Error deleting expired coupons or offer:", error);
+    console.error("Error deleting expired coupons or offer or OTP:", error);
   }
 });
 

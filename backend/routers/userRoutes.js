@@ -1,5 +1,5 @@
 import express from "express"
-import { login, register ,logout, viewCompanyFood, viewFood, addCart, placeOrder,createFeedBack,displayFeedBack, favourite, viewWishList} from "../controllers/userController.js";
+import { login, register ,logout, viewCompanyFood, viewFood, addCart, placeOrder,createFeedBack,displayFeedBack, favourite, viewWishList, forgotPassword, verifyOTP, resetPassword} from "../controllers/userController.js";
 import { authenticate } from "../controllers/middleware.js";
 
 const uRouter=express.Router();
@@ -9,6 +9,11 @@ uRouter.post("/register",(req,res)=>register(req,res))
 uRouter.get("/logout",(req,res,next)=>authenticate(req,res,next),(req,res)=>logout(req,res))
 uRouter.post("/viewCompanyFood",(req,res)=>viewCompanyFood(req,res))
 uRouter.post("/viewFood",(req,res)=>viewFood(req,res))
+
+/// forgot password
+uRouter.post("/forgotPassword",(req,res)=>forgotPassword(req,res))
+uRouter.post("/verifyOTP",(req,res)=>verifyOTP(req,res))
+uRouter.post("/resetPassword",(req,res)=>resetPassword(req,res))
 
 /// wishList Routes
 uRouter.post("/favourite",(req,res)=>favourite(req,res))
