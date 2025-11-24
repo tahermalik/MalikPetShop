@@ -18,6 +18,10 @@ const cartSchema = new mongoose.Schema({
             productVariation:{
                 type:Number,
                 default : 0
+            },
+            productQuantity:{
+                type:Number,
+                default:1
             }
         }
     ]

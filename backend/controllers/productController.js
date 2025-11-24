@@ -154,7 +154,7 @@ export async function addProduct(req, res) {
 export async function displayProduct(req, res) {
     try {
         let userQuery = req?.body?.userQuery
-        if(!userQuery) return res.status(400).json({message:"You cant directly visit this web page"})
+        if(!userQuery) userQuery=""
             
         userQuery = userQuery.trim().replace(/\s+/g, " ").toLowerCase();
 
