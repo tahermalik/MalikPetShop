@@ -6,10 +6,12 @@ import { CART_ENDPOINTS, COUPON_ENDPOINT } from "./endpoints";
 import { useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetAllCartItems } from "../hooks/useGetAllCartItems";
-import { removeProduct } from "../redux/slices/cartSlice";
+import { decrementQuantity, incrementQuantity, removeProduct, setProducts } from "../redux/slices/cartSlice";
+import { useNavigate } from "react-router-dom";
 
 
 export default function CartPage() {
+  const navigate=useNavigate();
   const [coupanAmount, setCoupanAmount] = useState(0);
   const [coupanVisible, setCoupanVisible] = useState(false);
   const [coupanIndex, setCoupanIndex] = useState(-1) /// none of the coupans are applied initially
@@ -21,10 +23,10 @@ export default function CartPage() {
   const [checkTime,setCheckTime]=useState(0)
   const dispatch=useDispatch()
 
-  
+  const [shouldCallDB,setShouldCallDB]=useState(true)
   const [refresh,setRefresh]=useState(0) /// specially when item is removed from the cart
   const [cartItems,setCartItems]=useState([])
-  const {cartData,productVariationData}=useGetAllCartItems(userData?._id,refresh)
+  const {cartData,productVariationData,productQuantityData}=useGetAllCartItems(userData?._id,refresh,shouldCallDB)
 
 
   if(!cartData){
@@ -33,44 +35,38 @@ export default function CartPage() {
     )
   }
 
-  const [quantity,setQuantity]=useState(()=>Array(cartData.length).fill(1))
   useEffect(()=>{
-    setCartItems(cartData)    /// this is done in order to not change the earlier code at large
-    setQuantity(()=>Array(cartData.length).fill(1))
+    setCartItems(cartData);
   },[cartData])
 
-  const increaseQty = (index,stock) => {
-    setQuantity((prev)=>{
-      return prev.map((q,i)=>{
-        if(i===index && q<stock) return q+1;
-        return q
-      })
-    })
+
+  const increaseQty = (stock,productId,productVariation) => {
+    dispatch(incrementQuantity({productId:productId,productVariation:productVariation,stock:stock}))
+    setShouldCallDB(false);
+    console.log("on increse btn clicked"+shouldCallDB)
+    setRefresh(prev=>prev+1);
   };
 
-  const decreaseQty = (index) => {
-    setQuantity((prev)=>{
-      return prev.map((q,i)=>{
-        if(i===index && q>1) return q-1;
-        return q
-      })
-    })
+  const decreaseQty = (productId,productVariation) => {
+    dispatch(decrementQuantity({productId:productId,productVariation:productVariation}))
+    setShouldCallDB(false)
+    setRefresh(prev=>prev+1);
   };
 
   /// when the user is loggedIn and when the user is not loggedIn
   async function removeItem(e,productId,userId,productVariation) {
     e.preventDefault()
     e.stopPropagation()
-    if (!userData) {
-      const obj={
-        productId:productId,
-        productVariation:productVariation
-      }
-      console.log("fucking removing the product")
-      dispatch(removeProduct(obj))
-    } else {
+    const obj={
+      productId:productId,
+      productVariation:productVariation
+    }
+    console.log("fucking removing the product")
+    dispatch(removeProduct(obj))
+    if(userData){
       const result=await axios.post(`${CART_ENDPOINTS}/removeCartItem`,{userId,productId,productVariation},{withCredentials:true})
     }
+    setShouldCallDB(false);
     setRefresh(prev=>prev+1)
   };
   
@@ -78,7 +74,7 @@ export default function CartPage() {
     return Math.floor(discount * (price / 100))
   }
   const subtotal = cartItems.reduce(
-    (acc, item,index) => acc + (item.originalPrice[productVariationData[index]]-discountAmount(item.originalPrice[productVariationData[index]],item.discountValue[productVariationData[index]]) )* quantity[index],
+    (acc, item,index) => acc + (item.originalPrice[productVariationData[index]]-discountAmount(item.originalPrice[productVariationData[index]],item.discountValue[productVariationData[index]]) )* productQuantityData[index],
     0
   );
 
@@ -171,6 +167,18 @@ export default function CartPage() {
 
   }
 
+  async function placeOrder(e,totalAmount){
+    try{
+      e.preventDefault();
+      e.stopPropagation();
+      navigate("/checkout",{state:{totalAmount:totalAmount}})
+
+    }catch(error){
+      console.log("Somwthing went wrong in place order in the front end");
+    }
+  }
+
+
 
   return (
     <div className=" relative min-h-screen bg-blue-50 py-10 px-4 flex flex-col items-center md:items-start md:flex-row justify-center gap-10">
@@ -200,24 +208,24 @@ export default function CartPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => decreaseQty(index)}
-                    className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200"
+                  <div
+                    onClick={() => decreaseQty(item._id,productVariationData[index])}
+                    className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
                   >
                     −
-                  </button>
-                  <span className="font-semibold font-sans">{quantity[index]}</span>  {/* This need to change*/}
-                  <button
-                    onClick={() => increaseQty(index,item.stock[productVariationData[index]]-1)}    ///want at least one product to stay
-                    className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200"
+                  </div>
+                  <span className="font-semibold font-sans">{productQuantityData[index]}</span>  {/* This need to change*/}
+                  <div
+                    onClick={() => increaseQty(item.stock[productVariationData[index]]-1,item._id,productVariationData[index])}    ///want at least one product to stay
+                    className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
                   >
                     +
-                  </button>
+                  </div>
                 </div>
 
                 <div className="text-right">
                   <p className="font-semibold text-gray-700 font-sans">
-                    ₹{(item.originalPrice[productVariationData[index]]-discountAmount(item.originalPrice[productVariationData[index]],item.discountValue[productVariationData[index]]) )* quantity[index]}
+                    ₹{(item.originalPrice[productVariationData[index]]-discountAmount(item.originalPrice[productVariationData[index]],item.discountValue[productVariationData[index]]) )* Number(productQuantityData[index])}
                   </p>
                   <button
                     onClick={(e) => removeItem(e,item._id,userData?._id,productVariationData[index])}
@@ -263,9 +271,9 @@ export default function CartPage() {
             </div>
           </div>
 
-          <button className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition">
+          <div onClick={(e)=>{placeOrder(e,total-coupanAmount)}} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center">
             Proceed to Checkout
-          </button>
+          </div>
 
           <p className="text-sm text-center text-gray-500 mt-3 font-sans">
             You’re ₹{5000 - subtotal > 0 ? 5000 - subtotal : 0} away from free

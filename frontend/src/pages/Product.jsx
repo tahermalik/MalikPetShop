@@ -178,18 +178,15 @@ function Filter() {
 export async function addToCart(e,userId,productId,productVariation,logInFlag,dispatch){
     e.stopPropagation();
     e.preventDefault();
+    const obj={
+        productId:productId,
+        productVariation:productVariation,
+        productQuantity:1
+    }
 
-    /////// user is not logged in and still clicking the button add to cart
-    if(!logInFlag){ 
-        // console.log("Hollllla")
-        const obj={
-            productId:productId,
-            productVariation:productVariation
-        }
+    dispatch(addProduct(obj))   /// just adding an product to the redux cart
 
-        dispatch(addProduct(obj))   /// just adding an product to the cart
-
-    }else{      // user is logged in so backend stuff will be called
+    if(logInFlag){      // user is logged in so backend stuff will be called
         const result= await axios.post(`${CART_ENDPOINTS}/addToCart`,{userId:userId,productId:productId,productVariation:productVariation},{withCredentials:true})
         if(result?.data?.comment==="Already Present") console.log("Already present")
         else if(result?.data?.bool===false) console.log("Some problem in product addition to cart")
@@ -282,10 +279,6 @@ function ProductCard(props) {
         }
     }
 
-    // const productWishList=props.wishList.map((product)=>{
-    //     return product.toString();
-    // })
-    // if(productWishList.includes(userId)) setIsPresent(true)
 
     return (
         // initially setting 0th product to be displayed whicle clicking on the product

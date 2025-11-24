@@ -4,7 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const cartSlice = createSlice({
   name: "cart",
   initialState: {
-    products:[] // this will be array of objects
+    products:[], // this will be array of objects
   },
   reducers: {
     /// action.payload will be object
@@ -22,8 +22,31 @@ const cartSlice = createSlice({
         state.products=state.products.filter((item)=>!(item["productId"]===action.payload.productId && item["productVariation"]===action.payload.productVariation))
       }
     },  
+
+    incrementQuantity:(state,action)=>{
+      for(let i=0;i<state.products.length;i++){
+        if(state.products[i].productId===action.payload.productId && state.products[i].productVariation===action.payload.productVariation){
+          if(state.products[i].productQuantity<action.payload.stock-1) state.products[i].productQuantity+=1;
+          break;
+        }
+      }
+    },
+
+    decrementQuantity:(state,action)=>{
+      for(let i=0;i<state.products.length;i++){
+        if(state.products[i].productId===action.payload.productId && state.products[i].productVariation===action.payload.productVariation){
+          if(state.products[i].productQuantity>=2) state.products[i].productQuantity-=1;
+          break;
+        }
+      }
+    },
+
+    setProducts:(state,action)=>{
+      state.products=action.payload;
+    }
+
   }
 })
 
-export const { addProduct,removeProduct} = cartSlice.actions;
+export const { addProduct,removeProduct,incrementQuantity,decrementQuantity,setProducts} = cartSlice.actions;
 export default cartSlice.reducer;

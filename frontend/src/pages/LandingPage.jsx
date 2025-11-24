@@ -12,7 +12,7 @@ import { MdOutlineShoppingCart } from "react-icons/md";
 import { setHeaderHight } from "../redux/slices/layoutSlice";
 import { setPets, setTypeFilter } from "../redux/slices/filterSlice";
 import axios from "axios";
-import { USER_ENDPOINTS } from "./endpoints.js";
+import { CART_ENDPOINTS, USER_ENDPOINTS } from "./endpoints.js";
 import { useGetAllFeedBack } from "../hooks/useGetAllFeedBack.js";
 
 
@@ -345,14 +345,20 @@ export function Header() {
         }
     }
 
+    const reduxCartData=useSelector((state)=>state?.cart?.products)
     async function viewCart(e) {
         try {
             e.stopPropagation();
             e.preventDefault();
+
+            //// when the user is logged in
+            if(userId){
+                await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`,{userId:userId,reduxCartData:reduxCartData})
+            }
             navigate("/cart", { state: { userId: userId } })
 
         } catch (error) {
-            console.log("wrong in viewWishist frontend", error);
+            console.log("wrong in viewCart frontend"+ error);
         }
     }
 

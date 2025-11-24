@@ -57,7 +57,7 @@ export default function WishListUI() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
                 {productData.map((product,index) => (
-                    <div key={product._id} className="w-full bg-blue-50 flex flex-col rounded-2xl shadow hover:shadow-lg hover:bg-blue-100 transition duration-200">
+                    <div className="w-full bg-blue-50 flex flex-col rounded-2xl shadow hover:shadow-lg hover:bg-blue-100 transition duration-200">
                         <div className="h-[200px] w-full p-2 flex justify-center items-center">
                             <img
                                 src={`http://localhost:3000/${product.image[productVariationData[index]]}`}

@@ -12,6 +12,8 @@ import AdminSetting from "./pages/adminSetting";
 import SingleProductDisplay from "./pages/SingleProductDisplay";
 import WishListUI from "./pages/WishListUI";
 import PasswordRecovery from "./pages/forgotPasswd";
+import OrderSuccess from "./pages/orderSuccess";
+import Checkout from "./pages/Checkout";
 
 function App() {
   return (
@@ -32,6 +34,8 @@ function App() {
           </Route>
           <Route path="/WishListUI" element={<WishListUI/>}></Route>
           <Route path="/forgotPassword" element={<PasswordRecovery/>}></Route>
+          <Route path="/orderSuccess" element={<OrderSuccess/>}></Route>
+          <Route path="/checkout" element={<Checkout/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>
