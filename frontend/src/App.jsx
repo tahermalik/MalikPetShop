@@ -14,6 +14,7 @@ import WishListUI from "./pages/WishListUI";
 import PasswordRecovery from "./pages/forgotPasswd";
 import OrderSuccess from "./pages/orderSuccess";
 import Checkout from "./pages/Checkout";
+import UserAddressForm from "./pages/userAddressForm";
 
 function App() {
   return (
@@ -35,7 +36,7 @@ function App() {
           <Route path="/WishListUI" element={<WishListUI/>}></Route>
           <Route path="/forgotPassword" element={<PasswordRecovery/>}></Route>
           <Route path="/orderSuccess" element={<OrderSuccess/>}></Route>
-          <Route path="/checkout" element={<Checkout/>}></Route>
+          <Route path="/addressForm" element={<UserAddressForm/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>

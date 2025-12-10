@@ -32,13 +32,7 @@ export default function Checkout() {
                 <label htmlFor="addressField">Address :- </label>
                 <div className="w-[100%] rounded-2xl border-2 border-[#E0E0E0] bg-[#FFFFFF]"><textarea ref={addressRef} name="" id="addressField" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter you address" className="outline-0 p-2 max-h-[200px] min-h-[100px] w-[100%] overflow-y-scroll scrollbar-hide placeholder:xs:text-sm placeholder:lg:text-lg xs:text-sm lg:text-lg placeholder:text-[#555555] text-[#212121]"></textarea></div>
             </div>
-            <div>
-                <label htmlFor="phoneNumberField">Phone Number :- </label>
-                <div className="flex flex-row gap-1 bg-white items-center p-1 rounded-xl">
-                    <div>+91 </div>
-                    <div><input htmlFor="phoneNumberField" type="text" minLength={10} maxLength={10} placeholder="Enter Phone Number" className="outline-0 p-2 w-[100%]  placeholder:xs:text-sm placeholder:lg:text-lg xs:text-sm lg:text-lg placeholder:text-[#555555] text-[#212121]"/></div>
-                </div>
-            </div>
+            
           </div>
 
           {/* Right Section: Payment */}

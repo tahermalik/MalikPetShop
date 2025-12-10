@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useGetAllCartItems } from "../hooks/useGetAllCartItems";
 import { decrementQuantity, incrementQuantity, removeProduct, setProducts } from "../redux/slices/cartSlice";
 import { useNavigate } from "react-router-dom";
-
+import toast from "react-hot-toast";
 
 export default function CartPage() {
   const navigate=useNavigate();
@@ -167,12 +167,19 @@ export default function CartPage() {
 
   }
 
+  const user=useSelector((state)=>state?.user?.userData)
+  const reduxCartData=useSelector((state)=>state?.cart?.products)
+  const userId=user?._id;
   async function placeOrder(e,totalAmount){
     try{
       e.preventDefault();
       e.stopPropagation();
-      navigate("/checkout",{state:{totalAmount:totalAmount}})
-
+      if(totalAmount<=1000 && user!=null) toast.error("Order cant be placed for amount less then 1000")
+      else if(user===null) navigate("/Login",{state:{user:"user"}})
+      else{
+        await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`,{userId:userId,reduxCartData:reduxCartData})
+        navigate("/addressForm")
+      }
     }catch(error){
       console.log("Somwthing went wrong in place order in the front end");
     }
