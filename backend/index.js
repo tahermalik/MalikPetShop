@@ -20,8 +20,12 @@ import ForgotPassword from "./schema/forgotPassword.js";
 const app=express();
 app.use(cors({
   origin: "http://localhost:5173",  // your React frontend URL
-  credentials: true                 // if you use cookies or auth
+  credentials: true,                 // if you use cookies or auth
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], // allowed methods
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"] // allowed headers
 }));
+
+
 
 // ✅ Serve static images
 const __filename = fileURLToPath(import.meta.url);
@@ -79,7 +83,8 @@ app.use(cookieParser())
 
 
 
-app.listen(process.env.PORT_NUM,()=>console.log(`${process.env.PORT_NUM}`))
+
+
 
 app.use("/user",uRouter)
 app.use("/product",pRouter)
@@ -88,5 +93,6 @@ app.use("/coupon",cRouter)
 app.use("/cart",cartRouter)
 app.use("/offer",offerRouter)
 
+app.listen(process.env.PORT_NUM,()=>console.log(`${process.env.PORT_NUM}`))
 
 
