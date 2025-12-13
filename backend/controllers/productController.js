@@ -5,7 +5,7 @@ import User from "../schema/userSchema.js";
 import { cartCleanUp } from "./cartController.js";
 import { wishListCleanUp } from "./userController.js";
 
-
+//// working
 export async function addProduct(req, res) {
     try {
         console.log("inside add Product")
@@ -41,7 +41,7 @@ export async function addProduct(req, res) {
         const number_regex = /^\d+(\.\d+)?$/
 
         //// cleaning productName
-        const cleanProductName=productName.replace(/[^a-zA-Z\s]/g, "").replace(/\s+/g, " ").trim()
+        const cleanProductName = productName.replace(/[^a-zA-Z\s]/g, "").replace(/\s+/g, " ").trim()
 
         if (!number_regex.test(Number(originalPrice))) {
             return res.status(400).json({ message: "only numbers are allowed" })
@@ -67,8 +67,8 @@ export async function addProduct(req, res) {
         // console.log(product_db)
         if (product_db) {
 
-            let name2=cleanProductName.split(" ")
-            let name1=product_db?.cleanProductName.split(" ")
+            let name2 = cleanProductName.split(" ")
+            let name1 = product_db?.cleanProductName.split(" ")
             let matches = 0
             for (let p = 0; p < name1.length; p++) {
                 for (let j = 0; j < name2.length; j++) {
@@ -84,7 +84,7 @@ export async function addProduct(req, res) {
 
             //// if the product satisfies my candidate key
             ///// for now if we want to update a variation then simply delete that variation and add the variation with updated fields again
-            if (product_db.netWeight.includes(Number(netWeight)) && percentage>=90) {
+            if (product_db.netWeight.includes(Number(netWeight)) && percentage >= 90) {
                 // let counter=0;      /// fetching the index of the variation that is to be updated
                 // for(let i=0;i<product_db.netWeight.length;i++){
                 //     if(product_db.netWeight[i]===netWeight){
@@ -140,7 +140,7 @@ export async function addProduct(req, res) {
             material: material,
             productString: [productString.toLowerCase()],
             image: imagePath ? [imagePath] : [],
-            cleanProductName:cleanProductName
+            cleanProductName: cleanProductName
         })
 
         return res.status(201).json({ message: "Product successfully added into the DB" })
@@ -153,30 +153,36 @@ export async function addProduct(req, res) {
 
 export async function displayProduct(req, res) {
     try {
+
+        const limit = parseInt(req.body.limit) || 20;
+        const page = parseInt(req.body.page) || 1;
+        const skip = (page - 1) * limit;
+        // console.log(limit,lastId)
+
         let userQuery = req?.body?.userQuery
-        if(!userQuery) userQuery=""
-            
+        if (!userQuery) userQuery = ""
+
         userQuery = userQuery.trim().replace(/\s+/g, " ").toLowerCase();
 
         /// this userQuery can have multiple common words possible due to same word in search bar and filter
-        console.log("User query at the server side is "+userQuery)
+        console.log("User query at the server side is " + userQuery)
 
-        let uniqueQueryArray=[]
+        let uniqueQueryArray = []
         let queryArray = userQuery.split(" ");  //// some pre processing need to be done on this in order to remove the duplicate words
-        for(let i=0;i<queryArray.length;i++){
-            let flag=false;
-            for(let j=0;j<uniqueQueryArray.length;j++){
-                const similarity = natural.JaroWinklerDistance(uniqueQueryArray[j],queryArray[i]);
-                if(similarity>=0.8){
-                    flag=true;
+        for (let i = 0; i < queryArray.length; i++) {
+            let flag = false;
+            for (let j = 0; j < uniqueQueryArray.length; j++) {
+                const similarity = natural.JaroWinklerDistance(uniqueQueryArray[j], queryArray[i]);
+                if (similarity >= 0.8) {
+                    flag = true;
                     break;
                 }
             }
 
-            if(flag==false) uniqueQueryArray.push(queryArray[i]);
+            if (flag == false) uniqueQueryArray.push(queryArray[i]);
 
         }
-        
+
 
         const products = await Product.find()
 
@@ -209,7 +215,6 @@ export async function displayProduct(req, res) {
             }
 
 
-
             // Return product with score
             return { ...product._doc, matchPercentage: maxPercentage };
         })
@@ -217,9 +222,19 @@ export async function displayProduct(req, res) {
             .sort((a, b) => b.matchPercentage - a.matchPercentage); // sort by % desc
 
 
-        // console.log(queryArray,matchedProducts)
+        // ---- PAGINATION HERE ✅ ----
+        const paginatedProducts = matchedProducts.slice(
+            skip,
+            skip + limit
+        );
 
-        return res.status(200).json({ products: matchedProducts });
+        const hasMore = skip + limit < matchedProducts.length;
+
+        return res.status(200).json({
+            products: paginatedProducts,
+            hasMore,
+        });
+        // console.log(queryArray,paginatedProducts)
 
     } catch (error) {
         console.log("wrong in displayProduct")
@@ -257,15 +272,15 @@ export async function deleteProduct(req, res) {
 
         /// so that both can execute in parallel
         await Promise.all([
-            cartCleanUp(productId,imgCounter), /// productId,productVariation
-            wishListCleanUp(productId,imgCounter)
+            cartCleanUp(productId, imgCounter), /// productId,productVariation
+            wishListCleanUp(productId, imgCounter)
         ])
 
         for (let i = 0; i < keyArray.length; i++) {
             let value = productObj[keyArray[i]];
 
             //// condition is written to ensure the deletion of variation and not the complete product
-            if (Array.isArray(value) && keyArray[i]!=="wishList" && keyArray[i]!="cart") {
+            if (Array.isArray(value) && keyArray[i] !== "wishList" && keyArray[i] != "cart") {
                 if (value.length > 1) {
                     /// invalid stuff
                     if (imgCounter >= value.length) return res.status(400).json({ message: "Dont mess with the system" })
@@ -297,17 +312,17 @@ export async function deleteProduct(req, res) {
 }
 
 //// function specially created for cart; ///working
-export async function getProductsViaIds(req,res){
-    try{
-        const {productIds}=req?.body
-        const productData=await Product.find({ _id:{$in:productIds}})
+export async function getProductsViaIds(req, res) {
+    try {
+        const { productIds } = req?.body
+        const productData = await Product.find({ _id: { $in: productIds } })
         const productMap = new Map(productData.map(p => [p._id.toString(), p]));
         const orderedProducts = productIds.map(id => productMap.get(id));
-        return res.status(200).json({productData:orderedProducts})
+        return res.status(200).json({ productData: orderedProducts })
 
-    }catch(error){
-        console.log("server fucked up at getProductViaIds",error)
-        return res.status(500).json({message:"server fucked up at getProductViaIds",bool:false})
+    } catch (error) {
+        console.log("server fucked up at getProductViaIds", error)
+        return res.status(500).json({ message: "server fucked up at getProductViaIds", bool: false })
     }
 }
 

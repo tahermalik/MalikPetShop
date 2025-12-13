@@ -76,7 +76,7 @@ export async function setCoupons(req,res){
     }
 }
 
-
+/// need to work on this
 export async function deleteCoupon(req,res){
     try{
         const couponID=req.params?.id;
@@ -93,6 +93,7 @@ export async function deleteCoupon(req,res){
     }
 }
 
+/// need to work on this
 export async function couponUsage(req,res){
     try{
         const couponId=req?.params?.id
