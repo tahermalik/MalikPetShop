@@ -1,7 +1,7 @@
 import React from "react";
 import { IoIosHeart } from "react-icons/io";
 import useGetWishListData from "../hooks/useGetWishListData";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -9,6 +9,50 @@ import { useState } from "react";
 import { USER_ENDPOINTS } from "./endpoints";
 import { useDispatch } from "react-redux";
 import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/slices/userSlice";
+
+export function EmptyWishlist() {
+    const navigate=useNavigate();
+    function browseProduct(e){
+        try{
+            e.preventDefault();
+            e.stopPropagation();
+            navigate("/product")
+        }catch(error){
+            console.log(error+"error in browsing the product")
+        }
+    }
+    return (
+        <div className="w-full h-[300px] flex flex-col justify-center items-center bg-blue-50 rounded-2xl shadow-md p-6 animate-fadeIn">
+            
+            {/* Icon */}
+            <div className="text-blue-400 mb-4">
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-16 w-16" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor" 
+                    strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+
+            {/* Message */}
+            <h2 className="text-blue-800 text-xl font-semibold mb-2 text-center">
+                Your wishlist is empty!
+            </h2>
+            <p className="text-blue-600 text-center text-sm mb-4">
+                Add your favorite products here to keep track of them.
+            </p>
+
+            {/* Button (optional) */}
+            <div onClick={(e)=>browseProduct(e)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer">
+                Browse Products
+            </div>
+        </div>
+    );
+}
+
 
 export default function WishListUI() {
     const location=useLocation()
@@ -20,9 +64,11 @@ export default function WishListUI() {
     const dispatch=useDispatch()
 
     console.log("example",productData)
-    if(!productData){
+    if(!productData || productData.length===0){
         return(
-            <div>Loading...</div>
+            <div className="flex h-[100vh] w-full justify-center items-center">
+                <EmptyWishlist/>
+            </div>
         )
     }
 

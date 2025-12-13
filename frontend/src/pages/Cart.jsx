@@ -10,8 +10,40 @@ import { decrementQuantity, incrementQuantity, removeProduct, setProducts } from
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
+function CartCardSkeleton() {
+  return (
+    <div className="flex items-center justify-between border-b border-gray-200 pb-4 animate-pulse">
+      {/* Left section */}
+      <div className="flex items-center gap-4">
+        {/* Image skeleton */}
+        <div className="w-20 h-20 bg-gray-300 rounded-lg" />
+
+        {/* Text skeleton */}
+        <div className="space-y-2">
+          <div className="h-4 w-40 bg-gray-300 rounded" />
+          <div className="h-3 w-24 bg-gray-300 rounded" />
+        </div>
+      </div>
+
+      {/* Quantity section */}
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-gray-300" />
+        <div className="h-4 w-6 bg-gray-300 rounded" />
+        <div className="w-8 h-8 rounded-full bg-gray-300" />
+      </div>
+
+      {/* Price & remove */}
+      <div className="text-right space-y-2">
+        <div className="h-4 w-20 bg-gray-300 rounded ml-auto" />
+        <div className="h-3 w-14 bg-gray-300 rounded ml-auto" />
+      </div>
+    </div>
+  )
+}
+
+
 export default function CartPage() {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const [coupanAmount, setCoupanAmount] = useState(0);
   const [coupanVisible, setCoupanVisible] = useState(false);
   const [coupanIndex, setCoupanIndex] = useState(-1) /// none of the coupans are applied initially
@@ -20,61 +52,62 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const userData = useSelector((state) => state?.user?.userData)
   const hadfetched = useRef(false);
-  const [checkTime,setCheckTime]=useState(0)
-  const dispatch=useDispatch()
+  const [checkTime, setCheckTime] = useState(0)
+  const dispatch = useDispatch()
+  const [skeleton, setSkeleton] = useState(true);
 
-  const [shouldCallDB,setShouldCallDB]=useState(true)
-  const [refresh,setRefresh]=useState(0) /// specially when item is removed from the cart
-  const [cartItems,setCartItems]=useState([])
-  const {cartData,productVariationData,productQuantityData}=useGetAllCartItems(userData?._id,refresh,shouldCallDB)
+  const [shouldCallDB, setShouldCallDB] = useState(true)
+  const [refresh, setRefresh] = useState(0) /// specially when item is removed from the cart
+  const [cartItems, setCartItems] = useState([])
+  const { cartData, productVariationData, productQuantityData } = useGetAllCartItems(userData?._id, refresh, shouldCallDB)
 
 
-  if(!cartData){
-    return(
+  if (!cartData) {
+    return (
       <div>Loading...</div>
     )
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     setCartItems(cartData);
-  },[cartData])
+  }, [cartData])
 
 
-  const increaseQty = (stock,productId,productVariation) => {
-    dispatch(incrementQuantity({productId:productId,productVariation:productVariation,stock:stock}))
+  const increaseQty = (stock, productId, productVariation) => {
+    dispatch(incrementQuantity({ productId: productId, productVariation: productVariation, stock: stock }))
     setShouldCallDB(false);
-    console.log("on increse btn clicked"+shouldCallDB)
-    setRefresh(prev=>prev+1);
+    console.log("on increse btn clicked" + shouldCallDB)
+    setRefresh(prev => prev + 1);
   };
 
-  const decreaseQty = (productId,productVariation) => {
-    dispatch(decrementQuantity({productId:productId,productVariation:productVariation}))
+  const decreaseQty = (productId, productVariation) => {
+    dispatch(decrementQuantity({ productId: productId, productVariation: productVariation }))
     setShouldCallDB(false)
-    setRefresh(prev=>prev+1);
+    setRefresh(prev => prev + 1);
   };
 
   /// when the user is loggedIn and when the user is not loggedIn
-  async function removeItem(e,productId,userId,productVariation) {
+  async function removeItem(e, productId, userId, productVariation) {
     e.preventDefault()
     e.stopPropagation()
-    const obj={
-      productId:productId,
-      productVariation:productVariation
+    const obj = {
+      productId: productId,
+      productVariation: productVariation
     }
     console.log("fucking removing the product")
     dispatch(removeProduct(obj))
-    if(userData){
-      const result=await axios.post(`${CART_ENDPOINTS}/removeCartItem`,{userId,productId,productVariation},{withCredentials:true})
+    if (userData) {
+      const result = await axios.post(`${CART_ENDPOINTS}/removeCartItem`, { userId, productId, productVariation }, { withCredentials: true })
     }
     setShouldCallDB(false);
-    setRefresh(prev=>prev+1)
+    setRefresh(prev => prev + 1)
   };
-  
+
   function discountAmount(price, discount) {
     return Math.floor(discount * (price / 100))
   }
   const subtotal = cartItems.reduce(
-    (acc, item,index) => acc + (item.originalPrice[productVariationData[index]]-discountAmount(item.originalPrice[productVariationData[index]],item.discountValue[productVariationData[index]]) )* productQuantityData[index],
+    (acc, item, index) => acc + (item.originalPrice[productVariationData[index]] - discountAmount(item.originalPrice[productVariationData[index]], item.discountValue[productVariationData[index]])) * productQuantityData[index],
     0
   );
 
@@ -167,23 +200,30 @@ export default function CartPage() {
 
   }
 
-  const user=useSelector((state)=>state?.user?.userData)
-  const reduxCartData=useSelector((state)=>state?.cart?.products)
-  const userId=user?._id;
-  async function placeOrder(e,totalAmount){
-    try{
+  const user = useSelector((state) => state?.user?.userData)
+  const reduxCartData = useSelector((state) => state?.cart?.products)
+  const userId = user?._id;
+  async function placeOrder(e, totalAmount) {
+    try {
       e.preventDefault();
       e.stopPropagation();
-      if(totalAmount<=1000 && user!=null) toast.error("Order cant be placed for amount less then 1000")
-      else if(user===null) navigate("/Login",{state:{user:"user"}})
-      else{
-        await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`,{userId:userId,reduxCartData:reduxCartData})
+      if (totalAmount <= 1000 && user != null) toast.error("Order cant be placed for amount less then 1000")
+      else if (user === null) navigate("/Login", { state: { user: "user" } })
+      else {
+        await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`, { userId: userId, reduxCartData: reduxCartData })
         navigate("/addressForm")
       }
-    }catch(error){
+    } catch (error) {
       console.log("Somwthing went wrong in place order in the front end");
     }
   }
+
+  //// hook used in order to implement skeleton effect
+  useEffect(() => {
+    setTimeout(() => {
+      setSkeleton(false);
+    }, 800)
+  })
 
 
 
@@ -198,50 +238,55 @@ export default function CartPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {cartItems.map((item,index) => (
-              <div
-                className="flex items-center justify-between border-b border-gray-200 pb-4"
-              >
-                <div className="flex items-center gap-4">
-                  <img
-                    src={`http://localhost:3000/${item.image[productVariationData[index]]}`}
-                    alt={item.productName}
-                    className="w-20 h-20 object-cover rounded-lg"
-                  />
-                  <div>
-                    <h3 className="font-medium text-gray-800">{item.productName}</h3>
-                    <p className="text-sm text-gray-500">₹{item.originalPrice[productVariationData[index]]-discountAmount(item.originalPrice[productVariationData[index]],item.discountValue[productVariationData[index]])}</p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-3">
-                  <div
-                    onClick={() => decreaseQty(item._id,productVariationData[index])}
-                    className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
-                  >
-                    −
-                  </div>
-                  <span className="font-semibold font-sans">{productQuantityData[index]}</span>  {/* This need to change*/}
-                  <div
-                    onClick={() => increaseQty(item.stock[productVariationData[index]]-1,item._id,productVariationData[index])}    ///want at least one product to stay
-                    className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
-                  >
-                    +
-                  </div>
-                </div>
+            {/* Cart Items */}
+            {cartItems.map((item, index) => (
 
-                <div className="text-right">
-                  <p className="font-semibold text-gray-700 font-sans">
-                    ₹{(item.originalPrice[productVariationData[index]]-discountAmount(item.originalPrice[productVariationData[index]],item.discountValue[productVariationData[index]]) )* Number(productQuantityData[index])}
-                  </p>
-                  <button
-                    onClick={(e) => removeItem(e,item._id,userData?._id,productVariationData[index])}
-                    className="text-sm text-red-500 hover:underline"
-                  >
-                    Remove
-                  </button>
+              //// written in order to implement skeleton effect
+              skeleton ? <CartCardSkeleton /> :
+                <div
+                  className="flex items-center justify-between border-b border-gray-200 pb-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={`http://localhost:3000/${item.image[productVariationData[index]]}`}
+                      alt={item.productName}
+                      className="w-20 h-20 object-cover rounded-lg"
+                    />
+                    <div>
+                      <h3 className="font-medium text-gray-800">{item.productName}</h3>
+                      <p className="text-sm text-gray-500">₹{item.originalPrice[productVariationData[index]] - discountAmount(item.originalPrice[productVariationData[index]], item.discountValue[productVariationData[index]])}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div
+                      onClick={() => decreaseQty(item._id, productVariationData[index])}
+                      className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
+                    >
+                      −
+                    </div>
+                    <span className="font-semibold font-sans">{productQuantityData[index]}</span>  {/* This need to change*/}
+                    <div
+                      onClick={() => increaseQty(item.stock[productVariationData[index]] - 1, item._id, productVariationData[index])}    ///want at least one product to stay
+                      className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
+                    >
+                      +
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-700 font-sans">
+                      ₹{(item.originalPrice[productVariationData[index]] - discountAmount(item.originalPrice[productVariationData[index]], item.discountValue[productVariationData[index]])) * Number(productQuantityData[index])}
+                    </p>
+                    <button
+                      onClick={(e) => removeItem(e, item._id, userData?._id, productVariationData[index])}
+                      className="text-sm text-red-500 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
-              </div>
             ))}
           </div>
         )}
@@ -278,7 +323,7 @@ export default function CartPage() {
             </div>
           </div>
 
-          <div onClick={(e)=>{placeOrder(e,total-coupanAmount)}} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center">
+          <div onClick={(e) => { placeOrder(e, total - coupanAmount) }} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center">
             Proceed to Checkout
           </div>
 

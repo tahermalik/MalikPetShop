@@ -1,8 +1,8 @@
-import { Header ,Footer} from "./LandingPage"
+import { Header, Footer } from "./LandingPage"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { setBrands, setBreed, setDiet, setFlavor, setPets } from "../redux/slices/filterSlice"
-import { MdArrowDropDown, MdArrowDropUp , MdOutlineDeleteOutline} from "react-icons/md"
+import { MdArrowDropDown, MdArrowDropUp, MdOutlineDeleteOutline } from "react-icons/md"
 import { Range } from "react-range";
 import { useGetAllProduct } from "../hooks/useGetAllProducts"
 import axios from "axios"
@@ -42,45 +42,45 @@ function CheckBoxes(props) {
 }
 
 const PriceRange = () => {
-  const [values, setValues] = useState([0, 6000]);
+    const [values, setValues] = useState([0, 6000]);
 
-  return (
-    <div className="w-[100%] p-4">
-      <Range
-        step={100}
-        min={0}
-        max={6000}
-        values={values}
-        onChange={(vals) => setValues(vals)}
-        renderTrack={({ props, children }) => (
-          <div
-            {...props}
-            className="h-2 w-[100%] bg-gray-200 rounded"
-          >
-            <div
-              className="h-2 bg-gray-800 rounded"
-              style={{
-                left: `${((values[0] / 6000) * 100).toFixed(2)}%`,
-                right: `${(100 - (values[1] / 6000) * 100).toFixed(2)}%`,
-                position: "absolute",
-              }}
+    return (
+        <div className="w-[100%] p-4">
+            <Range
+                step={100}
+                min={0}
+                max={6000}
+                values={values}
+                onChange={(vals) => setValues(vals)}
+                renderTrack={({ props, children }) => (
+                    <div
+                        {...props}
+                        className="h-2 w-[100%] bg-gray-200 rounded"
+                    >
+                        <div
+                            className="h-2 bg-gray-800 rounded"
+                            style={{
+                                left: `${((values[0] / 6000) * 100).toFixed(2)}%`,
+                                right: `${(100 - (values[1] / 6000) * 100).toFixed(2)}%`,
+                                position: "absolute",
+                            }}
+                        />
+                        {children}
+                    </div>
+                )}
+                renderThumb={({ props }) => (
+                    <div
+                        {...props}
+                        className="w-[15px] h-[15px] bg-gray-800 rounded-full"
+                    />
+                )}
             />
-            {children}
-          </div>
-        )}
-        renderThumb={({ props }) => (
-          <div
-            {...props}
-            className="w-[15px] h-[15px] bg-gray-800 rounded-full"
-          />
-        )}
-      />
-      <div className="flex justify-between mt-2 text-gray-700 font-sans">
-        <span>₹ {values[0]}</span>
-        <span>₹ {values[1]}</span>
-      </div>
-    </div>
-  );
+            <div className="flex justify-between mt-2 text-gray-700 font-sans">
+                <span>₹ {values[0]}</span>
+                <span>₹ {values[1]}</span>
+            </div>
+        </div>
+    );
 };
 
 export const items_flavor = ["tuna", "vegetables", "salmon", "meat", "mackerel", "seafood", "a", "f", "r", "w"]
@@ -96,18 +96,18 @@ function Filter() {
     const checkedListBrands = useSelector((state) => state?.filter?.brandsFilter)
 
 
-    const [showFilter,setShowFilter]=useState("flavor")
-    const [filterToggle,setFilterToggle]=useState(false)
+    const [showFilter, setShowFilter] = useState("flavor")
+    const [filterToggle, setFilterToggle] = useState(false)
 
     function toggle(type) {
-        if(filterToggle || type!==showFilter){
+        if (filterToggle || type !== showFilter) {
             if (type === "flavor") setShowFilter("flavor")
             else if (type === "breed") setShowFilter("breed")
             else if (type === "diet") setShowFilter("diet")
             else if (type === "brands") setShowFilter("brands")
-            else if (type==="priceslider") setShowFilter("priceslider")
+            else if (type === "priceslider") setShowFilter("priceslider")
             setFilterToggle(false)
-        }else{
+        } else {
             setShowFilter("")
             setFilterToggle(true)
         }
@@ -121,52 +121,52 @@ function Filter() {
                     {/* FLAVOR */}
                     <div onClick={() => toggle("flavor")} className="flex flex-row justify-between items-center">
                         <div>Flavor</div>
-                        {showFilter!=="flavor" && <MdArrowDropDown />}
-                        {showFilter==="flavor" && <MdArrowDropUp />}
+                        {showFilter !== "flavor" && <MdArrowDropDown />}
+                        {showFilter === "flavor" && <MdArrowDropUp />}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-[30%] rounded-2xl overflow-auto scrollbar-hide ${showFilter==="flavor" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                    <div className={`bg-blue-200 p-2 h-[30%] rounded-2xl overflow-auto scrollbar-hide ${showFilter === "flavor" ? "relative" : "absolute top-0 z-[-10]"} `}>
                         <CheckBoxes type="flavor" chekcedList={chekcedList} items={items_flavor} />
                     </div>
 
                     {/* BREED */}
                     <div onClick={() => toggle("breed")} className="flex flex-row justify-between items-center mt-2">
                         <div>Breed Size</div>
-                        {showFilter!=="breed" && <MdArrowDropDown />}
-                        {showFilter==="breed" && <MdArrowDropUp />}
+                        {showFilter !== "breed" && <MdArrowDropDown />}
+                        {showFilter === "breed" && <MdArrowDropUp />}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-auto rounded-2xl overflow-auto scrollbar-hide ${showFilter==="breed" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                    <div className={`bg-blue-200 p-2 h-auto rounded-2xl overflow-auto scrollbar-hide ${showFilter === "breed" ? "relative" : "absolute top-0 z-[-10]"} `}>
                         <CheckBoxes type="breed" chekcedList={checkedListBreed} items={items_breed} />
                     </div>
 
                     {/* DIET */}
                     <div onClick={() => toggle("diet")} className="flex flex-row justify-between items-center mt-2">
                         <div>Veg/Non-Veg</div>
-                        {showFilter!=="diet" && <MdArrowDropDown />}
-                        {showFilter==="diet" && <MdArrowDropUp />}
+                        {showFilter !== "diet" && <MdArrowDropDown />}
+                        {showFilter === "diet" && <MdArrowDropUp />}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-auto rounded-2xl overflow-auto scrollbar-hide ${showFilter==="diet" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                    <div className={`bg-blue-200 p-2 h-auto rounded-2xl overflow-auto scrollbar-hide ${showFilter === "diet" ? "relative" : "absolute top-0 z-[-10]"} `}>
                         <CheckBoxes type="diet" chekcedList={checkedListDiet} items={items_diet} />
                     </div>
 
-                    
+
                     {/* Brands */}
                     <div onClick={() => toggle("brands")} className="flex flex-row justify-between items-center mt-2">
                         <div>Brands</div>
-                        {showFilter!=="brands" && <MdArrowDropDown />}
-                        {showFilter==="brands" && <MdArrowDropUp />}
+                        {showFilter !== "brands" && <MdArrowDropDown />}
+                        {showFilter === "brands" && <MdArrowDropUp />}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-[30%] rounded-2xl overflow-auto scrollbar-hide ${showFilter==="brands" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                    <div className={`bg-blue-200 p-2 h-[30%] rounded-2xl overflow-auto scrollbar-hide ${showFilter === "brands" ? "relative" : "absolute top-0 z-[-10]"} `}>
                         <CheckBoxes type="brands" chekcedList={checkedListBrands} items={items_brands} />
                     </div>
 
                     {/* Price Slider */}
-                    <div onClick={()=>toggle("priceslider")} className="flex flex-row justify-between items-center mt-2">
+                    <div onClick={() => toggle("priceslider")} className="flex flex-row justify-between items-center mt-2">
                         <div>Price Slider</div>
-                        {(showFilter!=="priceslider") && <MdArrowDropDown />}
-                        {(showFilter==="priceslider") && <MdArrowDropUp />}
+                        {(showFilter !== "priceslider") && <MdArrowDropDown />}
+                        {(showFilter === "priceslider") && <MdArrowDropUp />}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-auto rounded-2xl overflow-auto scrollbar-hide ${showFilter==="priceslider" ? "relative" : "absolute top-0 z-[-10]"} `}>
-                        <PriceRange/>
+                    <div className={`bg-blue-200 p-2 h-auto rounded-2xl overflow-auto scrollbar-hide ${showFilter === "priceslider" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                        <PriceRange />
                     </div>
                 </div>
             </div>
@@ -175,57 +175,111 @@ function Filter() {
 }
 
 /// function written for both loggedIn user & user who is not loggedIn
-export async function addToCart(e,userId,productId,productVariation,logInFlag,dispatch){
+export async function addToCart(e, userId, productId, productVariation, logInFlag, dispatch) {
     e.stopPropagation();
     e.preventDefault();
-    const obj={
-        productId:productId,
-        productVariation:productVariation,
-        productQuantity:1
+    const obj = {
+        productId: productId,
+        productVariation: productVariation,
+        productQuantity: 1
     }
 
     dispatch(addProduct(obj))   /// just adding an product to the redux cart
 
-    if(logInFlag){      // user is logged in so backend stuff will be called
-        const result= await axios.post(`${CART_ENDPOINTS}/addToCart`,{userId:userId,productId:productId,productVariation:productVariation},{withCredentials:true})
-        if(result?.data?.comment==="Already Present") console.log("Already present")
-        else if(result?.data?.bool===false) console.log("Some problem in product addition to cart")
+    if (logInFlag) {      // user is logged in so backend stuff will be called
+        const result = await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: userId, productId: productId, productVariation: productVariation }, { withCredentials: true })
+        if (result?.data?.comment === "Already Present") console.log("Already present")
+        else if (result?.data?.bool === false) console.log("Some problem in product addition to cart")
         else console.log(`${productId} added successfully`)
     }
 }
 
+
+export function ProductCardSkeleton() {
+    return (
+        <div className="w-[250px] h-[450px] bg-white flex flex-col rounded-2xl shadow-sm animate-pulse">
+
+            {/* Banner Skeleton */}
+            <div className="h-[5%] w-full bg-emerald-100/60 rounded-t-2xl"></div>
+
+            {/* Image Skeleton */}
+            <div className="h-[40%] w-full px-1 py-1">
+                <div className="h-full w-full bg-gray-200 rounded-lg"></div>
+            </div>
+
+            {/* Product Info Skeleton */}
+            <div className="flex flex-col justify-evenly h-[40%] w-full px-1">
+
+                {/* Title */}
+                <div className="space-y-2">
+                    <div className="h-4 w-[90%] bg-gray-200 rounded"></div>
+                    <div className="h-4 w-[70%] bg-gray-200 rounded"></div>
+                    <div className="h-4 w-[50%] bg-gray-200 rounded"></div>
+                </div>
+
+                {/* Price block */}
+                <div className="space-y-2 mt-2">
+                    <div className="h-5 w-[60%] bg-gray-200 rounded"></div>
+                    <div className="h-4 w-[40%] bg-gray-200 rounded"></div>
+                </div>
+
+                {/* Variants + Icons */}
+                <div className="flex justify-between items-center mt-2">
+
+                    {/* Variants skeleton */}
+                    <div className="flex gap-1">
+                        <div className="h-5 w-10 bg-gray-300 rounded"></div>
+                        <div className="h-5 w-10 bg-gray-300 rounded"></div>
+                        <div className="h-5 w-10 bg-gray-300 rounded"></div>
+                    </div>
+
+                    {/* Heart/Delete */}
+                    <div className="h-6 w-6 bg-gray-300 rounded-full"></div>
+                </div>
+            </div>
+
+            {/* Add to Cart Button Skeleton */}
+            <div className="h-[15%] w-full rounded-b-2xl">
+                <div className="h-full w-full bg-orange-300/60 rounded-b-2xl"></div>
+            </div>
+        </div>
+    );
+}
+
+
+
 function ProductCard(props) {
-    const dispatch=useDispatch();
-    const [isPresent,setIsPresent]=useState(false)
-    
-    const userData=useSelector((state)=>state?.user?.userData)
-    const userDataNotLoggedIn=useSelector((state)=>state?.user?.userDataNotLoggedIn)
-    const userId=userData?._id; //// here i will get the user id
+    const dispatch = useDispatch();
+    const [isPresent, setIsPresent] = useState(false)
+
+    const userData = useSelector((state) => state?.user?.userData)
+    const userDataNotLoggedIn = useSelector((state) => state?.user?.userDataNotLoggedIn)
+    const userId = userData?._id; //// here i will get the user id
     // const imgCounter=useSelector((state)=>state?.active?.imgCounter)
-    const [imgCounter,setImgCounter]=useState(0)
-    
-    useLayoutEffect(()=>{
+    const [imgCounter, setImgCounter] = useState(0)
+
+    useLayoutEffect(() => {
         let userWishList
 
         /// for the loggedIn user
-        if(userData) userWishList=userData?.wishList   
-        else userWishList=userDataNotLoggedIn["wishList"]   /// for the user who is not loggedIn 
+        if (userData) userWishList = userData?.wishList
+        else userWishList = userDataNotLoggedIn["wishList"]   /// for the user who is not loggedIn 
 
-        const userWishListIds=userWishList.map((obj)=>{return obj["productId"]})
-        console.log("loading wishList",userWishList)
+        const userWishListIds = userWishList.map((obj) => { return obj["productId"] })
+        console.log("loading wishList", userWishList)
         //// product is there present in the wishList
-        if(userWishListIds.includes(props?.productId)){
+        if (userWishListIds.includes(props?.productId)) {
 
             //// implementing this so that the user can add variation of prouct in the wishList
-            const productVariationData=userWishList.map((obj)=>{
-                if(obj["productId"]===props?.productId) return obj["productVariation"]
+            const productVariationData = userWishList.map((obj) => {
+                if (obj["productId"] === props?.productId) return obj["productVariation"]
             })
 
             //// now need to check for the variation
-            if(productVariationData.includes(imgCounter)) setIsPresent(true)
+            if (productVariationData.includes(imgCounter)) setIsPresent(true)
             else setIsPresent(false)
         }
-    },[isPresent,imgCounter])
+    }, [isPresent, imgCounter])
 
     function discountCalc(price, discount) {
         price = Number(price)
@@ -242,98 +296,127 @@ function ProductCard(props) {
         return (100 * (discuntedPrice / totalGrams)).toFixed(2)
     }
 
-    async function deleteProduct(e){
-        try{
+    async function deleteProduct(e) {
+        try {
             e.stopPropagation();
             e.preventDefault()
-            const res=await axios.post(`${PRODUCT_ENDPOINTS}/deleteProduct/${props.productId}`,{imgCounter:imgCounter},{withCredentials:true})
+            const res = await axios.post(`${PRODUCT_ENDPOINTS}/deleteProduct/${props.productId}`, { imgCounter: imgCounter }, { withCredentials: true })
             console.log(res)
 
-            if(imgCounter!==0) setImgCounter(imgCounter-1)
+            if (imgCounter !== 0) setImgCounter(imgCounter - 1)
             props.setRefresh((prev) => !prev)
-        }catch(error){
-            console.log("wrong in delete product",error)
+        } catch (error) {
+            console.log("wrong in delete product", error)
         }
     }
 
-    async function favProduct(e){
-        try{
+    async function favProduct(e) {
+        try {
             e.stopPropagation();
             e.preventDefault()
-            const newIsPresent=!isPresent
+            const newIsPresent = !isPresent
             setIsPresent(newIsPresent) /// toggling is done over here
 
-            if(userData){
-                dispatch(setProductIdInUserWishList({productId:props?.productId,productVariation:imgCounter}))
-                const res=axios.post(`${USER_ENDPOINTS}/favourite`,{userId:userId,productId:props.productId,toAdd:newIsPresent,productVariation:imgCounter},{withCredentials:true})
-            }else{
-                const obj={
-                    productId:props?.productId,
-                    productVariation:imgCounter
+            if (userData) {
+                dispatch(setProductIdInUserWishList({ productId: props?.productId, productVariation: imgCounter }))
+                const res = axios.post(`${USER_ENDPOINTS}/favourite`, { userId: userId, productId: props.productId, toAdd: newIsPresent, productVariation: imgCounter }, { withCredentials: true })
+            } else {
+                const obj = {
+                    productId: props?.productId,
+                    productVariation: imgCounter
                 }
                 dispatch(setFavouriteNotLoggedIn(obj))
             }
 
-        }catch(error){
-            console.log("wrong in favourite product",error)
+        } catch (error) {
+            console.log("wrong in favourite product", error)
         }
     }
 
 
+    const [skeleton, setSkeleton] = useState(true)
+    useEffect(() => {
+        setTimeout(() => {
+            setSkeleton(false);
+        }, 500)
+    }, [])
     return (
-        // initially setting 0th product to be displayed whicle clicking on the product
-        <div className="w-[250px] h-[450px] bg-white flex flex-col rounded-2xl hover:shadow-lg">
-            <div className="sm:text-[13px] bg-emerald-100 h-[5%] w-[100%] rounded-t-2xl p-1">Extra <span className="font-sans">5%</span> discount , use the code <span className="font-semibold">MPSCH</span></div>
-            <div className="h-[40%] w-[100%] pl-0.5 pr-0.5"><img className="h-[100%] w-[100%] object-contain" src={`http://localhost:3000/${props.imagesArray[imgCounter]}`} alt={`${props.imagesArray[imgCounter]}`} /></div>
-            <div className="flex flex-col justify-evenly h-[40%] w-[100%] pl-1 pr-1">
-                <div className="product-data line-clamp-3 w-[100%]">{props.productName}</div>
-                <div className="price font-sans"><span className="font-sans sm:text-lg lg:text-xl">&#8377;</span>{discountCalc(props.originalPriceArray[imgCounter],props.discountArray[imgCounter])} <span className="font-sans sm:text-sm">(&#8377;{gramAmountCalc(props.originalPriceArray[imgCounter],props.discountArray[imgCounter],props.netWeightArray[imgCounter])}/100g)</span> <p><span className="line-through font-sans sm:text-sm">&#8377;{props.originalPriceArray[imgCounter]}</span> <span className="sm:text-sm">Discount {props.discountArray[imgCounter]}%</span></p></div>
-                <div className="flex justify-between items-center">
-                    <div className="flex flex-row gap-1 font-sans text-[10px] flex-wrap">
-                        {props.netWeightArray.map((offer, index) => (
-                            <div className={`border border-black flex flex-row justify-center items-center px-1 py-0.2 font-semibold cursor-pointer hover:underline ${imgCounter===index? "border-2 border-orange-400":""}`} onClick={(e)=>{
-                                setImgCounter(index);
-                                dispatch(setImageCounter(index))
-                                e.stopPropagation();
-                                e.preventDefault()}}>{props.netWeightArray[index]} kg</div>
-                        ))}
+        <>
+            {skeleton ? <ProductCardSkeleton /> :
+
+                // initially setting 0th product to be displayed whicle clicking on the product
+                <div className="w-[250px] h-[450px] bg-white flex flex-col rounded-2xl hover:shadow-lg">
+                    <div className="sm:text-[13px] bg-emerald-100 h-[5%] w-[100%] rounded-t-2xl p-1">Extra <span className="font-sans">5%</span> discount , use the code <span className="font-semibold">MPSCH</span></div>
+                    <div className="h-[40%] w-[100%] pl-0.5 pr-0.5"><img className="h-[100%] w-[100%] object-contain" src={`http://localhost:3000/${props.imagesArray[imgCounter]}`} alt={`${props.imagesArray[imgCounter]}`} /></div>
+                    <div className="flex flex-col justify-evenly h-[40%] w-[100%] pl-1 pr-1">
+                        <div className="product-data line-clamp-3 w-[100%]">{props.productName}</div>
+                        <div className="price font-sans"><span className="font-sans sm:text-lg lg:text-xl">&#8377;</span>{discountCalc(props.originalPriceArray[imgCounter], props.discountArray[imgCounter])} <span className="font-sans sm:text-sm">(&#8377;{gramAmountCalc(props.originalPriceArray[imgCounter], props.discountArray[imgCounter], props.netWeightArray[imgCounter])}/100g)</span> <p><span className="line-through font-sans sm:text-sm">&#8377;{props.originalPriceArray[imgCounter]}</span> <span className="sm:text-sm">Discount {props.discountArray[imgCounter]}%</span></p></div>
+                        <div className="flex justify-between items-center">
+                            <div className="flex flex-row gap-1 font-sans text-[10px] flex-wrap">
+                                {props.netWeightArray.map((offer, index) => (
+                                    <div className={`border border-black flex flex-row justify-center items-center px-1 py-0.2 font-semibold cursor-pointer hover:underline ${imgCounter === index ? "border-2 border-orange-400" : ""}`} onClick={(e) => {
+                                        setImgCounter(index);
+                                        dispatch(setImageCounter(index))
+                                        e.stopPropagation();
+                                        e.preventDefault()
+                                    }}>{props.netWeightArray[index]} kg</div>
+                                ))}
+                            </div>
+                            {userData?.role === "admin" && <div onClick={(e) => (deleteProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><MdOutlineDeleteOutline size={20} /></div>}
+                            {userData?.role !== "admin" && <div onClick={(e) => (favProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><IoIosHeart size={20} color={isPresent ? "red" : "white"} style={{ stroke: "red", strokeWidth: 20 }} /></div>}
+                        </div>
                     </div>
-                    {userData?.role==="admin" && <div onClick={(e)=>(deleteProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><MdOutlineDeleteOutline size={20} /></div>}
-                    {userData?.role!=="admin" && <div onClick={(e)=>(favProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><IoIosHeart size={20} color={isPresent ? "red":"white"} style={{ stroke: "red", strokeWidth: 20 }}/></div>}
-                </div>
-            </div>
 
-            <div className="flex flex-row justify-center items-center h-[15%] w-[100%] rounded-2xl">
-                <button className="flex flex-row justify-center items-center w-[100%] h-[100%] bg-orange-600 rounded-b-2xl cursor-pointer text-white hover:underline" onClick={(e)=>{addToCart(e,userId,props.productId,imgCounter,!(userData===null),dispatch)}}>Add to Cart</button>
-            </div>
+                    <div className="flex flex-row justify-center items-center h-[15%] w-[100%] rounded-2xl">
+                        <button className="flex flex-row justify-center items-center w-[100%] h-[100%] bg-orange-600 rounded-b-2xl cursor-pointer text-white hover:underline" onClick={(e) => { addToCart(e, userId, props.productId, imgCounter, !(userData === null), dispatch) }}>Add to Cart</button>
+                    </div>
 
-        </div>
+                </div>}
+        </>
     )
 }
 
-function DisplayProducts(props){
-    let productData=useGetAllProduct(props.refresh,props.query);
+function DisplayProducts(props) {
 
-    const navigate=useNavigate()
+    const [page, setPage] = useState(1);
 
-    function productClicked(products){
-        navigate("/singleProductDisplay",{state:products})
+    const { productData, hasMore, loading } = useGetAllProduct(props?.refresh, props?.query, page, setPage);
+    function productClicked(products) {
+        navigate("/singleProductDisplay", { state: products })
     }
 
-    if(productData.length===0){
-        return(
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                // 👇 THIS IS WHERE YOUR LINE GOES
+                if (entry.isIntersecting && hasMore && !loading) {
+                    setPage((prev) => prev + 1);
+                }
+            },
+            { threshold: 1 }
+        );
+
+        if (props?.loaderRef.current) {
+            observer.observe(props?.loaderRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [hasMore, loading]);
+
+    if (productData.length === 0) {
+        return (
             <div>Loading...</div>
         )
-    }else{
+    } else {
         // console.log(productData)
         // console.log(productData[0]["image"])
-    
+
         return (
             <>
-                {productData.map((products)=>{
-                    return(
-                        <div onClick={()=>productClicked(products)} className="h-fit">
-                            <ProductCard imagesArray={products.image} netWeightArray={products.netWeight} originalPriceArray={products.originalPrice} discountArray={products.discountValue} productName={products.productName} productId={products._id} refresh={props.refresh} setRefresh={props.setRefresh}/>
+                {productData.map((products) => {
+                    return (
+                        <div onClick={() => productClicked(products)} className="h-fit">
+                            <ProductCard imagesArray={products.image} netWeightArray={products.netWeight} originalPriceArray={products.originalPrice} discountArray={products.discountValue} productName={products.productName} productId={products._id} refresh={props.refresh} setRefresh={props.setRefresh} />
                         </div>
                     )
                 })}
@@ -345,25 +428,37 @@ function DisplayProducts(props){
 export default function Product() {
     const headerHeight = useSelector((state) => state?.layout?.headerHeight)
     const [productHeight, setProductHeight] = useState(0);
-    const [refresh,setRefresh]=useState(true)
+    const [refresh, setRefresh] = useState(true)
+    const [hasMore, setHasMore] = useState(true); /// written for pagination
+    const loaderRef = useRef(null);
     useLayoutEffect(() => {
         const windowHeight = window.innerHeight
         setProductHeight(windowHeight - headerHeight)
     }, [headerHeight])
 
-    const location=useLocation()
-    const {query,data}=location.state || {}
+    const location = useLocation()
+    const { query, data } = location.state || {}
 
-    console.log("query :"+query+" data :"+data)
+    console.log("query :" + query + " data :" + data)
 
     return (
         <>
             <Header />
             <div className={`w-[100%] flex flex-row`} style={{ height: `${productHeight}px` }}>
                 <div className="bg-blue-100  sm:w-[300px] md:w-[350px] h-[100%] overflow-auto scrollbar-hide"><Filter productHeight={productHeight} /></div>
-                <div className="h-auto p-2 flex flex-row flex-wrap justify-evenly gap-x-2 gap-y-10 overflow-auto scrollbar-hide"><DisplayProducts refresh={refresh} setRefresh={setRefresh} query={query} data={data}/></div>
+                <div className="h-auto p-2 flex flex-row flex-wrap justify-evenly gap-x-2 gap-y-10 overflow-auto scrollbar-hide">
+                    <DisplayProducts refresh={refresh} setRefresh={setRefresh} query={query} data={data} loaderRef={loaderRef} setHasMore={setHasMore} hasMore={hasMore} />
+                    {/* Loader trigger */}
+                    {hasMore && (
+                        <div
+                            ref={loaderRef}
+                            className="text-center py-4 text-gray-500"
+                        >
+                        </div>
+                    )}
+                </div>
             </div>
-            <Footer/>
+            <Footer />
 
         </>
     )

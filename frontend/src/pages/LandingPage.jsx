@@ -14,6 +14,7 @@ import { setPets, setTypeFilter } from "../redux/slices/filterSlice";
 import axios from "axios";
 import { CART_ENDPOINTS, USER_ENDPOINTS } from "./endpoints.js";
 import { useGetAllFeedBack } from "../hooks/useGetAllFeedBack.js";
+import { FaChevronLeft, FaChevronRight, FaPaperPlane } from "react-icons/fa";
 
 
 function Brands(props) {
@@ -55,34 +56,56 @@ function AutoBrandSlider() {
 
     return (
         <div
-            className="relative w-full h-[600px] select-none overflow-x-hidden bg-blue-300"
+            className="
+                relative w-full h-[600px] select-none overflow-x-hidden
+                bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700
+                shadow-[0_20px_50px_rgba(29,78,216,0.35)]
+                rounded-xl overflow-hidden
+            "
         >
+            {/* Soft glass reflection overlay */}
+            <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.35),transparent_60%)]"></div>
+
             <div
-                className="flex transition-transform duration-700 ease-in-out h-full w-full"
+                className="
+                    flex h-full w-full
+                    transition-transform duration-[900ms]
+                    ease-[cubic-bezier(0.22,0.61,0.36,1)]
+                "
                 style={{ transform: `translateX(-${activeSlide * 100}%)` }}
             >
                 {slides.map((slide, index) => (
-                    <div key={index} className="w-full flex-shrink-0">
+                    <div
+                        key={index}
+                        className={`
+                            w-full flex-shrink-0 
+                            transform transition-all duration-[1200ms]
+                            ${index === activeSlide ? "scale-[1.04]" : "scale-100 opacity-80"}
+                        `}
+                    >
                         {slide}
                     </div>
                 ))}
             </div>
 
-            {/* Optional: Dots for navigation */}
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-3">
+            {/* Dots */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 z-10">
                 {slides.map((_, index) => (
                     <div
                         key={index}
                         onClick={() => setActiveSlide(index)}
-                        className={`w-3 h-3 rounded-full cursor-pointer transition-all duration-300 ${index === activeSlide ? "bg-white scale-125" : "bg-gray-400"
-                            }`}
+                        className={`
+                            w-3 h-3 rounded-full cursor-pointer transition-all duration-500 
+                            ${index === activeSlide
+                                ? "bg-white scale-150 shadow-[0_0_12px_4px_rgba(255,255,255,0.7)]"
+                                : "bg-blue-300 hover:bg-blue-200"}
+                        `}
                     />
                 ))}
             </div>
         </div>
     );
 }
-
 
 function Owner() {
     const myRef = useRef();
@@ -102,16 +125,19 @@ function Owner() {
 
         return () => observer.disconnect();
     }, []);
-    return (
 
-        <div ref={myRef} className={`owner_details ${isVisible ? "visible" : ""} overflow-hidden h-[400px] w-full box-border flex flex-row justify-center items-center gap-6`}>
-            <div className="sm:h-[300px] sm:w-[300px] xs:h-[150px] xs:w-[150px] rounded-full bg-emerald-400 border-4 border-[#00ACC1] ">
-                <img className="h-[100%] w-[100%] object-cover rounded-full" src="/photo_21.jpg" alt="my_photo" />
+    return (
+        <>
+            <div ref={myRef} className={`owner_details ${isVisible ? "visible" : ""} overflow-hidden h-[400px] w-full box-border flex flex-row justify-center items-center gap-6`}>
+                <div className="sm:h-[300px] sm:w-[300px] xs:h-[150px] xs:w-[150px] rounded-full bg-emerald-400 border-4 border-[#00ACC1] ">
+                    <img className="h-[100%] w-[100%] object-cover rounded-full" src="/photo_21.jpg" alt="my_photo" />
+                </div>
+                <div className="w-[40%] text-justify xs:text-sm md:text-md lg:text-lg text-[#212121]">
+                    <h1 className="font-bold text-2xl">About Us</h1>
+                    <span className="">With over 15 years of hands-on experience in the pet care industry, we bring trusted expertise to every pet and pet parent we serve. From quality nutrition to personalized care, our passion is keeping pets happy and healthy. At our shop, every tail wag and purr reflects years of dedication and love for animals.</span>
+                </div>
             </div>
-            <div className="w-[40%] text-justify xs:text-sm md:text-md lg:text-lg text-[#212121]">
-                <span className="">With over 15 years of hands-on experience in the pet care industry, we bring trusted expertise to every pet and owner we serve. From quality nutrition to personalized care, our passion is keeping pets happy and healthy. At our shop, every tail wag and purr reflects years of dedication and love for animals.</span>
-            </div>
-        </div>
+        </>
     )
 }
 
@@ -345,132 +371,162 @@ export function Header() {
         }
     }
 
-    const reduxCartData=useSelector((state)=>state?.cart?.products)
+    const reduxCartData = useSelector((state) => state?.cart?.products)
     async function viewCart(e) {
         try {
             e.stopPropagation();
             e.preventDefault();
 
             //// when the user is logged in
-            if(userId){
-                await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`,{userId:userId,reduxCartData:reduxCartData})
+            if (userId) {
+                await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`, { userId: userId, reduxCartData: reduxCartData })
             }
             navigate("/cart", { state: { userId: userId } })
 
         } catch (error) {
-            console.log("wrong in viewCart frontend"+ error);
+            console.log("wrong in viewCart frontend" + error);
         }
     }
 
     return (
         <>
-            <div ref={headerRef} className="header flex flex-col h-[100px]  w-[100%] gap-0 sticky top-0 z-2 bg-[#E3F2FD]">
-                <div className="upper_header flex flex-col sm:flex-row justify-center sm:justify-evenly items-center gap-3 py-2 w-full bg-[#E3F2FD] text-[#0D47A1]">
+            <div
+                ref={headerRef}
+                className="header flex flex-col w-full sticky top-0 z-20 bg-gradient-to-b from-[#DFF3FF] to-[#B4E1FF] shadow-md backdrop-blur-sm"
+            >
+                {/* Upper Header */}
+                <div className="upper_header flex flex-col sm:flex-row justify-center sm:justify-evenly items-center gap-3 py-3 w-full text-[#0A3D62]">
                     <div className="l-upper-header flex flex-row gap-2 items-center">
-
                         <div className="hidden sm:flex justify-center items-center">
-                            <img src="/header_logo.svg" alt="paws_img" className="w-8 h-8 sm:w-auto sm:h-auto" />
+                            <img
+                                src="/header_logo.svg"
+                                alt="paws_img"
+                                className="w-10 h-10 sm:w-auto sm:h-auto drop-shadow-md"
+                            />
                         </div>
-
-                        {/* Hide name on mobile, show on laptop */}
-                        <div className="hidden sm:flex flex-col text-[#212121] leading-3 p-1">
-                            <span className="font-semibold text-md lg:text-xl">Malik</span>
-                            <span>Pet Shop</span>
+                        <div className="hidden sm:flex flex-col text-[#0A3D62] leading-3 p-1">
+                            <span className="font-bold text-xl">Malik</span>
+                            <span className="text-sm opacity-80">Pet Shop</span>
                         </div>
-
                     </div>
 
                     <div className="flex flex-row gap-2 w-[90%] sm:w-[50%]">
                         {/* Hamburger for mobile */}
-                        <div className="sm:hidden flex items-center text-[#0D47A1] text-3xl cursor-pointer">
+                        <div className="sm:hidden flex items-center text-[#0A3D62] text-3xl cursor-pointer">
                             ☰
                         </div>
-                        <div className="m-upper-header bg-white w-[100%] flex flex-row gap-2 p-2 rounded-2xl border border-[#1976D2]">
-                            <div className="search_logo">
+                        <div className="m-upper-header bg-white/80 backdrop-blur-md w-full flex flex-row gap-2 p-2 rounded-2xl border border-[#9AD3FF] shadow-sm">
+                            <div className="search_logo opacity-80">
                                 <img src="/search_logo.svg" alt="search_icon" />
                             </div>
-                            <div className="search_bar w-[100%]">
-                                <input className="w-[100%] h-[100%] outline-0 placeholder: xs:text-xs placeholder:sm:text-sm placeholder:md:text-md placeholder:lg:text-lg" type="text" placeholder="Search for more then 100 products"
+                            <div className="search_bar w-full">
+                                <input
+                                    className="w-full h-full outline-0 bg-transparent placeholder:text-sm placeholder:text-[#5A7890] text-[#0A3D62]"
+                                    type="text"
+                                    placeholder="Search for more than 100 products"
                                     onChange={(e) => setQuery(e.target.value)}
                                     onKeyDown={(e) => handleKeyDown(e)}
                                 />
                             </div>
                         </div>
                     </div>
-                    <div className="r-upper-header flex flex-row sm:flex-row justify-center sm:justify-evenly items-center gap-3 sm:gap-4 sm:mt-0 w-[90%] sm:w-[20%] h-fit">
-                        <div className="flex flex-row gap-1 w-[100%] justify-evenly items-center">
-                            <div ref={contactRef} className="cursor-pointer hover:rounded-2xl relative flex flex-row items-center w-fit ">
+
+                    {/* Right Upper Header */}
+                    <div className="r-upper-header flex flex-row justify-center sm:justify-evenly items-center gap-3 sm:gap-4 sm:mt-0 w-[90%] sm:w-[20%] h-fit">
+                        <div className="flex flex-row gap-1 w-full justify-evenly items-center">
+
+                            {/* Contact */}
+                            <div ref={contactRef} className="cursor-pointer hover:rounded-2xl relative flex flex-row items-center w-fit transition-all duration-200 hover:bg-[#A8DAFF]/40 p-2 rounded-xl">
                                 <div className="flex flex-row justify-center items-center" onMouseEnter={(e) => detailsHandler(e)}>
-                                    <div className="" data-details="details"><IoIosContact color="#00ACC1" size={40} /></div>
+                                    <div className="" data-details="details"><IoIosContact color="#4AA9F7" size={40} /></div>
                                     {(!showDetailOption) && <div><RiArrowDropDownLine size={20} /></div>}
                                     {showDetailOption && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
                                 {showDetailOption &&
-                                    <div className="h-auto backdrop-blur absolute top-[30px] flex flex-col gap-1 bg-[#1565C0] p-1">
-                                        <div className=" flex flex-row items-center gap-2 pl-1">
-                                            <div><HiOutlineMail color="white" /></div>
-                                            <div className="text-white"><span>tahermalik2002@gmail.com</span></div>
+                                    <div className="h-auto backdrop-blur-xl absolute top-[30px] flex flex-col gap-1 bg-white/90 p-3 shadow-lg rounded-2xl">
+                                        <div className="flex flex-row items-center gap-2 pl-1">
+                                            <div><HiOutlineMail color="#054873" /></div>
+                                            <div className="text-[#054873] text-sm"><span>tahermalik2002@gmail.com</span></div>
                                         </div>
-                                        <div className=" flex flex-row items-center gap-2 pl-1">
-                                            <div><FaPhoneAlt color="white" /></div>
-                                            <div className="font-sans text-white"><span className="">9152760580</span></div>
+                                        <div className="flex flex-row items-center gap-2 pl-1">
+                                            <div><FaPhoneAlt color="#054873" /></div>
+                                            <div className="text-[#054873] text-sm"><span>9152760580</span></div>
                                         </div>
-                                        {role === "admin" && <Link to="/adminSetting"><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Settings</span></div></Link>}
+                                        {role === "admin" && <Link to="/adminSetting"><div className="hover:bg-[#DFF3FF] hover:rounded-xl px-3 py-1 cursor-pointer text-[#054873]">Admin Settings</div></Link>}
                                     </div>
                                 }
                             </div>
-                            <div ref={loginRef} className="cursor-pointer hover:rounded-2xl flex flex-row justify-center items-center">
+
+                            {/* Login */}
+                            <div ref={loginRef} className="cursor-pointer hover:rounded-2xl flex flex-row justify-center items-center transition-all duration-200 hover:bg-[#A8DAFF]/40 p-2 rounded-xl">
                                 <div className="flex flex-row items-center justify-center" onMouseEnter={(e) => detailsHandler(e)}>
-                                    <div className="flex flex-row justify-center items-center" data-details="user"><FaUser color="#00ACC1" size={30} /></div>
+                                    <div className="flex flex-row justify-center items-center" data-details="user"><FaUser color="#4AA9F7" size={30} /></div>
                                     {(!showLoginOption || clicked !== "user") && <div><RiArrowDropDownLine size={20} /></div>}
                                     {showLoginOption && clicked === "user" && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
                                 {showLoginOption &&
-                                    <div className="w-fit h-auto backdrop-blur absolute top-[50px] flex flex-col gap-1 bg-[#1565C0] p-1">
-                                        <Link to="/Login" state={{ user: "user" }}><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">User Login</span></div></Link>
-                                        <Link to="/Login" state={{ user: "admin" }}><div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Admin Login</span></div></Link>
-                                        <div><span className="hover:bg-gray-300 hover:rounded-2xl px-2 py-1 cursor-pointer text-white hover:text-black">Logout</span></div>
+                                    <div className="w-fit h-auto backdrop-blur-xl absolute top-[50px] flex flex-col gap-1 bg-white/90 p-3 shadow-lg rounded-2xl">
+                                        <Link to="/Login" state={{ user: "user" }}><div className="hover:bg-[#DFF3FF] hover:rounded-xl px-3 py-1 cursor-pointer text-[#054873]">User Login</div></Link>
+                                        <Link to="/Login" state={{ user: "admin" }}><div className="hover:bg-[#DFF3FF] hover:rounded-xl px-3 py-1 cursor-pointer text-[#054873]">Admin Login</div></Link>
+                                        <div className="hover:bg-[#DFF3FF] hover:rounded-xl px-3 py-1 cursor-pointer text-[#054873]">Logout</div>
                                     </div>
                                 }
                             </div>
-                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center ml-2" onClick={(e) => viewWishList(e)}><FaRegHeart color="#00ACC1" size={30} /></div>
-                            <div className="cursor-pointer hover:rounded-full hover:bg-[#0288D1] p-2 flex flex-row justify-center items-center pl-2" onClick={(e) => viewCart(e)}><MdOutlineShoppingCart color="#00ACC1" size={35} /></div>
+
+                            {/* Wishlist */}
+                            <div className="cursor-pointer hover:bg-[#7DC6FF]/50 p-2 flex flex-row justify-center items-center rounded-full transition-all duration-200" onClick={(e) => viewWishList(e)}>
+                                <FaRegHeart color="#4AA9F7" size={30} />
+                            </div>
+
+                            {/* Cart */}
+                            <div className="cursor-pointer hover:bg-[#7DC6FF]/50 p-2 flex flex-row justify-center items-center rounded-full transition-all duration-200" onClick={(e) => viewCart(e)}>
+                                <MdOutlineShoppingCart color="#4AA9F7" size={35} />
+                            </div>
+
                         </div>
                     </div>
                 </div>
 
-                <div className="lower_header flex flex-row justify-evenly items-center gap-3 w-[100%] h-[40%] bg-[#51a2ff8a] text-white">
-                    <div className="flex flex-row justify-evenly items-center w-[100%]">
-                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
+                {/* Lower Header */}
+                <div className="lower_header flex flex-row justify-evenly items-center gap-3 w-full h-[40%] bg-gradient-to-r from-[#7DC6FF] to-[#4AA9F7] text-white shadow-inner">
+                    <div className="flex flex-row justify-evenly items-center w-full">
+                        <div onMouseEnter={categoriesHandler} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-white cursor-pointer px-4 py-1 rounded-xl transition-all duration-200">
                             <div className="text-black">Cat</div>
                             {(!show || data !== "cat") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "cat" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
+                        <div onMouseEnter={categoriesHandler} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-white cursor-pointer px-4 py-1 rounded-xl transition-all duration-200">
                             <div className="text-black">Dog</div>
                             {(!show || data !== "dog") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "dog" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
+                        <div onMouseEnter={categoriesHandler} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-white cursor-pointer px-4 py-1 rounded-xl transition-all duration-200">
                             <div className="text-black">Small Pets</div>
                             {(!show || data !== "small pets") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "small pets" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <div onMouseEnter={(e) => categoriesHandler(e)} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-black cursor-pointer">
+                        <div onMouseEnter={categoriesHandler} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-white cursor-pointer px-4 py-1 rounded-xl transition-all duration-200">
                             <div className="text-black">Brands</div>
                             {(!show || data !== "brands") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "brands" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <Link to="/offer"><div className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline text-black cursor-pointer"><span>Offer</span></div></Link>
+                        <Link to="/offer">
+                            <div className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline text-black cursor-pointer px-4 py-1 rounded-xl transition-all duration-200">
+                                <span>Offer</span>
+                            </div>
+                        </Link>
                     </div>
                 </div>
-                {show && <div ref={dropdownRef} className={`scoll-lower-header h-auto w-[100%] bg-white ${show ? "category" : ""}  flex flex-row flex-wrap`} style={{ top: `${headerHeight}px` }}>
+
+                {show && <div
+                    ref={dropdownRef}
+                    className={`scoll-lower-header absolute left-0 h-auto w-full bg-white/95 shadow-xl backdrop-blur-lg flex flex-row flex-wrap p-3
+               transition-all duration-300 ease-out transform origin-top scale-y-100`}
+                    style={{ top: `${headerHeight}px` }}
+                >
                     {data === "cat" && <CatStuff />}
-
                     {data === "dog" && <DogStuff />}
-
                     {data === "small pets" && <SmallPetStuff />}
-
                 </div>}
             </div>
         </>
@@ -485,6 +541,7 @@ function FeedBack(props) {
     useEffect(() => {
         const el = myRef.current;
         if (el) {
+            //// min height by default will be 50px and max height will be 200px
             if (el.scrollHeight <= 200 && el.scrollHeight >= 50) {
                 el.style.height = "auto"; // reset
                 el.style.height = el.scrollHeight + "px"; // resize
@@ -514,91 +571,229 @@ function FeedBack(props) {
     }
 
     return (
-        <form action="post">
-            <div className="h-[300px] w-[100%] border border-t-2 flex flex-row gap-30 justify-center items-stretch bg-[#00ACC1]">
-                <div className="flex flex-col items-center justify-center gap-3 w-[30%]">
-                    <div className="w-[100%] rounded-2xl border-2 border-[#E0E0E0] bg-[#FFFFFF]"><textarea ref={myRef} name="" id="" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter you FeedBack" className="outline-0 p-2 max-h-[200px] min-h-[100px] w-[100%] overflow-y-scroll scrollbar-hide placeholder:xs:text-sm placeholder:lg:text-lg xs:text-sm lg:text-lg placeholder:text-[#555555] text-[#212121]"></textarea></div>
-                    <div className="flex flex-row justify-center items-center w-[80%] self-center border-2 border-[#0288D1] rounded-2xl cursor-pointer bg-[white] hover:bg-[#E1F5FE] text-[#0288D1] shadow-[0_4px_20px_rgba(2,136,209,0.3)]"><button type="button" onClick={() => submitFeedBack()} className="xs:text-sm sm:text-md lg:text-xl text-white bg-[#0288D1] hover:bg-[#03A9F4] active:bg-[#0277BD] w-[100%] rounded-2xl">Submit</button></div>
-                </div>
-
-                <div className="flex flex-row justify-center items-center xs:text-xl lg:text-2xl text-[#FFFFFF]">
-                    <span>FeedBack</span>
+        <div className="h-[300px] w-[100%] flex flex-row gap-3 justify-center bg-blue-500 relative items-center">
+            {/* Avatar */}
+            <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-blue-400 shadow-lg">
+                <img
+                    src="/photo_21.jpg"
+                    alt="user"
+                    className="h-full w-full object-cover"
+                />
+            </div>
+            <div className="flex flex-row items-center justify-center gap-3 w-[30%] relative">
+                <textarea ref={myRef} name="" id="" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter you FeedBack" className="outline-0 p-2 max-h-[200px] min-h-[100px] overflow-y-scroll scrollbar-hide w-full bg-blue-50 text-gray-800 px-4 py-3 rounded-2xl border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-md transition-all duration-300">
+                </textarea>
+                <div className=" absolute bottom-2 right-2 h-10 w-10 flex justify-center items-center bg-blue-600 text-white 
+                    rounded-full hover:bg-blue-700 active:scale-90 shadow-lg transition-all duration-300"
+                    onClick={() => submitFeedBack()}>
+                    <FaPaperPlane className="text-sm" />
                 </div>
             </div>
-        </form>
+        </div>
     )
 }
 
+export function ReviewCardSkeleton() {
+    return (
+        <div className="w-[400px] h-[300px] bg-blue-50 rounded-2xl shadow-md p-4 flex flex-col gap-3 animate-pulse">
+
+            {/* User section */}
+            <div className="flex items-center gap-3">
+
+                {/* Avatar */}
+                <div className="h-12 w-12 rounded-full bg-blue-200"></div>
+
+                {/* Name + stars */}
+                <div className="flex flex-col gap-2">
+
+                    {/* Name */}
+                    <div className="h-4 w-24 bg-blue-200 rounded"></div>
+
+                    {/* Stars */}
+                    <div className="flex gap-1">
+                        <div className="h-4 w-4 bg-blue-200 rounded"></div>
+                        <div className="h-4 w-4 bg-blue-200 rounded"></div>
+                        <div className="h-4 w-4 bg-blue-200 rounded"></div>
+                        <div className="h-4 w-4 bg-blue-200 rounded"></div>
+                        <div className="h-4 w-4 bg-blue-200 rounded"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Message lines */}
+            <div className="flex flex-col gap-2 mt-1">
+                <div className="h-3 w-[90%] bg-blue-200 rounded"></div>
+                <div className="h-3 w-[80%] bg-blue-200 rounded"></div>
+                <div className="h-3 w-[70%] bg-blue-200 rounded"></div>
+                <div className="h-3 w-[60%] bg-blue-200 rounded"></div>
+            </div>
+
+        </div>
+    );
+}
+
+
+export function ReviewCard(props) {
+    return (
+        <div className="w-[400px] bg-blue-50 rounded-2xl shadow-md flex flex-col gap-3 hover:shadow-lg transition h-[300px] p-4">
+
+            {/* User Info */}
+            <div className="flex items-center gap-3">
+                {/* User Avatar */}
+                <div className="h-12 w-12 rounded-full bg-blue-200 flex items-center justify-center text-blue-800 font-semibold text-lg">
+
+                </div>
+
+                {/* User Name */}
+                <div className="flex flex-col">
+
+                    <h3 className="text-blue-900 font-semibold text-sm sm:text-base">
+                        {props?.username || "Anonymous"}
+                    </h3>
+
+                    {/*Rating */}
+                    <div className="flex items-center gap-1 mt-2">
+                        {/* Example: 5-star rating */}
+                        <div className="flex gap-0.5">
+                            {Array(5)
+                                .fill(0)
+                                .map((_, idx) => (
+                                    <svg
+                                        key={idx}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4 text-blue-500"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.97a1 1 0 00.95.69h4.21c.969 0 1.371 1.24.588 1.81l-3.404 2.473a1 1 0 00-.364 1.118l1.286 3.97c.3.921-.755 1.688-1.54 1.118l-3.404-2.473a1 1 0 00-1.175 0l-3.404 2.473c-.784.57-1.838-.197-1.539-1.118l1.285-3.97a1 1 0 00-.364-1.118L2.025 9.397c-.783-.57-.38-1.81.588-1.81h4.21a1 1 0 00.95-.69l1.286-3.97z" />
+                                    </svg>
+                                ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Message */}
+            <p className="text-blue-700 text-sm sm:text-[14px] line-clamp-4">
+                {props?.message}
+            </p>
+
+        </div>
+    );
+}
+
+
 function ShowFeedBack(props) {
-    const heightRef = useRef(null);
-    const outerHeightRef = useRef(null)
-    const [numLines, setNumLines] = useState(0);
-    const [numBlock, setNumBlock] = useState(0);
-    const [counter, setCounter] = useState(0)
 
-    /// this useEffect should only be rendered once
-    useLayoutEffect(() => {
-        if (outerHeightRef.current) {
-            const blockWidth = outerHeightRef.current.offsetWidth;
-            setNumBlock(Math.ceil(blockWidth / 200) - 1);
-        }
-    }, []);
+    const [currentIndex, setCurrentIndex] = useState([0, ""]);
 
-    // Measure line height after the blocks exist
-    useLayoutEffect(() => {
-        if (heightRef.current) {
-            const style = window.getComputedStyle(heightRef.current);
-            const lineHeight = parseFloat(style.lineHeight);
-            const height = heightRef.current.clientHeight;
-            const numberOfLines = Math.ceil(height / lineHeight);
-            setNumLines(numberOfLines);
-        }
-    }, [numBlock]); // wait until blocks are rendered
+    const total = props?.feedBack.length;
+
+    // Handle previous button
+    const handlePrev = () => {
+        setCurrentIndex((prev) => {
+            const oldArr = [...prev];
+            oldArr[0] = (oldArr[0] - 1 + total) % total;
+            oldArr[1] = "RIGHT";
+            return oldArr;
+        })
+    };
+
+    // Handle next button
+    const handleNext = () => {
+        setCurrentIndex((prev) => {
+            const oldArr = [...prev];
+            oldArr[0] = (oldArr[0] + 1) % total;
+            oldArr[1] = "LEFT";
+            return oldArr;
+        })
+
+    };
 
 
-    let usernames = props.feedBack.map((feedback) => {
-        return feedback?.username
-    })
+    // Get 4 reviews to display
+    const getDisplayIndexes = () => {
+        if (total <= 3) return Array.from({ length: total }, (_, i) => i);
+        // Two focused in center
+        const left = (currentIndex[0] - 1 + total) % total;
+        const center = currentIndex[0];
+        const right = (currentIndex[0] + 1) % total;
 
-    let messages = props.feedBack.map((feedback) => {
-        return feedback?.message
+        return [left, center, right];
+    };
+
+    const displayIndexes = getDisplayIndexes();
+
+
+    useEffect(() => {
+        setTimeout(() => {
+            setCurrentIndex((prev) => {
+                const oldArr = [...prev];
+                oldArr[1] = "";
+                return oldArr;
+            })
+        }, 1000)
     })
 
     // console.log("usernames",usernames)
     // console.log("messages",messages)
 
-    useEffect(() => {
-        const a = setInterval(() => {
-            setCounter(counter => (counter + numBlock) % usernames.length);
-        }, 3000);
-        return () => clearInterval(a);
-    }, [numBlock, usernames])
-
-    const divs = []
-    for (let i = 0; i < numBlock; i++) {
-        divs.push(
-            <div key={i} className="feedback h-[90%] w-[200px] bg-[#E1F5FE] hover:bg-[#B3E5FC] hover:shadow-lg flex flex-col p-2 flex-shrink-0 border border-[#0288D1] rounded-2xl">
-                <div className="font-semibold xs:text-sm md:text-lg h-[10%]"><span>{`${usernames[(counter + i) % usernames.length]}`}</span></div>
-                {/* <div ref={heightRef} className={`text-justify xs:text-sm h-[90%]`} style={{WebkitLineClamp:numLines,display:'-webkit-box',WebkitBoxOrient: 'vertical',overflow: 'hidden'}}><span className="">Lorem ipsum, dolor sit amet consectetur adipisicing elit. Repellendus, ullam aspernatur. Quod et accusamus cumque eos recusandae blanditiis! Tenetur at consectetur mollitia molestiae. Explicabo doloribus culpa eveniet officiis, molestiae quisquam harum sapiente a ullam quis cum aliquam temporibus sunt quibusdam atque dicta aliquid magni labore magnam quidem tempora! Praesentium, a!</span></div> */}
-                <div ref={heightRef} className={`text-justify xs:text-sm h-[90%] text-[#212121]`} style={{ WebkitLineClamp: numLines, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}><span className="">{`${messages[(counter + i) % usernames.length]}`}</span></div>
-            </div>
-
-        )
-    }
-
-
-
-
     return (
         <>
-            <div className="border-t-black border flex flex-col pt-2">
+            <div className="border-t-black border flex flex-row justify-around gap-2 p-2 items-center relative  bg-blue-100">
+                {/* Left Button */}
+                <button
+                    onClick={handlePrev}
+                    className="absolute left-2 z-10 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+                >
+                    <FaChevronLeft />
+                </button>
 
-                <div className="font-semibold sm:text-xl pl-2 underline text-blue-500">Customer FeedBacks</div>
-                <div ref={outerHeightRef} className="outside-container h-[300px] w-[100%]">
-                    <div className="scrollable-container h-[100%] w-[100%] flex flex-row items-center justify-evenly p-2 relative flex-nowrap ">
-                        {divs}
-                    </div>
+                {/* Reviews */}
+                <div className="flex items-center justify-between w-[90%]">
+                    {displayIndexes.map((idx, i) => {
+                        const review = props?.feedBack[idx];
+                        let scale = 0.8;
+                        let opacity = 0.6;
+
+                        // center two cards focused
+                        if (i === 1) {
+                            scale = 1;
+                            opacity = 1;
+                        }
+
+
+                        return (
+                            <div
+                                key={idx}
+                                className="transition-all duration-200 flex-shrink-0"
+                                style={{
+                                    transform: `scale(${scale})`,
+                                    opacity: opacity,
+                                    width: "33%", // all 3 cards spaced equally
+                                }}
+                            >
+                                {currentIndex[1] === "LEFT" ? i === 2 ? <ReviewCardSkeleton /> : <ReviewCard
+                                    username={review.username}
+                                    message={review.message}
+                                /> : currentIndex[1] === "RIGHT" ? i === 0 ? <ReviewCardSkeleton /> : <ReviewCard
+                                    username={review.username}
+                                    message={review.message}
+                                /> : <ReviewCard
+                                    username={review.username}
+                                    message={review.message} />}
+                            </div>
+                        );
+                    })}
                 </div>
+
+                {/* Right Button */}
+                <button
+                    onClick={handleNext}
+                    className="absolute right-2 z-10 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+                >
+                    <FaChevronRight />
+                </button>
             </div>
 
         </>
