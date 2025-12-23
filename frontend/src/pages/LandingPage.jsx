@@ -108,38 +108,48 @@ function AutoBrandSlider() {
 }
 
 function Owner() {
-    const myRef = useRef();
-    const [isVisible, setIsVisible] = useState(false);
+  const myRef = useRef();
+  const [isVisible, setIsVisible] = useState(false);
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                } else setIsVisible(false)
-            },
-            { threshold: 0.5 } // triggers when 50% of the component is visible
-        );
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.5 } // triggers when 50% of the component is visible
+    );
 
-        if (myRef.current) observer.observe(myRef.current);
+    if (myRef.current) observer.observe(myRef.current);
 
-        return () => observer.disconnect();
-    }, []);
+    return () => observer.disconnect();
+  }, []);
 
-    return (
-        <>
-            <div ref={myRef} className={`owner_details ${isVisible ? "visible" : ""} overflow-hidden h-[400px] w-full box-border flex flex-row justify-center items-center gap-6`}>
-                <div className="sm:h-[300px] sm:w-[300px] xs:h-[150px] xs:w-[150px] rounded-full bg-emerald-400 border-4 border-[#00ACC1] ">
-                    <img className="h-[100%] w-[100%] object-cover rounded-full" src="/photo_21.jpg" alt="my_photo" />
-                </div>
-                <div className="w-[40%] text-justify xs:text-sm md:text-md lg:text-lg text-[#212121]">
-                    <h1 className="font-bold text-2xl">About Us</h1>
-                    <span className="">With over 15 years of hands-on experience in the pet care industry, we bring trusted expertise to every pet and pet parent we serve. From quality nutrition to personalized care, our passion is keeping pets happy and healthy. At our shop, every tail wag and purr reflects years of dedication and love for animals.</span>
-                </div>
-            </div>
-        </>
-    )
+  return (
+    <div
+      ref={myRef}
+      className={`owner_details ${isVisible ? "visible" : ""} 
+        overflow-hidden w-full box-border flex flex-col md:flex-row justify-center items-center gap-6 px-4 py-6`}
+    >
+      {/* Image */}
+      <div className="w-[90vw] max-w-[300px] h-[90vw] max-h-[300px] md:w-[300px] md:h-[300px] rounded-full bg-emerald-400 border-4 border-[#00ACC1] flex-shrink-0 overflow-hidden">
+        <img
+            className="w-full h-full object-cover"
+            src="/photo_21.jpg"
+            alt="my_photo"
+        />
+      </div>
+
+      {/* Text */}
+      <div className="w-full md:w-[40%] text-justify text-sm sm:text-base md:text-md lg:text-lg text-[#212121]">
+        <h1 className="font-bold text-xl sm:text-2xl mb-2">About Us</h1>
+        <p>
+          With over 15 years of hands-on experience in the pet care industry, we bring trusted expertise to every pet and pet parent we serve. From quality nutrition to personalized care, our passion is keeping pets happy and healthy. At our shop, every tail wag and purr reflects years of dedication and love for animals.
+        </p>
+      </div>
+    </div>
+  );
 }
+
 
 function SmoothUnderline() {
     return (
@@ -534,64 +544,75 @@ export function Header() {
 }
 
 function FeedBack(props) {
-    const myRef = useRef(null)
-    const [text, setText] = useState("")
-    const [rating, setRating] = useState(5);
+  const myRef = useRef(null);
+  const [text, setText] = useState("");
+  const [rating, setRating] = useState(5);
 
-    useEffect(() => {
-        const el = myRef.current;
-        if (el) {
-            //// min height by default will be 50px and max height will be 200px
-            if (el.scrollHeight <= 200 && el.scrollHeight >= 50) {
-                el.style.height = "auto"; // reset
-                el.style.height = el.scrollHeight + "px"; // resize
-            }
-        }
-    }, [text])
+  useEffect(() => {
+    const el = myRef.current;
+    if (el) {
+      // min height 50px, max height 200px
+      if (el.scrollHeight <= 200 && el.scrollHeight >= 50) {
+        el.style.height = "auto"; // reset
+        el.style.height = el.scrollHeight + "px"; // resize
+      }
+    }
+  }, [text]);
 
-    const user = useSelector((state) => state?.user?.userData)
-    async function submitFeedBack() {
+  const user = useSelector((state) => state?.user?.userData);
 
-        if (!user) console.log("user need to login first")
-        else if (text.trim().length === 0) console.log("FeedBack can't be empty")
-        else {
-            const res = await axios.post(`${USER_ENDPOINTS}/createFeedBack/${user?._id}`, { message: text, rating: rating }, { withCredentials: true })
+  async function submitFeedBack() {
+    if (!user) console.log("User needs to login first");
+    else if (text.trim().length === 0) console.log("Feedback can't be empty");
+    else {
+      const res = await axios.post(
+        `${USER_ENDPOINTS}/createFeedBack/${user?._id}`,
+        { message: text, rating: rating },
+        { withCredentials: true }
+      );
 
-            if (res?.data?.bool) {
-                console.log("feedback created successfully")
-            } else {
-                console.log("fucked up in feedback creation")
-            }
-            setText("")
-            setRating(0)
-        }
+      if (res?.data?.bool) console.log("Feedback created successfully");
+      else console.log("Error in feedback creation");
 
-        props.setRefresh(prev => prev + 1)
-
+      setText("");
+      setRating(0);
     }
 
-    return (
-        <div className="h-[300px] w-[100%] flex flex-row gap-3 justify-center bg-blue-500 relative items-center">
-            {/* Avatar */}
-            <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-blue-400 shadow-lg">
-                <img
-                    src="/photo_21.jpg"
-                    alt="user"
-                    className="h-full w-full object-cover"
-                />
-            </div>
-            <div className="flex flex-row items-center justify-center gap-3 w-[30%] relative">
-                <textarea ref={myRef} name="" id="" value={text} onChange={(e) => setText(e.target.value)} placeholder="Enter you FeedBack" className="outline-0 p-2 max-h-[200px] min-h-[100px] overflow-y-scroll scrollbar-hide w-full bg-blue-50 text-gray-800 px-4 py-3 rounded-2xl border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-md transition-all duration-300">
-                </textarea>
-                <div className=" absolute bottom-2 right-2 h-10 w-10 flex justify-center items-center bg-blue-600 text-white 
-                    rounded-full hover:bg-blue-700 active:scale-90 shadow-lg transition-all duration-300"
-                    onClick={() => submitFeedBack()}>
-                    <FaPaperPlane className="text-sm" />
-                </div>
-            </div>
+    props.setRefresh((prev) => prev + 1);
+  }
+
+  return (
+    <div className="w-full flex flex-col sm:flex-row gap-3 justify-center items-start sm:items-center bg-white p-4 sm:p-6 rounded-xl shadow-md">
+      {/* Avatar */}
+      <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-blue-600 shadow-md flex-shrink-0">
+        <img
+          src="/photo_21.jpg"
+          alt="user"
+          className="h-full w-full object-cover"
+        />
+      </div>
+
+      {/* Textarea + Button */}
+      <div className="flex flex-col sm:flex-row items-center sm:items-start w-full sm:w-[60%] relative gap-3">
+        <textarea
+          ref={myRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Enter your feedback"
+          className="outline-0 p-2 max-h-[200px] min-h-[100px] overflow-y-auto scrollbar-hide w-full bg-white text-black rounded-2xl border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md transition-all duration-300 resize-none"
+        ></textarea>
+
+        <div
+          className="absolute sm:static bottom-2 right-2 h-10 w-10 flex justify-center items-center bg-blue-700 text-white rounded-full hover:bg-gray-800 active:scale-90 shadow-md transition-all duration-300 cursor-pointer"
+          onClick={submitFeedBack}
+        >
+          <FaPaperPlane className="text-sm" />
         </div>
-    )
+      </div>
+    </div>
+  );
 }
+
 
 export function ReviewCardSkeleton() {
     return (
@@ -635,7 +656,7 @@ export function ReviewCardSkeleton() {
 
 export function ReviewCard(props) {
     return (
-        <div className="w-[400px] bg-blue-50 rounded-2xl shadow-md flex flex-col gap-3 hover:shadow-lg transition h-[300px] p-4">
+        <div className="w-[90%] bg-blue-50 rounded-2xl shadow-md flex flex-col gap-3 hover:shadow-lg transition h-[300px] p-4">
 
             {/* User Info */}
             <div className="flex items-center gap-3">
@@ -683,122 +704,111 @@ export function ReviewCard(props) {
 }
 
 
-function ShowFeedBack(props) {
+function ShowFeedBack({ feedBack = [] }) {
+    const [current, setCurrent] = useState(0);
+    const [animating, setAnimating] = useState(false); // track animation
+    const [direction, setDirection] = useState("next"); // "next" or "prev"
+    const total = feedBack.length;
 
-    const [currentIndex, setCurrentIndex] = useState([0, ""]);
+    if (total === 0) {
+        return (
+            <div className="relative bg-blue-50 py-10 px-2 md:px-6 text-center">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                    What Our Customers Say 💬
+                </h2>
+                <p className="text-gray-500 mt-4">No feedback available yet.</p>
+            </div>
+        );
+    }
 
-    const total = props?.feedBack.length;
+    const prevIndex = (current - 1 + total) % total;
+    const nextIndex = (current + 1) % total;
 
-    // Handle previous button
     const handlePrev = () => {
-        setCurrentIndex((prev) => {
-            const oldArr = [...prev];
-            oldArr[0] = (oldArr[0] - 1 + total) % total;
-            oldArr[1] = "RIGHT";
-            return oldArr;
-        })
-    };
-
-    // Handle next button
-    const handleNext = () => {
-        setCurrentIndex((prev) => {
-            const oldArr = [...prev];
-            oldArr[0] = (oldArr[0] + 1) % total;
-            oldArr[1] = "LEFT";
-            return oldArr;
-        })
-
-    };
-
-
-    // Get 4 reviews to display
-    const getDisplayIndexes = () => {
-        if (total <= 3) return Array.from({ length: total }, (_, i) => i);
-        // Two focused in center
-        const left = (currentIndex[0] - 1 + total) % total;
-        const center = currentIndex[0];
-        const right = (currentIndex[0] + 1) % total;
-
-        return [left, center, right];
-    };
-
-    const displayIndexes = getDisplayIndexes();
-
-
-    useEffect(() => {
+        if (animating) return;
+        setDirection("prev");
+        setAnimating(true);
         setTimeout(() => {
-            setCurrentIndex((prev) => {
-                const oldArr = [...prev];
-                oldArr[1] = "";
-                return oldArr;
-            })
-        }, 1000)
-    })
+            setCurrent(prev => (prev - 1 + total) % total);
+            setAnimating(false);
+        }, 300); // match duration of animation
+    };
 
-    // console.log("usernames",usernames)
-    // console.log("messages",messages)
+    const handleNext = () => {
+        if (animating) return;
+        setDirection("next");
+        setAnimating(true);
+        setTimeout(() => {
+            setCurrent(prev => (prev + 1) % total);
+            setAnimating(false);
+        }, 300);
+    };
 
     return (
-        <>
-            <div className="border-t-black border flex flex-row justify-around gap-2 p-2 items-center relative  bg-blue-100">
+        <div className="relative bg-blue-50 py-10 px-2 md:px-6">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 text-gray-800">
+                What Our Customers Say 💬
+            </h2>
+
+            <div className="relative flex items-center justify-center">
                 {/* Left Button */}
                 <button
                     onClick={handlePrev}
-                    className="absolute left-2 z-10 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+                    className="absolute left-2 md:left-4 z-10 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:scale-110 transition"
                 >
                     <FaChevronLeft />
                 </button>
 
-                {/* Reviews */}
-                <div className="flex items-center justify-between w-[90%]">
-                    {displayIndexes.map((idx, i) => {
-                        const review = props?.feedBack[idx];
-                        let scale = 0.8;
-                        let opacity = 0.6;
+                {/* Cards */}
+                <div className="flex items-center gap-4 w-full justify-center">
+                    {/* Left Card */}
+                    <div className="hidden md:block w-1/3 scale-90 opacity-60 transition-all duration-300">
+                        <Card review={feedBack[prevIndex]} />
+                    </div>
 
-                        // center two cards focused
-                        if (i === 1) {
-                            scale = 1;
-                            opacity = 1;
-                        }
+                    {/* Center Card with animation */}
+                    <div
+                        key={current}
+                        className={`
+                            w-full md:w-1/3
+                            transition-all duration-300
+                            ${animating
+                                ? direction === "next"
+                                    ? "md:translate-x-4 opacity-0"
+                                    : "md:-translate-x-4 opacity-0"
+                                : "translate-x-0 opacity-100"}
+                        `}
+                    >
+                        <Card review={feedBack[current]} />
+                    </div>
 
-
-                        return (
-                            <div
-                                key={idx}
-                                className="transition-all duration-200 flex-shrink-0"
-                                style={{
-                                    transform: `scale(${scale})`,
-                                    opacity: opacity,
-                                    width: "33%", // all 3 cards spaced equally
-                                }}
-                            >
-                                {currentIndex[1] === "LEFT" ? i === 2 ? <ReviewCardSkeleton /> : <ReviewCard
-                                    username={review.username}
-                                    message={review.message}
-                                /> : currentIndex[1] === "RIGHT" ? i === 0 ? <ReviewCardSkeleton /> : <ReviewCard
-                                    username={review.username}
-                                    message={review.message}
-                                /> : <ReviewCard
-                                    username={review.username}
-                                    message={review.message} />}
-                            </div>
-                        );
-                    })}
+                    {/* Right Card */}
+                    <div className="hidden md:block w-1/3 scale-90 opacity-60 transition-all duration-300">
+                        <Card review={feedBack[nextIndex]} />
+                    </div>
                 </div>
 
                 {/* Right Button */}
                 <button
                     onClick={handleNext}
-                    className="absolute right-2 z-10 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+                    className="absolute right-2 md:right-4 z-10 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:scale-110 transition"
                 >
                     <FaChevronRight />
                 </button>
             </div>
-
-        </>
-    )
+        </div>
+    );
 }
+
+function Card({ review }) {
+    if (!review) return null;
+    return (
+        <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 flex justify-center">
+            <ReviewCard username={review.username} message={review.message} />
+        </div>
+    );
+}
+
 
 export function Footer() {
     return (
