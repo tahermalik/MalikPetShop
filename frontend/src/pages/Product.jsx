@@ -89,90 +89,141 @@ export const items_diet = ["veg", "non-veg"]
 export const items_brands = ["grain zero", "pedigree", "smart heart", "whiskas", "meo", "purepet", "drools", "chappi", "sense", "royal canin", "maxi"]
 
 function Filter() {
+    const chekcedList = useSelector((state) => state?.filter?.flavorFilter);
+    const checkedListBreed = useSelector((state) => state?.filter?.breedFilter);
+    const checkedListDiet = useSelector((state) => state?.filter?.diet);
+    const checkedListBrands = useSelector((state) => state?.filter?.brandsFilter);
 
-    const chekcedList = useSelector((state) => state?.filter?.flavorFilter)
-    const checkedListBreed = useSelector((state) => state?.filter?.breedFilter)
-    const checkedListDiet = useSelector((state) => state?.filter?.diet)
-    const checkedListBrands = useSelector((state) => state?.filter?.brandsFilter)
-
-
-    const [showFilter, setShowFilter] = useState("flavor")
-    const [filterToggle, setFilterToggle] = useState(false)
+    const [showFilter, setShowFilter] = useState("flavor");
+    const [filterToggle, setFilterToggle] = useState(false);
 
     function toggle(type) {
         if (filterToggle || type !== showFilter) {
-            if (type === "flavor") setShowFilter("flavor")
-            else if (type === "breed") setShowFilter("breed")
-            else if (type === "diet") setShowFilter("diet")
-            else if (type === "brands") setShowFilter("brands")
-            else if (type === "priceslider") setShowFilter("priceslider")
-            setFilterToggle(false)
+            setShowFilter(type);
+            setFilterToggle(false);
         } else {
-            setShowFilter("")
-            setFilterToggle(true)
+            setShowFilter("");
+            setFilterToggle(true);
         }
     }
 
     return (
         <>
-            <div className="flex flex-col p-2 h-[100%] gap-2">
-                <div className="sm:text-lg lg:text-xl font-semibold underline">Filter</div>
-                <div className="flex flex-col h-[100%] overflow-auto scrollbar-hide">
+            <div className="flex flex-col p-3 h-full gap-3 bg-white shadow-lg border-r border-black">
+                <div className="sm:text-lg lg:text-xl font-semibold underline text-gray-800">
+                    Filter
+                </div>
+                <div className="flex flex-col h-full overflow-auto scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-gray-200 rounded-lg">
                     {/* FLAVOR */}
-                    <div onClick={() => toggle("flavor")} className="flex flex-row justify-between items-center">
-                        <div>Flavor</div>
-                        {showFilter !== "flavor" && <MdArrowDropDown />}
-                        {showFilter === "flavor" && <MdArrowDropUp />}
+                    <div
+                        onClick={() => toggle("flavor")}
+                        className="flex flex-row justify-between items-center p-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    >
+                        <div className="font-medium text-gray-700">Flavor</div>
+                        {showFilter !== "flavor" ? (
+                            <MdArrowDropDown className="text-gray-600" />
+                        ) : (
+                            <MdArrowDropUp className="text-gray-600" />
+                        )}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-[30%] rounded-2xl overflow-auto scrollbar-hide ${showFilter === "flavor" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                    <div
+                        className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "flavor"
+                                ? "relative max-h-60 opacity-100"
+                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                            }`}
+                    >
                         <CheckBoxes type="flavor" chekcedList={chekcedList} items={items_flavor} />
                     </div>
 
                     {/* BREED */}
-                    <div onClick={() => toggle("breed")} className="flex flex-row justify-between items-center mt-2">
-                        <div>Breed Size</div>
-                        {showFilter !== "breed" && <MdArrowDropDown />}
-                        {showFilter === "breed" && <MdArrowDropUp />}
+                    <div
+                        onClick={() => toggle("breed")}
+                        className="flex flex-row justify-between items-center mt-2 p-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    >
+                        <div className="font-medium text-gray-700">Breed Size</div>
+                        {showFilter !== "breed" ? (
+                            <MdArrowDropDown className="text-gray-600" />
+                        ) : (
+                            <MdArrowDropUp className="text-gray-600" />
+                        )}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-auto rounded-2xl overflow-auto scrollbar-hide ${showFilter === "breed" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                    <div
+                        className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "breed"
+                                ? "relative max-h-60 opacity-100"
+                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                            }`}
+                    >
                         <CheckBoxes type="breed" chekcedList={checkedListBreed} items={items_breed} />
                     </div>
 
                     {/* DIET */}
-                    <div onClick={() => toggle("diet")} className="flex flex-row justify-between items-center mt-2">
-                        <div>Veg/Non-Veg</div>
-                        {showFilter !== "diet" && <MdArrowDropDown />}
-                        {showFilter === "diet" && <MdArrowDropUp />}
+                    <div
+                        onClick={() => toggle("diet")}
+                        className="flex flex-row justify-between items-center mt-2 p-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    >
+                        <div className="font-medium text-gray-700">Veg/Non-Veg</div>
+                        {showFilter !== "diet" ? (
+                            <MdArrowDropDown className="text-gray-600" />
+                        ) : (
+                            <MdArrowDropUp className="text-gray-600" />
+                        )}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-auto rounded-2xl overflow-auto scrollbar-hide ${showFilter === "diet" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                    <div
+                        className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "diet"
+                                ? "relative max-h-60 opacity-100"
+                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                            }`}
+                    >
                         <CheckBoxes type="diet" chekcedList={checkedListDiet} items={items_diet} />
                     </div>
 
-
-                    {/* Brands */}
-                    <div onClick={() => toggle("brands")} className="flex flex-row justify-between items-center mt-2">
-                        <div>Brands</div>
-                        {showFilter !== "brands" && <MdArrowDropDown />}
-                        {showFilter === "brands" && <MdArrowDropUp />}
+                    {/* BRANDS */}
+                    <div
+                        onClick={() => toggle("brands")}
+                        className="flex flex-row justify-between items-center mt-2 p-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    >
+                        <div className="font-medium text-gray-700">Brands</div>
+                        {showFilter !== "brands" ? (
+                            <MdArrowDropDown className="text-gray-600" />
+                        ) : (
+                            <MdArrowDropUp className="text-gray-600" />
+                        )}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-[30%] rounded-2xl overflow-auto scrollbar-hide ${showFilter === "brands" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                    <div
+                        className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "brands"
+                                ? "relative max-h-60 opacity-100"
+                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                            }`}
+                    >
                         <CheckBoxes type="brands" chekcedList={checkedListBrands} items={items_brands} />
                     </div>
 
                     {/* Price Slider */}
-                    <div onClick={() => toggle("priceslider")} className="flex flex-row justify-between items-center mt-2">
-                        <div>Price Slider</div>
-                        {(showFilter !== "priceslider") && <MdArrowDropDown />}
-                        {(showFilter === "priceslider") && <MdArrowDropUp />}
+                    <div
+                        onClick={() => toggle("priceslider")}
+                        className="flex flex-row justify-between items-center mt-2 p-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    >
+                        <div className="font-medium text-gray-700">Price Slider</div>
+                        {showFilter !== "priceslider" ? (
+                            <MdArrowDropDown className="text-gray-600" />
+                        ) : (
+                            <MdArrowDropUp className="text-gray-600" />
+                        )}
                     </div>
-                    <div className={`bg-blue-200 p-2 h-auto rounded-2xl overflow-auto scrollbar-hide ${showFilter === "priceslider" ? "relative" : "absolute top-0 z-[-10]"} `}>
+                    <div
+                        className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "priceslider"
+                                ? "relative max-h-60 opacity-100"
+                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                            }`}
+                    >
                         <PriceRange />
                     </div>
                 </div>
             </div>
         </>
-    )
+    );
 }
+
 
 /// function written for both loggedIn user & user who is not loggedIn
 export async function addToCart(e, userId, productId, productVariation, logInFlag, dispatch) {
@@ -345,33 +396,131 @@ function ProductCard(props) {
             {skeleton ? <ProductCardSkeleton /> :
 
                 // initially setting 0th product to be displayed whicle clicking on the product
-                <div className="w-[250px] h-[450px] bg-white flex flex-col rounded-2xl hover:shadow-lg">
-                    <div className="sm:text-[13px] bg-emerald-100 h-[5%] w-[100%] rounded-t-2xl p-1">Extra <span className="font-sans">5%</span> discount , use the code <span className="font-semibold">MPSCH</span></div>
-                    <div className="h-[40%] w-[100%] pl-0.5 pr-0.5"><img className="h-[100%] w-[100%] object-contain" src={`http://localhost:3000/${props.imagesArray[imgCounter]}`} alt={`${props.imagesArray[imgCounter]}`} /></div>
-                    <div className="flex flex-col justify-evenly h-[40%] w-[100%] pl-1 pr-1">
-                        <div className="product-data line-clamp-3 w-[100%]">{props.productName}</div>
-                        <div className="price font-sans"><span className="font-sans sm:text-lg lg:text-xl">&#8377;</span>{discountCalc(props.originalPriceArray[imgCounter], props.discountArray[imgCounter])} <span className="font-sans sm:text-sm">(&#8377;{gramAmountCalc(props.originalPriceArray[imgCounter], props.discountArray[imgCounter], props.netWeightArray[imgCounter])}/100g)</span> <p><span className="line-through font-sans sm:text-sm">&#8377;{props.originalPriceArray[imgCounter]}</span> <span className="sm:text-sm">Discount {props.discountArray[imgCounter]}%</span></p></div>
+                <div className="w-[250px] h-[450px] bg-white flex flex-col rounded-2xl 
+                shadow-md hover:shadow-xl transition-all duration-300 
+                border border-blue-100 cursor-pointer">
+
+                    <div className="sm:text-[13px] bg-blue-50 text-blue-700 
+                    h-[5%] w-[100%] rounded-t-2xl p-1 
+                    font-medium tracking-wide">
+                        Extra <span className="font-semibold">5%</span> discount , use the code
+                        <span className="font-semibold"> MPSCH</span>
+                    </div>
+
+                    <div className="h-[40%] w-[100%] pl-0.5 pr-0.5 
+                    bg-blue-50 flex items-center justify-center">
+                        <img
+                            className="h-[100%] w-[100%] object-contain 
+                       transition-transform duration-300 hover:scale-105"
+                            src={`http://localhost:3000/${props.imagesArray[imgCounter]}`}
+                            alt={`${props.imagesArray[imgCounter]}`}
+                        />
+                    </div>
+
+                    <div className="flex flex-col justify-evenly h-[40%] w-[100%] pl-2 pr-2">
+                        <div className="product-data line-clamp-3 w-[100%] 
+                        text-gray-800 font-semibold">
+                            {props.productName}
+                        </div>
+
+                        <div className="price font-sans text-gray-800">
+                            <span className="font-sans sm:text-lg lg:text-xl text-blue-700 font-semibold">
+                                &#8377;{discountCalc(props.originalPriceArray[imgCounter], props.discountArray[imgCounter])}
+                            </span>
+
+                            <span className="font-sans sm:text-sm text-blue-500 ml-1">
+                                (&#8377;{gramAmountCalc(
+                                    props.originalPriceArray[imgCounter],
+                                    props.discountArray[imgCounter],
+                                    props.netWeightArray[imgCounter]
+                                )}/100g)
+                            </span>
+
+                            <p className="text-gray-500">
+                                <span className="line-through font-sans sm:text-sm">
+                                    &#8377;{props.originalPriceArray[imgCounter]}
+                                </span>
+                                <span className="sm:text-sm text-blue-600 ml-1 font-medium">
+                                    Discount {props.discountArray[imgCounter]}%
+                                </span>
+                            </p>
+                        </div>
+
                         <div className="flex justify-between items-center">
                             <div className="flex flex-row gap-1 font-sans text-[10px] flex-wrap">
                                 {props.netWeightArray.map((offer, index) => (
-                                    <div className={`border border-black flex flex-row justify-center items-center px-1 py-0.2 font-semibold cursor-pointer hover:underline ${imgCounter === index ? "border-2 border-orange-400" : ""}`} onClick={(e) => {
-                                        setImgCounter(index);
-                                        dispatch(setImageCounter(index))
-                                        e.stopPropagation();
-                                        e.preventDefault()
-                                    }}>{props.netWeightArray[index]} kg</div>
+                                    <div
+                                        className={`border flex flex-row justify-center items-center 
+                                    px-2 py-0.5 rounded-full font-semibold cursor-pointer 
+                                    transition-all duration-200
+                                    ${imgCounter === index
+                                                ? "border-blue-600 bg-blue-600 text-white"
+                                                : "border-blue-300 text-blue-700 hover:bg-blue-100"
+                                            }`}
+                                        onClick={(e) => {
+                                            setImgCounter(index);
+                                            dispatch(setImageCounter(index));
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                        }}
+                                    >
+                                        {props.netWeightArray[index]} kg
+                                    </div>
                                 ))}
                             </div>
-                            {userData?.role === "admin" && <div onClick={(e) => (deleteProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><MdOutlineDeleteOutline size={20} /></div>}
-                            {userData?.role !== "admin" && <div onClick={(e) => (favProduct(e))} className="p-1 cursor-pointer hover:rounded-2xl hover:bg-gray-300"><IoIosHeart size={20} color={isPresent ? "red" : "white"} style={{ stroke: "red", strokeWidth: 20 }} /></div>}
+
+                            {userData?.role === "admin" && (
+                                <div
+                                    onClick={(e) => deleteProduct(e)}
+                                    className="p-1 cursor-pointer rounded-full 
+                               hover:bg-red-100 transition-colors"
+                                >
+                                    <MdOutlineDeleteOutline size={20} className="text-red-600" />
+                                </div>
+                            )}
+
+                            {userData?.role !== "admin" && (
+                                <div
+                                    onClick={(e) => favProduct(e)}
+                                    className="p-1 cursor-pointer rounded-full 
+                               hover:bg-blue-100 transition-colors"
+                                >
+                                    <IoIosHeart
+                                        size={20}
+                                        color={isPresent ? "red" : "white"}
+                                        style={{ stroke: "red", strokeWidth: 20 }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    <div className="flex flex-row justify-center items-center h-[15%] w-[100%] rounded-2xl">
-                        <button className="flex flex-row justify-center items-center w-[100%] h-[100%] bg-orange-600 rounded-b-2xl cursor-pointer text-white hover:underline" onClick={(e) => { addToCart(e, userId, props.productId, imgCounter, !(userData === null), dispatch) }}>Add to Cart</button>
+                    <div className="flex flex-row justify-center items-center 
+                    h-[15%] w-[100%] rounded-2xl">
+                        <button
+                            className="flex flex-row justify-center items-center 
+                       w-[100%] h-[100%] 
+                       bg-blue-600 text-white font-semibold 
+                       rounded-b-2xl cursor-pointer 
+                       transition-all duration-300 
+                       hover:bg-blue-700 hover:tracking-wide"
+                            onClick={(e) => {
+                                addToCart(
+                                    e,
+                                    userId,
+                                    props.productId,
+                                    imgCounter,
+                                    !(userData === null),
+                                    dispatch
+                                );
+                            }}
+                        >
+                            Add to Cart
+                        </button>
                     </div>
 
-                </div>}
+                </div>
+            }
         </>
     )
 }
@@ -379,6 +528,7 @@ function ProductCard(props) {
 function DisplayProducts(props) {
 
     const [page, setPage] = useState(1);
+    const navigate=useNavigate();
 
     const { productData, hasMore, loading } = useGetAllProduct(props?.refresh, props?.query, page, setPage);
     function productClicked(products) {

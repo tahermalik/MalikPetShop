@@ -15,8 +15,10 @@ import PasswordRecovery from "./pages/forgotPasswd";
 import OrderSuccess from "./pages/orderSuccess";
 import Checkout from "./pages/Checkout";
 import UserAddressForm from "./pages/userAddressForm";
+import useLenis from "./hooks/useLenis";
 
 function App() {
+  useLenis();
   return (
     <div className="h-auto w-screen bg-white font-serif">
       <BrowserRouter>

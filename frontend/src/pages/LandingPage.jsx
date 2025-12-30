@@ -9,30 +9,97 @@ import { HiHeart, HiOutlineMail } from "react-icons/hi";
 import { FaPhoneAlt, FaRegHeart, FaUser } from "react-icons/fa";
 import { IoIosContact } from "react-icons/io";
 import { MdOutlineShoppingCart } from "react-icons/md";
-import { setHeaderHight } from "../redux/slices/layoutSlice";
+import { setHeaderHight, setSideBarLength } from "../redux/slices/layoutSlice";
 import { setPets, setTypeFilter } from "../redux/slices/filterSlice";
 import axios from "axios";
 import { CART_ENDPOINTS, USER_ENDPOINTS } from "./endpoints.js";
 import { useGetAllFeedBack } from "../hooks/useGetAllFeedBack.js";
 import { FaChevronLeft, FaChevronRight, FaPaperPlane } from "react-icons/fa";
+import { Breadcrumbs } from "./Breadcrumbs.jsx";
+import { GiHamburgerMenu } from "react-icons/gi";
+import { AiOutlineClose } from "react-icons/ai";
+import { PawPrint, Tag, Package } from "lucide-react";
 
 
 function Brands(props) {
     const colorClasses = {
-        yellow: "bg-amber-300",
-        purple: "bg-purple-500",
-        blue: "bg-blue-500",
+        yellow: "from-amber-200 to-amber-400",
+        purple: "from-purple-400 to-purple-700",
+        blue: "from-blue-400 to-blue-700",
     };
 
     return (
-        <div className={`body h-[600px] w-full ${colorClasses[props.color]} flex flex-row justify-center items-center`}>
-            <div className="h-[80%] w-[80%] flex flex-row gap-2">
-                <div className="flex flex-row justify-center items-center rounded-2xl h-[100%] w-[70%]"><img className="h-[400px] w-[100%] object-contain rounded-2xl" src={`/${props.brand}.jpg`} alt={`${props.brand}_img`} /></div>
-                <div className="h-[100%] w-[30%] flex flex-row justify-center items-center text-[#212121]"><span className="xs:text-md md:text-lg lg:text-2xl">{props.info}</span></div>
+        <div
+            className={`
+                relative
+                sm:h-[600px] h-[800px] w-full
+                flex items-center justify-center
+                bg-gradient-to-br ${colorClasses[props.color]}
+                overflow-hidden
+            `}
+        >
+            {/* Background Image */}
+            <img
+                src={`/${props.brand}.jpg`}
+                alt={`${props.brand}_img`}
+                className="
+                    absolute inset-0
+                    h-full w-full
+                    object-cover
+                    scale-105
+                "
+            />
+
+            {/* Dark Gradient Overlay */}
+            <div
+                className="
+                    absolute inset-0
+                    bg-gradient-to-t
+                    from-black/70 via-black/30 to-transparent
+                "
+            />
+
+            {/* Text Content */}
+            <div
+                className="
+                    relative z-10
+                    max-w-5xl w-full
+                    px-6
+                    flex flex-col
+                    justify-end
+                    h-full
+                    pb-16
+                "
+            >
+                <h1
+                    className="
+                        text-white
+                        text-3xl sm:text-5xl
+                        font-bold
+                        tracking-wide
+                        drop-shadow-lg
+                        capitalize
+                    "
+                >
+                    {props.brand}
+                </h1>
+
+                <p
+                    className="
+                        mt-3
+                        text-white/90
+                        text-sm sm:text-lg
+                        max-w-xl
+                        leading-relaxed
+                    "
+                >
+                    Premium products crafted for comfort, care, and happiness of your pets.
+                </p>
             </div>
         </div>
-    )
+    );
 }
+
 
 
 function AutoBrandSlider() {
@@ -57,10 +124,10 @@ function AutoBrandSlider() {
     return (
         <div
             className="
-                relative w-full h-[600px] select-none overflow-x-hidden
+                relative w-full sm:h-[600px] h-[800px] select-none overflow-x-hidden
                 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700
                 shadow-[0_20px_50px_rgba(29,78,216,0.35)]
-                rounded-xl overflow-hidden
+                overflow-hidden
             "
         >
             {/* Soft glass reflection overlay */}
@@ -108,46 +175,46 @@ function AutoBrandSlider() {
 }
 
 function Owner() {
-  const myRef = useRef();
-  const [isVisible, setIsVisible] = useState(false);
+    const myRef = useRef();
+    const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
-      { threshold: 0.5 } // triggers when 50% of the component is visible
-    );
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setIsVisible(entry.isIntersecting);
+            },
+            { threshold: 0.5 } // triggers when 50% of the component is visible
+        );
 
-    if (myRef.current) observer.observe(myRef.current);
+        if (myRef.current) observer.observe(myRef.current);
 
-    return () => observer.disconnect();
-  }, []);
+        return () => observer.disconnect();
+    }, []);
 
-  return (
-    <div
-      ref={myRef}
-      className={`owner_details ${isVisible ? "visible" : ""} 
+    return (
+        <div
+            ref={myRef}
+            className={`owner_details ${isVisible ? "visible" : ""} 
         overflow-hidden w-full box-border flex flex-col md:flex-row justify-center items-center gap-6 px-4 py-6`}
-    >
-      {/* Image */}
-      <div className="w-[90vw] max-w-[300px] h-[90vw] max-h-[300px] md:w-[300px] md:h-[300px] rounded-full bg-emerald-400 border-4 border-[#00ACC1] flex-shrink-0 overflow-hidden">
-        <img
-            className="w-full h-full object-cover"
-            src="/photo_21.jpg"
-            alt="my_photo"
-        />
-      </div>
+        >
+            {/* Image */}
+            <div className="w-[90vw] max-w-[300px] h-[90vw] max-h-[300px] md:w-[300px] md:h-[300px] rounded-full bg-emerald-400 border-4 border-[#00ACC1] flex-shrink-0 overflow-hidden">
+                <img
+                    className="w-full h-full object-cover"
+                    src="/photo_21.jpg"
+                    alt="my_photo"
+                />
+            </div>
 
-      {/* Text */}
-      <div className="w-full md:w-[40%] text-justify text-sm sm:text-base md:text-md lg:text-lg text-[#212121]">
-        <h1 className="font-bold text-xl sm:text-2xl mb-2">About Us</h1>
-        <p>
-          With over 15 years of hands-on experience in the pet care industry, we bring trusted expertise to every pet and pet parent we serve. From quality nutrition to personalized care, our passion is keeping pets happy and healthy. At our shop, every tail wag and purr reflects years of dedication and love for animals.
-        </p>
-      </div>
-    </div>
-  );
+            {/* Text */}
+            <div className="w-full md:w-[40%] text-justify text-sm sm:text-base md:text-md lg:text-lg text-[#212121]">
+                <h1 className="font-bold text-xl sm:text-2xl mb-2">About Us</h1>
+                <p>
+                    With over 15 years of hands-on experience in the pet care industry, we bring trusted expertise to every pet and pet parent we serve. From quality nutrition to personalized care, our passion is keeping pets happy and healthy. At our shop, every tail wag and purr reflects years of dedication and love for animals.
+                </p>
+            </div>
+        </div>
+    );
 }
 
 
@@ -175,7 +242,7 @@ export const cat = {
 function CatStuff() {
     const dispatch = useDispatch()
     return (
-        <div className="flex flex-row gap-10 justify-center w-[100%]">
+        <div className="flex sm:flex-row sm:gap-10 sm:justify-center sm:w-[100%]">
             {Object.keys(cat).map((categories) => (
                 <div>
                     <div className="font-semibold sm:text-md md:text-lg" key={categories}><span>{categories}</span></div>
@@ -191,6 +258,48 @@ function CatStuff() {
 
         </div>
     )
+}
+
+function MobileCatStuff() {
+    const dispatch = useDispatch();
+
+    return (
+        <div className="flex flex-col gap-2 px-4 py-2 w-[100%]">
+            {Object.keys(cat).map((category) => (
+                <div
+                    key={category}
+                    className="bg-white/10 backdrop-blur-md rounded-xl p-4 shadow-md"
+                >
+                    {/* Category title */}
+                    <div className="mb-3">
+                        <h2 className="font-semibold text-base sm:text-md md:text-lg text-white tracking-wide underline ">
+                            {category}
+                        </h2>
+                    </div>
+
+                    {/* Category items */}
+                    <div className="flex flex-col gap-2">
+                        {cat[category].map((item) => (
+                            <Link to="/product" key={item}>
+                                <span
+                                    onClick={() =>
+                                        dispatch(setTypeFilter(item.toLowerCase()))
+                                    }
+                                    className="group relative block px-2 py-1 text-sm sm:text-base
+                                               text-white/90 rounded-md
+                                               transition-all duration-200
+                                               hover:bg-blue-500/20 hover:text-white"
+                                >
+                                    {item}
+                                    <SmoothUnderline />
+                                </span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
 }
 
 
@@ -221,6 +330,50 @@ function DogStuff() {
         </div>
     )
 }
+
+function MobileDogStuff() {
+    const dispatch = useDispatch();
+
+    return (
+        <div className="flex flex-col gap-2 px-4 py-2 w-[100%]">
+            {Object.keys(dog).map((category) => (
+                <div
+                    key={category}
+                    className="bg-white/10 backdrop-blur-md rounded-xl p-4 shadow-md"
+                >
+                    {/* Category title */}
+                    <div className="mb-3">
+                        <h2 className="font-semibold text-base sm:text-md md:text-lg text-white tracking-wide underline">
+                            {category}
+                        </h2>
+
+                    </div>
+
+                    {/* Category items */}
+                    <div className="flex flex-col gap-2">
+                        {dog[category].map((item) => (
+                            <Link to="/product" key={item}>
+                                <span
+                                    onClick={() =>
+                                        dispatch(setTypeFilter(item.toLowerCase()))
+                                    }
+                                    className="group relative block px-2 py-1 text-sm sm:text-base
+                                               text-white/90 rounded-md
+                                               transition-all duration-200
+                                               hover:bg-blue-500/20 hover:text-white"
+                                >
+                                    {item}
+                                    <SmoothUnderline />
+                                </span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
 
 export const birds = ["bowls", "cage", "food", "health supplements"];
 export const hamster = ["ball", "cage", "food", "toys"];
@@ -277,12 +430,228 @@ function SmallPetStuff() {
     )
 }
 
-export function Header() {
+function MobileSmallPetStuff() {
+    const dispatch = useDispatch();
+    const smallPetsObj = {
+        "Birds": birds,
+        "Hamster": hamster,
+        "Rabbit": rabbit,
+        "Turtle": turtle
+    }
+
+    return (
+        <div className="flex flex-col gap-2 px-4 py-2 w-[100%]">
+            {Object.keys(smallPetsObj).map((types) => {
+                return(
+
+                    <div
+                        key={types}
+                        className="bg-white/10 backdrop-blur-md rounded-xl p-4 shadow-md"
+                    >
+                        {/* Category title */}
+                        <div className="mb-3">
+                            <h2 className="font-semibold text-base sm:text-md md:text-lg text-white tracking-wide underline">
+                                {types}
+                            </h2>
+                        </div>
+    
+                        {/* Category items */}
+                        <div className="flex flex-col gap-2">
+                            {smallPetsObj[types].map((item) => (
+                                <Link to="/product" key={item}>
+                                    <span
+                                        onClick={() =>
+                                            dispatch(setTypeFilter(item.toLowerCase()))
+                                        }
+                                        className="group relative block px-2 py-1 text-sm sm:text-base
+                                                text-white/90 rounded-md
+                                                transition-all duration-200
+                                                hover:bg-blue-500/20 hover:text-white"
+                                    >
+                                        {item}
+                                        <SmoothUnderline />
+                                    </span>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )})}
+        </div>
+    );
+}
+
+
+
+function SideBar({ open, setOpen, setAnimal }) {
+    const menu = [
+        { label: "Cat", icon: PawPrint },
+        { label: "Dog", icon: PawPrint },
+        { label: "Small Pets", icon: PawPrint },
+        { label: "Brands", icon: Package },
+        { label: "Offer", icon: Tag, link: "/offer" },
+    ];
+    const sideBarRef = useRef(null);
+    const dispatch = useDispatch();
+
+    useLayoutEffect(() => {
+        if (sideBarRef.current) {
+            console.log(sideBarRef.current.offsetWidth)
+            dispatch(setSideBarLength(sideBarRef.current.offsetWidth))
+        }
+    }, [])
+
+    const sideBarWidth = useSelector((state) => state?.layout?.sideBarLength)
+    console.log(sideBarWidth)
+
+    return (
+        <div ref={sideBarRef}
+            className={`fixed top-0 left-0 z-[999] h-screen w-[50%] 
+            sm:hidden flex flex-col 
+            bg-gradient-to-br from-blue-700/40 to-blue-900/40
+            backdrop-blur-xl
+            shadow-2xl
+            border-r border-white/20
+            transform transition-transform duration-700 ease-in-out
+            ${open ? "translate-x-0" : "-translate-x-full"}`}
+        >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-4 border-b border-white/20">
+                <div className="flex items-center gap-2">
+                    <img
+                        src="/header_logo.svg"
+                        alt="logo"
+                        className="w-10 h-10 drop-shadow-md"
+                    />
+                    <div className="leading-tight">
+                        <h1 className="text-white font-semibold text-lg">
+                            Malik
+                        </h1>
+                        <p className="text-white/70 text-sm">
+                            Pet Shop
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => { setOpen(false), setAnimal("") }}
+                    className="p-2 rounded-full hover:bg-white/20 transition"
+                >
+                    <AiOutlineClose size={20} className="text-white" />
+                </button>
+            </div>
+
+            {/* Menu */}
+            <div className="flex flex-col gap-2 px-4 py-6">
+                {menu.map((item, idx) => {
+                    const Icon = item.icon;
+
+                    return item.link ? (
+                        <Link
+                            key={idx}
+                            to={item.link}
+                            onClick={() => setOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3
+                            rounded-xl
+                            text-white/90
+                            hover:bg-white/15
+                            hover:text-white
+                            transition"
+                        >
+                            <Icon size={18} />
+                            <span className="font-medium text-xl">
+                                {item.label}
+                            </span>
+                        </Link>
+                    ) : (
+                        <div
+                            key={idx}
+                            className="flex items-center gap-3 px-4 py-3
+                            rounded-xl
+                            text-white/90
+                            hover:bg-white/15
+                            hover:text-white
+                            transition cursor-pointer"
+                            onClick={() => setAnimal(item.label)}
+                        >
+                            <Icon size={18} />
+                            <span className="text-xl font-medium">
+                                {item.label}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+export function SubMenu({ animal }) {
+    const sideBarLength = useSelector(
+        (state) => state?.layout?.sideBarLength
+    );
+
+    const [visibleAnimal, setVisibleAnimal] = useState(animal);
+    const [fade, setFade] = useState(false);
+
+    useEffect(() => {
+        if (animal === visibleAnimal) return;
+
+        setFade(true);
+
+        const timer = setTimeout(() => {
+            setVisibleAnimal(animal);
+            setFade(false);
+        }, 200);
+
+        return () => clearTimeout(timer);
+    }, [animal]);
+
+    if (!visibleAnimal) return null;
+
+    return (
+        <div
+            className={`
+                h-[50vh] w-fit
+                fixed top-4
+                z-[999]
+
+                bg-blue-600/30
+                backdrop-blur-xl
+
+                border border-white/15
+                rounded-2xl
+
+                shadow-xl shadow-black/30
+
+                overflow-y-auto overscroll-contain
+
+                transition-all duration-200 ease-out
+                ${fade
+                    ? "opacity-0 translate-x-[-6px]"
+                    : "opacity-100 translate-x-0"
+                }
+            `}
+            style={{ left: `${sideBarLength}px` }}
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+        >
+            {visibleAnimal === "Cat" && <MobileCatStuff />}
+            {visibleAnimal === "Dog" && <MobileDogStuff />}
+            {visibleAnimal === "Small Pets" && <MobileSmallPetStuff />}
+        </div>
+    );
+}
+
+
+
+
+export function Header({ open, setOpen }) {
     const dispatch = useDispatch();
     const show = useSelector((state) => state?.user?.categoryState)
     const showLoginOption = useSelector((state) => state?.user?.loginOption) // initally going to be false
     const showDetailOption = useSelector((state) => state?.user?.detailOption)  // initially false
     const [data, setData] = useState("cat")
+
     const navigate = useNavigate()
     let clicked = "user"
 
@@ -295,7 +664,6 @@ export function Header() {
         dispatch(setPets(firstChildDiv.textContent.toLowerCase()))
         if (!show) dispatch(setCategoryState())
     }
-
     function detailsHandler(e) {
         const parentDiv = e.currentTarget;
         const firstChildDiv = parentDiv.querySelector("div:first-child")
@@ -405,8 +773,8 @@ export function Header() {
                 className="header flex flex-col w-full sticky top-0 z-20 bg-gradient-to-b from-[#DFF3FF] to-[#B4E1FF] shadow-md backdrop-blur-sm"
             >
                 {/* Upper Header */}
-                <div className="upper_header flex flex-col sm:flex-row justify-center sm:justify-evenly items-center gap-3 py-3 w-full text-[#0A3D62]">
-                    <div className="l-upper-header flex flex-row gap-2 items-center">
+                <div className="upper_header grid grid-cols-[0.2fr_1.8fr] grid-rows-2 sm:flex sm:flex-row justify-center sm:justify-evenly items-center gap-3 py-3 w-[100vw] text-[#0A3D62]">
+                    <div className="l-upper-header flex flex-row gap-2 items-center justify-center">
                         <div className="hidden sm:flex justify-center items-center">
                             <img
                                 src="/header_logo.svg"
@@ -418,13 +786,14 @@ export function Header() {
                             <span className="font-bold text-xl">Malik</span>
                             <span className="text-sm opacity-80">Pet Shop</span>
                         </div>
+
+                        <div className="sm:hidden" onClick={() => setOpen(true)}>
+                            <GiHamburgerMenu size={20} color={"#2563EB"} />
+                        </div>
                     </div>
 
-                    <div className="flex flex-row gap-2 w-[90%] sm:w-[50%]">
-                        {/* Hamburger for mobile */}
-                        <div className="sm:hidden flex items-center text-[#0A3D62] text-3xl cursor-pointer">
-                            ☰
-                        </div>
+                    {/* Search Bar */}
+                    <div className="flex flex-row gap-2 w-[90%] sm:w-[40%] md:w-[45%] lg:w-[50%]">
                         <div className="m-upper-header bg-white/80 backdrop-blur-md w-full flex flex-row gap-2 p-2 rounded-2xl border border-[#9AD3FF] shadow-sm">
                             <div className="search_logo opacity-80">
                                 <img src="/search_logo.svg" alt="search_icon" />
@@ -442,13 +811,13 @@ export function Header() {
                     </div>
 
                     {/* Right Upper Header */}
-                    <div className="r-upper-header flex flex-row justify-center sm:justify-evenly items-center gap-3 sm:gap-4 sm:mt-0 w-[90%] sm:w-[20%] h-fit">
+                    <div className="r-upper-header col-span-2 flex flex-row justify-evenly items-center gap-3 w-[100vw] sm:gap-4 sm:mt-0 sm:w-fit h-fit">
                         <div className="flex flex-row gap-1 w-full justify-evenly items-center">
 
                             {/* Contact */}
                             <div ref={contactRef} className="cursor-pointer hover:rounded-2xl relative flex flex-row items-center w-fit transition-all duration-200 hover:bg-[#A8DAFF]/40 p-2 rounded-xl">
                                 <div className="flex flex-row justify-center items-center" onMouseEnter={(e) => detailsHandler(e)}>
-                                    <div className="" data-details="details"><IoIosContact color="#4AA9F7" size={40} /></div>
+                                    <div className="" data-details="details"><IoIosContact color="#4AA9F7" className="text-3xl md:text-4xl" /></div>
                                     {(!showDetailOption) && <div><RiArrowDropDownLine size={20} /></div>}
                                     {showDetailOption && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
@@ -470,7 +839,7 @@ export function Header() {
                             {/* Login */}
                             <div ref={loginRef} className="cursor-pointer hover:rounded-2xl flex flex-row justify-center items-center transition-all duration-200 hover:bg-[#A8DAFF]/40 p-2 rounded-xl">
                                 <div className="flex flex-row items-center justify-center" onMouseEnter={(e) => detailsHandler(e)}>
-                                    <div className="flex flex-row justify-center items-center" data-details="user"><FaUser color="#4AA9F7" size={30} /></div>
+                                    <div className="flex flex-row justify-center items-center" data-details="user"><FaUser color="#4AA9F7" className="text-2xl" /></div>
                                     {(!showLoginOption || clicked !== "user") && <div><RiArrowDropDownLine size={20} /></div>}
                                     {showLoginOption && clicked === "user" && <div><RiArrowDropUpLine size={20} /></div>}
                                 </div>
@@ -485,12 +854,12 @@ export function Header() {
 
                             {/* Wishlist */}
                             <div className="cursor-pointer hover:bg-[#7DC6FF]/50 p-2 flex flex-row justify-center items-center rounded-full transition-all duration-200" onClick={(e) => viewWishList(e)}>
-                                <FaRegHeart color="#4AA9F7" size={30} />
+                                <FaRegHeart color="#4AA9F7" className="text-2xl md:text-3xl" />
                             </div>
 
                             {/* Cart */}
                             <div className="cursor-pointer hover:bg-[#7DC6FF]/50 p-2 flex flex-row justify-center items-center rounded-full transition-all duration-200" onClick={(e) => viewCart(e)}>
-                                <MdOutlineShoppingCart color="#4AA9F7" size={35} />
+                                <MdOutlineShoppingCart color="#4AA9F7" className="text-2xl md:text-3xl" />
                             </div>
 
                         </div>
@@ -498,7 +867,7 @@ export function Header() {
                 </div>
 
                 {/* Lower Header */}
-                <div className="lower_header flex flex-row justify-evenly items-center gap-3 w-full h-[40%] bg-gradient-to-r from-[#7DC6FF] to-[#4AA9F7] text-white shadow-inner">
+                <div className="lower_header hidden sm:flex flex-row justify-evenly items-center gap-3 w-full h-[40%] bg-gradient-to-r from-[#7DC6FF] to-[#4AA9F7] text-white shadow-inner">
                     <div className="flex flex-row justify-evenly items-center w-full">
                         <div onMouseEnter={categoriesHandler} className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline hover:decoration-white cursor-pointer px-4 py-1 rounded-xl transition-all duration-200">
                             <div className="text-black">Cat</div>
@@ -528,6 +897,8 @@ export function Header() {
                     </div>
                 </div>
 
+
+
                 {show && <div
                     ref={dropdownRef}
                     className={`scoll-lower-header absolute left-0 h-auto w-full bg-white/95 shadow-xl backdrop-blur-lg flex flex-row flex-wrap p-3
@@ -544,73 +915,73 @@ export function Header() {
 }
 
 function FeedBack(props) {
-  const myRef = useRef(null);
-  const [text, setText] = useState("");
-  const [rating, setRating] = useState(5);
+    const myRef = useRef(null);
+    const [text, setText] = useState("");
+    const [rating, setRating] = useState(5);
 
-  useEffect(() => {
-    const el = myRef.current;
-    if (el) {
-      // min height 50px, max height 200px
-      if (el.scrollHeight <= 200 && el.scrollHeight >= 50) {
-        el.style.height = "auto"; // reset
-        el.style.height = el.scrollHeight + "px"; // resize
-      }
+    useEffect(() => {
+        const el = myRef.current;
+        if (el) {
+            // min height 50px, max height 200px
+            if (el.scrollHeight <= 200 && el.scrollHeight >= 50) {
+                el.style.height = "auto"; // reset
+                el.style.height = el.scrollHeight + "px"; // resize
+            }
+        }
+    }, [text]);
+
+    const user = useSelector((state) => state?.user?.userData);
+
+    async function submitFeedBack() {
+        if (!user) console.log("User needs to login first");
+        else if (text.trim().length === 0) console.log("Feedback can't be empty");
+        else {
+            const res = await axios.post(
+                `${USER_ENDPOINTS}/createFeedBack/${user?._id}`,
+                { message: text, rating: rating },
+                { withCredentials: true }
+            );
+
+            if (res?.data?.bool) console.log("Feedback created successfully");
+            else console.log("Error in feedback creation");
+
+            setText("");
+            setRating(0);
+        }
+
+        props.setRefresh((prev) => prev + 1);
     }
-  }, [text]);
 
-  const user = useSelector((state) => state?.user?.userData);
+    return (
+        <div className="w-full flex flex-col sm:flex-row gap-3 justify-center items-start sm:items-center bg-white p-4 sm:p-6 rounded-xl shadow-md md:py-20">
+            {/* Avatar */}
+            <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-blue-600 shadow-md flex-shrink-0">
+                <img
+                    src="/photo_21.jpg"
+                    alt="user"
+                    className="h-full w-full object-cover"
+                />
+            </div>
 
-  async function submitFeedBack() {
-    if (!user) console.log("User needs to login first");
-    else if (text.trim().length === 0) console.log("Feedback can't be empty");
-    else {
-      const res = await axios.post(
-        `${USER_ENDPOINTS}/createFeedBack/${user?._id}`,
-        { message: text, rating: rating },
-        { withCredentials: true }
-      );
+            {/* Textarea + Button */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start w-full sm:w-[60%] relative gap-3">
+                <textarea
+                    ref={myRef}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="Enter your feedback"
+                    className="outline-0 p-2 max-h-[200px] min-h-[100px] overflow-y-auto scrollbar-hide w-full bg-white text-black rounded-2xl border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md transition-all duration-300 resize-none"
+                ></textarea>
 
-      if (res?.data?.bool) console.log("Feedback created successfully");
-      else console.log("Error in feedback creation");
-
-      setText("");
-      setRating(0);
-    }
-
-    props.setRefresh((prev) => prev + 1);
-  }
-
-  return (
-    <div className="w-full flex flex-col sm:flex-row gap-3 justify-center items-start sm:items-center bg-white p-4 sm:p-6 rounded-xl shadow-md">
-      {/* Avatar */}
-      <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-blue-600 shadow-md flex-shrink-0">
-        <img
-          src="/photo_21.jpg"
-          alt="user"
-          className="h-full w-full object-cover"
-        />
-      </div>
-
-      {/* Textarea + Button */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-start w-full sm:w-[60%] relative gap-3">
-        <textarea
-          ref={myRef}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Enter your feedback"
-          className="outline-0 p-2 max-h-[200px] min-h-[100px] overflow-y-auto scrollbar-hide w-full bg-white text-black rounded-2xl border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md transition-all duration-300 resize-none"
-        ></textarea>
-
-        <div
-          className="absolute sm:static bottom-2 right-2 h-10 w-10 flex justify-center items-center bg-blue-700 text-white rounded-full hover:bg-gray-800 active:scale-90 shadow-md transition-all duration-300 cursor-pointer"
-          onClick={submitFeedBack}
-        >
-          <FaPaperPlane className="text-sm" />
+                <div
+                    className="absolute sm:static bottom-2 right-2 h-10 w-10 flex justify-center items-center bg-blue-700 text-white rounded-full hover:bg-gray-800 active:scale-90 shadow-md transition-all duration-300 cursor-pointer"
+                    onClick={submitFeedBack}
+                >
+                    <FaPaperPlane className="text-sm" />
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 
@@ -863,22 +1234,46 @@ export function Footer() {
 export default function LandingPage() {
     const [feedBackRefresh, setFeedBackRefresh] = useState(0)
     const feedBack = useGetAllFeedBack(feedBackRefresh);
+    const [open, setOpen] = useState(false);
+    const [animal, setAnimal] = useState("");
     if (!feedBack) {
         return (
             <div>Loading...</div>
         )
     }
 
+    useEffect(() => {
+        const root = document.getElementById("root");
+
+        if (animal !== "") {
+            root.style.height = "100vh";
+            root.style.overflow = "hidden";
+        } else {
+            root.style.height = "";
+            root.style.overflow = "";
+        }
+
+        return () => {
+            root.style.height = "";
+            root.style.overflow = "";
+        };
+    }, [animal]);
+
 
     return (
-        <>
+        <div className="root-conatiner relative">
             {/* {console.log("Hey taher",feedBack)} */}
-            <Header />
+            <Header open={open} setOpen={setOpen} />
+            <SideBar open={open} setOpen={setOpen} setAnimal={setAnimal} />
+            <SubMenu animal={animal} />
+
+            {/* This feature is currently under development */}
+            {/* <Breadcrumbs/> */}
             <AutoBrandSlider />
             <Owner />
             <ShowFeedBack feedBack={feedBack} />
             <FeedBack refresh={feedBackRefresh} setRefresh={setFeedBackRefresh} />
             <Footer />
-        </>
+        </div>
     )
 }
