@@ -13,6 +13,7 @@ import { IoIosHeart } from "react-icons/io";
 import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/slices/userSlice"
 import { setImageCounter } from "../redux/slices/activeSlice"
 import { addProduct } from "../redux/slices/cartSlice"
+import toast from "react-hot-toast"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -227,71 +228,78 @@ function Filter() {
 
 /// function written for both loggedIn user & user who is not loggedIn
 export async function addToCart(e, userId, productId, productVariation, logInFlag, dispatch) {
-    e.stopPropagation();
-    e.preventDefault();
-    const obj = {
-        productId: productId,
-        productVariation: productVariation,
-        productQuantity: 1
-    }
-
-    dispatch(addProduct(obj))   /// just adding an product to the redux cart
-
-    if (logInFlag) {      // user is logged in so backend stuff will be called
-        const result = await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: userId, productId: productId, productVariation: productVariation }, { withCredentials: true })
-        if (result?.data?.comment === "Already Present") console.log("Already present")
-        else if (result?.data?.bool === false) console.log("Some problem in product addition to cart")
-        else console.log(`${productId} added successfully`)
+    try{
+        e.stopPropagation();
+        e.preventDefault();
+        const obj = {
+            productId: productId,
+            productVariation: productVariation,
+            productQuantity: 1
+        }
+    
+        //// this will done in both scenerio when the user is logged iN and when the user is not logged in
+        dispatch(addProduct(obj))   /// just adding an product to the redux cart
+    
+        if (logInFlag) {      // user is logged in so backend stuff will be called
+            const result = await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: userId, productId: productId, productVariation: productVariation }, { withCredentials: true })
+            if (result?.data?.comment === "Already Present") toast.success("Product Already Present")
+            else if (result?.data?.bool === false) toast.error("Some problem in product addition to cart")
+            else toast.success(`Product added successfully`)
+        }
+    }catch(error){
+        console.log(error);
+        toast.error(error?.response?.data?.message)
     }
 }
 
 
-export function ProductCardSkeleton() {
+function ProductCardSkeleton() {
     return (
-        <div className="w-[250px] h-[450px] bg-white flex flex-col rounded-2xl shadow-sm animate-pulse">
+        <div
+            className="
+                w-[250px] h-[450px]
+                bg-white rounded-2xl
+                border border-blue-100
+                shadow-md
+                flex flex-col
+            "
+        >
+            {/* Offer bar */}
+            <div className="h-[5%] w-full bg-blue-100 rounded-t-2xl shimmer" />
 
-            {/* Banner Skeleton */}
-            <div className="h-[5%] w-full bg-emerald-100/60 rounded-t-2xl"></div>
-
-            {/* Image Skeleton */}
-            <div className="h-[40%] w-full px-1 py-1">
-                <div className="h-full w-full bg-gray-200 rounded-lg"></div>
+            {/* Image */}
+            <div className="h-[40%] w-full bg-blue-50 flex items-center justify-center shimmer">
+                <div className="h-[80%] w-[80%] bg-blue-200 rounded-lg" />
             </div>
 
-            {/* Product Info Skeleton */}
-            <div className="flex flex-col justify-evenly h-[40%] w-full px-1">
-
+            {/* Content */}
+            <div className="flex flex-col justify-evenly h-[40%] px-2">
                 {/* Title */}
-                <div className="space-y-2">
-                    <div className="h-4 w-[90%] bg-gray-200 rounded"></div>
-                    <div className="h-4 w-[70%] bg-gray-200 rounded"></div>
-                    <div className="h-4 w-[50%] bg-gray-200 rounded"></div>
+                <div className="space-y-2 shimmer">
+                    <div className="h-4 w-full bg-gray-200 rounded" />
+                    <div className="h-4 w-3/4 bg-gray-200 rounded" />
                 </div>
 
-                {/* Price block */}
-                <div className="space-y-2 mt-2">
-                    <div className="h-5 w-[60%] bg-gray-200 rounded"></div>
-                    <div className="h-4 w-[40%] bg-gray-200 rounded"></div>
+                {/* Price */}
+                <div className="space-y-2 shimmer">
+                    <div className="h-5 w-1/2 bg-blue-200 rounded" />
+                    <div className="h-4 w-2/3 bg-gray-200 rounded" />
                 </div>
 
-                {/* Variants + Icons */}
-                <div className="flex justify-between items-center mt-2">
-
-                    {/* Variants skeleton */}
-                    <div className="flex gap-1">
-                        <div className="h-5 w-10 bg-gray-300 rounded"></div>
-                        <div className="h-5 w-10 bg-gray-300 rounded"></div>
-                        <div className="h-5 w-10 bg-gray-300 rounded"></div>
-                    </div>
-
-                    {/* Heart/Delete */}
-                    <div className="h-6 w-6 bg-gray-300 rounded-full"></div>
+                {/* Weight pills */}
+                <div className="flex gap-2 flex-wrap shimmer">
+                    {[1, 2, 3].map((_, i) => (
+                        <div
+                            key={i}
+                            className="h-6 w-14 bg-blue-200 rounded-full"
+                        />
+                    ))}
                 </div>
             </div>
 
-            {/* Add to Cart Button Skeleton */}
-            <div className="h-[15%] w-full rounded-b-2xl">
-                <div className="h-full w-full bg-orange-300/60 rounded-b-2xl"></div>
+            {/* CTA */}
+            <div className="h-[15%] w-full shimmer">
+                <div className="h-full w-full bg-blue-300 rounded-b-2xl" />
             </div>
         </div>
     );
@@ -361,6 +369,9 @@ function ProductCard(props) {
         }
     }
 
+
+    //// fetching the wishList for the user who is not logged in
+    const wishList=useSelector((state)=>state?.user?.userDataNotLoggedIn?.wishList)
     async function favProduct(e) {
         try {
             e.stopPropagation();
@@ -371,16 +382,33 @@ function ProductCard(props) {
             if (userData) {
                 dispatch(setProductIdInUserWishList({ productId: props?.productId, productVariation: imgCounter }))
                 const res = axios.post(`${USER_ENDPOINTS}/favourite`, { userId: userId, productId: props.productId, toAdd: newIsPresent, productVariation: imgCounter }, { withCredentials: true })
+
+                toast.success(res?.data?.message);
             } else {
                 const obj = {
                     productId: props?.productId,
                     productVariation: imgCounter
                 }
+                //// to get the proper toast message for the same
+                const exists = wishList.some(
+                    (obj) => obj.productId === props?.productId && obj.productVariation===imgCounter
+                );
+                if(!exists){
+                    toast.success("Product added in the wish list")
+                }else{
+                    toast.success("Product removed from the wish list")
+                }
+
+                //// this line is written at end as dispatch is asynchronous in nature
                 dispatch(setFavouriteNotLoggedIn(obj))
+
+
+
             }
 
         } catch (error) {
             console.log("wrong in favourite product", error)
+            toast.error(error?.response?.data?.message)
         }
     }
 
@@ -495,15 +523,10 @@ function ProductCard(props) {
                         </div>
                     </div>
 
-                    <div className="flex flex-row justify-center items-center 
-                    h-[15%] w-[100%] rounded-2xl">
-                        <button
-                            className="flex flex-row justify-center items-center 
-                       w-[100%] h-[100%] 
-                       bg-blue-600 text-white font-semibold 
-                       rounded-b-2xl cursor-pointer 
-                       transition-all duration-300 
-                       hover:bg-blue-700 hover:tracking-wide"
+                    <div className="flex flex-row justify-center items-center h-[15%] w-[100%] rounded-2xl">
+                        <button className="flex flex-row justify-center items-center w-[100%] h-[100%] 
+                        bg-blue-600 text-white font-semibold rounded-b-2xl cursor-pointer 
+                        transition-all duration-300 hover:bg-blue-700 hover:tracking-wide"
                             onClick={(e) => {
                                 addToCart(
                                     e,

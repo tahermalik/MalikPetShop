@@ -5,6 +5,7 @@ import { CART_ENDPOINTS, USER_ENDPOINTS } from "./endpoints";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCategoryState, setDetailOption, setLoginOption, setUserData } from "../redux/slices/userSlice";
+import toast from "react-hot-toast";
 
 function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -35,9 +36,11 @@ function Login() {
         if(showLoginOption===true) dispatch(setLoginOption())
         if(showDetailOption===true) dispatch(setDetailOption())
         if(categoryState===true) dispatch(setCategoryState())
+        toast.success(res?.data?.message)
         navigate("/")
       }
     }catch(error){
+      toast.error(error?.response?.data?.message)
       console.log("Wrong in user login",error)
     }
 
@@ -45,24 +48,43 @@ function Login() {
 
   async function registerUser(){
     try{
-
+      const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+      const userNameRegex=/^[A-Za-z]+(?: [A-Za-z]+)*$/
       if(password!==confirmPassword){
         console.log(password,confirmPassword)
-        console.log("both password and its confirmation should be same")
-      }else{
-        const res= await axios.post(`${USER_ENDPOINTS}/register`,{email:email,password:password,username:username},{withCredentials:true})
-        // console.log(res)
-        let result=res?.data?.bool
-        if(result){
-          setIsLoginMode(true)
-          setUserName("")
-          setEMail("")
-          setPassword("")
-          setConfirmPassword("")
-        }
+        toast.error("both password and its confirmation should be same")
+        return;
       }
+      if(username==="" || email==="" || password==="" || confirmPassword===""){
+        toast.error("All the fields are Required")
+        return;
+      }
+      if(!userNameRegex.test(username)){
+        toast.error("User name can only have alphabets")
+        return;
+
+      }
+      if(!emailRegex.test(email)){
+        toast.error("Invalid email format")
+        return;
+      }
+
+      const res= await axios.post(`${USER_ENDPOINTS}/register`,{email:email,password:password,username:username},{withCredentials:true})
+      // console.log(res)
+      let result=res?.data?.bool
+      if(result){
+        setIsLoginMode(true)
+        setUserName("")
+        setEMail("")
+        setPassword("")
+        setConfirmPassword("")
+      }
+
+      toast.success(res?.data?.message)
+      
     }catch(error){
-      console.log("Wrong in user register")
+      console.log("Wrong in user register",error)
+      toast.error(error?.response?.data?.message)
     }
   }
   
@@ -151,7 +173,7 @@ function Login() {
           {isLoginMode && (
             <div className="text-right">
               <Link to="/forgotPassword" className="text-orange-600 hover:underline">
-                Forgot password?
+                {user==="user" ? "Forgot password?":""}
               </Link>
             </div>
           )}

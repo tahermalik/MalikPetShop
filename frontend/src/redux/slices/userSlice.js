@@ -4,16 +4,18 @@ const userSlice = createSlice({
   name: "user",
   initialState: {
     userData:null,categoryState:false, loginOption:false,detailOption:false,
+
+    /// object is created by considering future expansion
     userDataNotLoggedIn:{
       "wishList":[] /// it is going to array of objects 1. productId 2. productVariation
-    }
+    },
   },
   reducers: {
     setUserData:(state,action)=>{
       state.userData=action.payload
     },
     setCategoryState:(state)=>{
-        state.categoryState=!state.categoryState
+      state.categoryState=!state.categoryState
     },
     setLoginOption:(state)=>{
       state.loginOption=!state.loginOption

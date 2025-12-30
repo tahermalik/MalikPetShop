@@ -19,6 +19,7 @@ import { Breadcrumbs } from "./Breadcrumbs.jsx";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { AiOutlineClose } from "react-icons/ai";
 import { PawPrint, Tag, Package } from "lucide-react";
+import toast from "react-hot-toast";
 
 
 function Brands(props) {
@@ -933,8 +934,10 @@ function FeedBack(props) {
     const user = useSelector((state) => state?.user?.userData);
 
     async function submitFeedBack() {
-        if (!user) console.log("User needs to login first");
-        else if (text.trim().length === 0) console.log("Feedback can't be empty");
+        if (!user){
+            toast.error("User needs to login first")
+        }
+        else if (text.trim().length === 0) toast.error("Feedback can't be empty")
         else {
             const res = await axios.post(
                 `${USER_ENDPOINTS}/createFeedBack/${user?._id}`,
@@ -942,8 +945,8 @@ function FeedBack(props) {
                 { withCredentials: true }
             );
 
-            if (res?.data?.bool) console.log("Feedback created successfully");
-            else console.log("Error in feedback creation");
+            if (res?.data?.bool) toast.success("Feedback added successfully")
+            else toast.error("Error in feedback creation");
 
             setText("");
             setRating(0);
@@ -1066,7 +1069,7 @@ export function ReviewCard(props) {
             </div>
 
             {/* Message */}
-            <p className="text-blue-700 text-sm sm:text-[14px] line-clamp-4">
+            <p className="text-blue-700 text-sm sm:text-[14px] line-clamp-10 text-justify">
                 {props?.message}
             </p>
 
