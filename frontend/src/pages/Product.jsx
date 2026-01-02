@@ -14,6 +14,9 @@ import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/sl
 import { setImageCounter } from "../redux/slices/activeSlice"
 import { addProduct } from "../redux/slices/cartSlice"
 import toast from "react-hot-toast"
+import { FiFilter } from "react-icons/fi";
+import { IoMdClose } from "react-icons/io";
+import { FaArrowLeftLong } from "react-icons/fa6";
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -26,20 +29,54 @@ function CheckBoxes(props) {
 
     return (
         <>
-            {props.items.map((item) => (
-                <label key={item} className="flex items-center gap-2 mb-1">
-                    <input
-                        type="checkbox"
-                        checked={props.chekcedList.includes(item)}
-                        onChange={() => handleChange(item)}
-                        className="w-4 h-4 bg-blue-400 border-amber-700"
-                    />
-                    {item}
-                </label>
-            ))}
-        </>
-    )
+            {props.items.map((item) => {
+                const id = `${props.type}-${item}`;
 
+                return (
+                    <div
+                        key={id}
+                        className="
+                            relative z-10
+                            flex flex-row items-center
+                            gap-3
+                            px-3 py-2
+                            rounded-lg
+                            bg-blue-800/40
+                            hover:bg-blue-700/50
+                            transition
+                        "
+                    >
+                        <input
+                            id={id}
+                            type="checkbox"
+                            checked={props.chekcedList.includes(item)}
+                            onChange={() => handleChange(item)}
+                            className="
+                                peer
+                                w-4 h-4
+                                accent-blue-600
+                                pointer-events-auto
+                                touch-manipulation
+                            "
+                        />
+
+                        <label
+                            htmlFor={id}
+                            className="
+                                ml-2
+                                text-blue-100 text-sm
+                                cursor-pointer
+                                touch-manipulation
+                                select-none
+                            "
+                        >
+                            {item}
+                        </label>
+                    </div>
+                );
+            })}
+        </>
+    );
 }
 
 const PriceRange = () => {
@@ -90,6 +127,7 @@ export const items_diet = ["veg", "non-veg"]
 export const items_brands = ["grain zero", "pedigree", "smart heart", "whiskas", "meo", "purepet", "drools", "chappi", "sense", "royal canin", "maxi"]
 
 function Filter() {
+    ///// checked list is maintained in order to find out which all filters are been selected by the user 
     const chekcedList = useSelector((state) => state?.filter?.flavorFilter);
     const checkedListBreed = useSelector((state) => state?.filter?.breedFilter);
     const checkedListDiet = useSelector((state) => state?.filter?.diet);
@@ -128,10 +166,11 @@ function Filter() {
                         )}
                     </div>
                     <div
-                        className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "flavor"
-                                ? "relative max-h-60 opacity-100"
-                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                        className={`bg-blue-100 p-3 flex flex-col gap-1 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "flavor"
+                            ? "relative max-h-60 opacity-100"
+                            : "absolute top-0 z-[-10] max-h-0 opacity-0"
                             }`}
+                        data-lenis-prevent
                     >
                         <CheckBoxes type="flavor" chekcedList={chekcedList} items={items_flavor} />
                     </div>
@@ -149,10 +188,11 @@ function Filter() {
                         )}
                     </div>
                     <div
-                        className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "breed"
-                                ? "relative max-h-60 opacity-100"
-                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                        className={`flex flex-col gap-1 bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "breed"
+                            ? "relative max-h-60 opacity-100"
+                            : "absolute top-0 z-[-10] max-h-0 opacity-0"
                             }`}
+                        data-lenis-prevent
                     >
                         <CheckBoxes type="breed" chekcedList={checkedListBreed} items={items_breed} />
                     </div>
@@ -170,10 +210,11 @@ function Filter() {
                         )}
                     </div>
                     <div
-                        className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "diet"
-                                ? "relative max-h-60 opacity-100"
-                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                        className={`flex flex-col gap-1 bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "diet"
+                            ? "relative max-h-60 opacity-100"
+                            : "absolute top-0 z-[-10] max-h-0 opacity-0"
                             }`}
+                        data-lenis-prevent
                     >
                         <CheckBoxes type="diet" chekcedList={checkedListDiet} items={items_diet} />
                     </div>
@@ -191,10 +232,11 @@ function Filter() {
                         )}
                     </div>
                     <div
-                        className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "brands"
-                                ? "relative max-h-60 opacity-100"
-                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                        className={`flex flex-col gap-1 bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "brands"
+                            ? "relative max-h-60 opacity-100"
+                            : "absolute top-0 z-[-10] max-h-0 opacity-0"
                             }`}
+                        data-lenis-prevent
                     >
                         <CheckBoxes type="brands" chekcedList={checkedListBrands} items={items_brands} />
                     </div>
@@ -213,8 +255,8 @@ function Filter() {
                     </div>
                     <div
                         className={`bg-blue-100 p-3 rounded-xl overflow-auto transition-all duration-300 ease-in-out ${showFilter === "priceslider"
-                                ? "relative max-h-60 opacity-100"
-                                : "absolute top-0 z-[-10] max-h-0 opacity-0"
+                            ? "relative max-h-60 opacity-100"
+                            : "absolute top-0 z-[-10] max-h-0 opacity-0"
                             }`}
                     >
                         <PriceRange />
@@ -225,10 +267,124 @@ function Filter() {
     );
 }
 
+function MobileFilter({ mobFilterVisible, setMobFilterVisible }) {
+    const [mobFilterData, setMobFilterData] = useState(null);
+    ///// checked list is maintained in order to find out which all filters are been selected by the user 
+    const checkedListFlavor = useSelector((state) => state?.filter?.flavorFilter);
+    const checkedListBreed = useSelector((state) => state?.filter?.breedFilter);
+    const checkedListDiet = useSelector((state) => state?.filter?.diet);
+    const checkedListBrands = useSelector((state) => state?.filter?.brandsFilter);
+
+    const filterHeading = [
+        "Flavor",
+        "Breed Size",
+        "Diet",
+        "Brands",
+        "Price",
+    ];
+
+    return (
+        <div
+            className="
+                absolute top-[100%] left-0
+                w-full
+                rounded-b-2xl
+                bg-gradient-to-br from-blue-900/40 via-blue-800/40 to-blue-700/30
+                backdrop-blur-2xl
+                border border-blue-400/20
+                shadow-[0_30px_70px_rgba(0,20,80,0.5)]
+                px-5 pt-2
+                z-2         
+                animate-fadeIn
+                flex flex-col gap-2
+            "
+            // this is written here in order to avoid filter option close when its body is clicked
+            onClick={(e) => { e.stopPropagation() }}
+        >
+            <div className="flex flex-row justify-between items-center">
+                <div onClick={(e)=>{e.stopPropagation(); setMobFilterData(null)}} className={`${mobFilterData===null ? "hidden":"block"}`}>
+                    <FaArrowLeftLong/>
+                </div>
+                <div>
+                    {mobFilterData === null ? "Filters" : mobFilterData}
+                </div>
+                <div onClick={(e) => { e.stopPropagation(); setMobFilterVisible(false) }}>
+                    <IoMdClose />
+                </div>
+            </div>
+            {mobFilterData === null &&
+                <div className="flex flex-col gap-3 p-2 ">
+                    {filterHeading.map((item, idx) => (
+                        <div
+                            key={idx}
+                            className="
+                        group
+                        flex items-center justify-between
+                        px-4 py-3
+                        rounded-b-xl
+                        bg-blue-800/40
+                        border border-blue-300/20
+                        text-blue-50
+                        text-sm font-medium
+                        cursor-pointer
+                        transition-all duration-300 ease-out
+                        hover:bg-blue-700/50
+                        hover:shadow-[0_12px_35px_rgba(0,90,200,0.45)]
+                        hover:translate-x-1
+                        "
+
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMobFilterData(item) }}
+                        >
+                            <span>{item}</span>
+
+                            {/* subtle arrow */}
+                            <span className="text-blue-200/60 group-hover:text-blue-100 transition">
+                                →
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            }
+
+            {mobFilterData === "Flavor" &&
+                <div className="flex flex-row flex-wrap gap-2 justify-evenly items-center p-2">
+                    <CheckBoxes type="flavor" chekcedList={checkedListFlavor} items={items_flavor} />
+                </div>
+            }
+
+            {mobFilterData==="Breed Size" &&
+                <div className="flex flex-row flex-wrap gap-2 justify-evenly items-center p-2">
+                    <CheckBoxes type="breed" chekcedList={checkedListBreed} items={items_breed} />
+                </div>
+            }
+
+            {mobFilterData==="Diet" &&
+                <div className="flex flex-row flex-wrap gap-2 justify-evenly items-center p-2">
+                    <CheckBoxes type="diet" chekcedList={checkedListDiet} items={items_diet} />
+                </div>
+            }
+
+            {mobFilterData==="Brands" &&
+                <div className="flex flex-row flex-wrap gap-2 justify-evenly items-center p-2">
+                    <CheckBoxes type="brands" chekcedList={checkedListBrands} items={items_brands} />
+                </div>
+            }
+
+            {mobFilterData==="Price" &&
+                <div className="flex flex-row flex-wrap gap-2 justify-evenly items-center p-2">
+                    <PriceRange />
+                </div>
+            }
+
+
+        </div>
+    );
+}
+
 
 /// function written for both loggedIn user & user who is not loggedIn
 export async function addToCart(e, userId, productId, productVariation, logInFlag, dispatch) {
-    try{
+    try {
         e.stopPropagation();
         e.preventDefault();
         const obj = {
@@ -236,17 +392,17 @@ export async function addToCart(e, userId, productId, productVariation, logInFla
             productVariation: productVariation,
             productQuantity: 1
         }
-    
+
         //// this will done in both scenerio when the user is logged iN and when the user is not logged in
         dispatch(addProduct(obj))   /// just adding an product to the redux cart
-    
+
         if (logInFlag) {      // user is logged in so backend stuff will be called
             const result = await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: userId, productId: productId, productVariation: productVariation }, { withCredentials: true })
             if (result?.data?.comment === "Already Present") toast.success("Product Already Present")
             else if (result?.data?.bool === false) toast.error("Some problem in product addition to cart")
             else toast.success(`Product added successfully`)
         }
-    }catch(error){
+    } catch (error) {
         console.log(error);
         toast.error(error?.response?.data?.message)
     }
@@ -257,7 +413,7 @@ function ProductCardSkeleton() {
     return (
         <div
             className="
-                w-[250px] h-[450px]
+                w-[100%] h-[450px]
                 bg-white rounded-2xl
                 border border-blue-100
                 shadow-md
@@ -371,7 +527,7 @@ function ProductCard(props) {
 
 
     //// fetching the wishList for the user who is not logged in
-    const wishList=useSelector((state)=>state?.user?.userDataNotLoggedIn?.wishList)
+    const wishList = useSelector((state) => state?.user?.userDataNotLoggedIn?.wishList)
     async function favProduct(e) {
         try {
             e.stopPropagation();
@@ -391,19 +547,16 @@ function ProductCard(props) {
                 }
                 //// to get the proper toast message for the same
                 const exists = wishList.some(
-                    (obj) => obj.productId === props?.productId && obj.productVariation===imgCounter
+                    (obj) => obj.productId === props?.productId && obj.productVariation === imgCounter
                 );
-                if(!exists){
+                if (!exists) {
                     toast.success("Product added in the wish list")
-                }else{
+                } else {
                     toast.success("Product removed from the wish list")
                 }
 
                 //// this line is written at end as dispatch is asynchronous in nature
                 dispatch(setFavouriteNotLoggedIn(obj))
-
-
-
             }
 
         } catch (error) {
@@ -424,7 +577,7 @@ function ProductCard(props) {
             {skeleton ? <ProductCardSkeleton /> :
 
                 // initially setting 0th product to be displayed whicle clicking on the product
-                <div className="w-[250px] h-[450px] bg-white flex flex-col rounded-2xl 
+                <div className="w-[100%] h-[450px] bg-white flex flex-col rounded-2xl 
                 shadow-md hover:shadow-xl transition-all duration-300 
                 border border-blue-100 cursor-pointer">
 
@@ -551,7 +704,7 @@ function ProductCard(props) {
 function DisplayProducts(props) {
 
     const [page, setPage] = useState(1);
-    const navigate=useNavigate();
+    const navigate = useNavigate();
 
     const { productData, hasMore, loading } = useGetAllProduct(props?.refresh, props?.query, page, setPage);
     function productClicked(products) {
@@ -588,7 +741,7 @@ function DisplayProducts(props) {
             <>
                 {productData.map((products) => {
                     return (
-                        <div onClick={() => productClicked(products)} className="h-fit">
+                        <div onClick={() => productClicked(products)} className="h-fit w-[90%] sm:w-[250px] gap-2">
                             <ProductCard imagesArray={products.image} netWeightArray={products.netWeight} originalPriceArray={products.originalPrice} discountArray={products.discountValue} productName={products.productName} productId={products._id} refresh={props.refresh} setRefresh={props.setRefresh} />
                         </div>
                     )
@@ -614,22 +767,54 @@ export default function Product() {
 
     console.log("query :" + query + " data :" + data)
 
+    const [mobFilterVisible, setMobFilterVisible] = useState(false);
+
+
     return (
         <>
             <Header />
-            <div className={`w-[100%] flex flex-row`} style={{ height: `${productHeight}px` }}>
-                <div className="bg-blue-100  sm:w-[300px] md:w-[350px] h-[100%] overflow-auto scrollbar-hide"><Filter productHeight={productHeight} /></div>
-                <div className="h-auto p-2 flex flex-row flex-wrap justify-evenly gap-x-2 gap-y-10 overflow-auto scrollbar-hide">
-                    <DisplayProducts refresh={refresh} setRefresh={setRefresh} query={query} data={data} loaderRef={loaderRef} setHasMore={setHasMore} hasMore={hasMore} />
-                    {/* Loader trigger */}
-                    {hasMore && (
-                        <div
-                            ref={loaderRef}
-                            className="text-center py-4 text-gray-500"
-                        >
-                        </div>
-                    )}
+            <div className={`w-[100%] flex flex-col sm:flex-row`} style={{ height: `${productHeight}px` }}>
+
+                {/* Filter Display for Desktop */}
+                <div className="hidden sm:block
+                bg-blue-100  sm:w-[300px] md:w-[350px] h-[100%] overflow-auto scrollbar-hide"><Filter productHeight={productHeight} /></div>
+
+                {/* Filter Display for Mobile */}
+                <div
+                    onClick={() => { setMobFilterVisible(!mobFilterVisible); console.log("holaaa") }}
+                    className={`
+                    sm:hidden flex justify-center items-center gap-2
+                    px-5 py-2.5
+                    ${mobFilterVisible ? "rounded-t-full" : "rounded-full"}
+                    bg-gradient-to-r from-blue-500 to-blue-600
+                    text-white font-medium text-sm
+                    shadow-lg shadow-blue-500/30
+                    active:scale-95
+                    transition-all duration-300
+                    hover:shadow-xl hover:shadow-blue-500/40
+                    my-2 mx-2 relative 
+                `}
+                >
+                    <FiFilter className="text-white/90" />
+                    Filter
+
+                    {mobFilterVisible && <MobileFilter mobFilterVisible={mobFilterVisible} setMobFilterVisible={setMobFilterVisible} />
+                    }
                 </div>
+
+
+
+                <div className="h-auto p-2 flex flex-row flex-wrap justify-evenly items-center sm:items-start gap-x-2 gap-y-10 overflow-auto" data-lenis-prevent>
+                    <DisplayProducts refresh={refresh} setRefresh={setRefresh} query={query} data={data} loaderRef={loaderRef} setHasMore={setHasMore} hasMore={hasMore} />
+                </div>
+                {/* Loader trigger */}
+                {hasMore && (
+                    <div
+                        ref={loaderRef}
+                        className="text-center py-4 text-gray-500 relative z-[-2]"
+                    >
+                    </div>
+                )}
             </div>
             <Footer />
 
