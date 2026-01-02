@@ -461,8 +461,6 @@ function ProductCardSkeleton() {
     );
 }
 
-
-
 function ProductCard(props) {
     const dispatch = useDispatch();
     const [isPresent, setIsPresent] = useState(false)

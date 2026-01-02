@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import toast from "react-hot-toast";
 
 const userSlice = createSlice({
   name: "user",
@@ -56,6 +57,7 @@ const userSlice = createSlice({
         else{ // as we are now removing it
           // console.log("Helo")
           state.userDataNotLoggedIn.wishList=state.userDataNotLoggedIn.wishList.filter((item)=>!(item.productId === action.payload.productId && item.productVariation===action.payload.productVariation))
+          toast.success("Product removed from wishList")
         }
       }
 

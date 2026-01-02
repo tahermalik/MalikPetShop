@@ -12,33 +12,42 @@ import toast from "react-hot-toast";
 
 function CartCardSkeleton() {
   return (
-    <div className="flex items-center justify-between border-b border-gray-200 pb-4 animate-pulse">
-      {/* Left section */}
-      <div className="flex items-center gap-4">
-        {/* Image skeleton */}
-        <div className="w-20 h-20 bg-gray-300 rounded-lg" />
+    <div
+      className="
+        relative overflow-hidden
+        grid grid-cols-2 grid-rows-[1.5fr_0.5fr]
+        sm:grid-cols-[2fr_0fr_0.5fr_0.5fr]
+        sm:grid-rows-1
+        border-b border-gray-200 pb-4
+      "
+    >
+      {/* SHIMMER OVERLAY */}
+      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.4s_infinite]" />
 
-        {/* Text skeleton */}
-        <div className="space-y-2">
-          <div className="h-4 w-40 bg-gray-300 rounded" />
-          <div className="h-3 w-24 bg-gray-300 rounded" />
+      {/* IMAGE + TEXT */}
+      <div className="flex items-center gap-4 p-2 col-span-2">
+        <div className="w-24 h-24 rounded-lg bg-gray-200 shrink-0" />
+
+        <div className="flex flex-col gap-3 w-full">
+          <div className="h-4 w-3/4 bg-gray-200 rounded" />
+          <div className="h-3 w-1/4 bg-gray-200 rounded" />
         </div>
       </div>
 
-      {/* Quantity section */}
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-gray-300" />
-        <div className="h-4 w-6 bg-gray-300 rounded" />
-        <div className="w-8 h-8 rounded-full bg-gray-300" />
+      {/* QUANTITY */}
+      <div className="flex items-center justify-start sm:justify-center gap-3 pl-2 sm:p-2">
+        <div className="w-8 h-8 rounded-full bg-gray-200" />
+        <div className="h-4 w-6 bg-gray-200 rounded" />
+        <div className="w-8 h-8 rounded-full bg-gray-200" />
       </div>
 
-      {/* Price & remove */}
-      <div className="text-right space-y-2">
-        <div className="h-4 w-20 bg-gray-300 rounded ml-auto" />
-        <div className="h-3 w-14 bg-gray-300 rounded ml-auto" />
+      {/* PRICE + REMOVE */}
+      <div className="flex flex-col items-end sm:justify-center gap-2 pr-2 sm:p-2">
+        <div className="h-4 w-20 bg-gray-200 rounded" />
+        <div className="h-3 w-14 bg-gray-200 rounded" />
       </div>
     </div>
-  )
+  );
 }
 
 
@@ -245,21 +254,21 @@ export default function CartPage() {
               //// written in order to implement skeleton effect
               skeleton ? <CartCardSkeleton /> :
                 <div
-                  className="flex items-center justify-between border-b border-gray-200 pb-4"
+                  className="grid grid-cols-2 grid-rows-[1.5fr_0.5fr] sm:grid-cols-[2fr_0fr_0.5fr_0.5fr] sm:grid-rows-1 border-b border-gray-200 pb-4"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 p-2 col-span-2">
                     <img
                       src={`http://localhost:3000/${item.image[productVariationData[index]]}`}
                       alt={item.productName}
-                      className="w-20 h-20 object-cover rounded-lg"
+                      className="w-25 h-25 object-cover rounded-lg "
                     />
-                    <div>
+                    <div className="w-full">
                       <h3 className="font-medium text-gray-800">{item.productName}</h3>
                       <p className="text-sm text-gray-500">₹{item.originalPrice[productVariationData[index]] - discountAmount(item.originalPrice[productVariationData[index]], item.discountValue[productVariationData[index]])}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-start sm:justify-center gap-3 pl-2 sm:p-2">
                     <div
                       onClick={() => decreaseQty(item._id, productVariationData[index])}
                       className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
@@ -275,7 +284,7 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-right pr-2 flex flex-col items-end sm:p-2 sm:justify-center">
                     <p className="font-semibold text-gray-700 font-sans">
                       ₹{(item.originalPrice[productVariationData[index]] - discountAmount(item.originalPrice[productVariationData[index]], item.discountValue[productVariationData[index]])) * Number(productQuantityData[index])}
                     </p>
@@ -292,11 +301,10 @@ export default function CartPage() {
         )}
       </div>
 
-      {/* Coupans */}
 
       {/* Right - Order Summary */}
       <div className="flex flex-col gap-3 md:w-[30%] w-[90%]">
-        <div className="bg-gradient-to-r from-blue-500 via-blue-400 to-blue-300 hover:from-blue-600 hover:via-blue-500 hover:to-blue-400 cursor-pointer rounded-2xl py-2 px-1 hover:text-white" onClick={() => setCoupanVisible(!coupanVisible)}>
+        <div className="flex justify-center items-center bg-gradient-to-r from-blue-500 via-blue-400 to-blue-300 hover:from-blue-600 hover:via-blue-500 hover:to-blue-400 cursor-pointer rounded-2xl py-2 px-1 hover:text-white" onClick={() => setCoupanVisible(!coupanVisible)}>
           <span>Apply Coupans for Extra discount!!!</span>
         </div>
         <div className="bg-white w-full h-fit rounded-2xl shadow-md p-6">
@@ -337,38 +345,137 @@ export default function CartPage() {
 
 
       {/* Coupan Window */}
-      {coupanVisible && <div className="absolute top-0 w-[100%] h-[100%] backdrop-blur flex flex-row justify-center items-center">
-        <div className="absolute sm:top-[50px] sm:w-[400px] sm:h-[600px] top-0 h-[100%] w-[100%] bg-blue-100 flex flex-col overflow-auto scrollbar-hide p-2 gap-3 rounded-2xl" onScroll={(e) => scrollHandle(e)}>
+      {coupanVisible && (
+        <div
+          className="
+      fixed inset-0 z-[999]
+      bg-black/30 backdrop-blur-sm
+      flex justify-center items-end sm:items-center
+      animate-fadeIn
+    "
+        >
+          <div
+            className="
+        relative
+        w-full h-full
+        sm:top-0 sm:w-[420px] sm:h-[620px]
+        bg-white/80 backdrop-blur-xl
+        sm:rounded-3xl
+        shadow-[0_20px_60px_rgba(0,0,0,0.25)]
+        flex flex-col
+        overflow-auto scrollbar-hide
+        p-4 gap-4
+        animate-slideUp sm:animate-scaleIn
+      "
+            onScroll={(e) => scrollHandle(e)}
+          >
 
-          {/* Top of the Show Coupans */}
-          <div className="flex flex-row gap-1 items-center ">
-            <div className="cursor-pointer hover:bg-blue-200 hover:rounded-full p-1" onClick={() => { setCoupanVisible(false); }}><FiArrowLeft size={18} /></div>
-            <div className="underline font-semibold sm:text-md lg:text-xl">Coupans</div>
-          </div>
-          {coupons.map((_, index) => (
-            <div className="w-[100%] h-auto bg-white rounded-2xl p-2 hover:shadow-md flex-shrink-0 cursor-pointer">
-              <div className=" flex flex-row justify-between">
-                <div className=" coupan-name sm:text-xl border-dashed border-2 border-black px-1 font-sans">{coupons[index]["couponCode"]}</div>
-                {coupanIndex !== index &&
-                  <div className={`rounded-2xl flex flex-row justify-center items-center p-1 sm:text-md text-white ${checkCoupon(coupons[index]["couponStartDate"], coupons[index]["couponEndDate"]) ? "bg-blue-500" : "bg-blue-600 pointer-events-none opacity-50"}`} onClick={() => { setCoupanIndex(index) }}>Apply</div>
-                }
-                {coupanIndex === index &&
-                  <div className="sm:text-md text-emerald-500 flex flex-row items-center">
-                    <div><IoCheckmarkDoneOutline color="emerald-500" size={15} /></div>
-                    <div>Applied</div>
-                  </div>
-                }
+            {/* Header */}
+            <div className="flex items-center rounded-3xl gap-3 sticky top-0 bg-white/70 backdrop-blur-md py-2 px-2 z-10 w-[100%]">
+              <div
+                className="
+                cursor-pointer
+                p-2 rounded-full
+                hover:bg-blue-100
+                active:scale-95
+                transition
+              "
+                onClick={() => { setCoupanVisible(false); }}
+              >
+                <FiArrowLeft size={18} />
               </div>
-              <div className="text-emerald-500 sm:text-md lg:text-lg"><span className="">Save upto ₹<span className="font-sans">{discountAmount(total - shipping, Number(coupons[index]["couponDiscountValue"]))} ; {coupons[index]["couponDiscountValue"]}%</span></span></div>
-              <div className="text-[10px] md:text-sm flex justify-between items-center">
-                <div>*T&C Applied</div>
-                <div>{fetchCurrentTime(coupons[index]["couponStartDate"]) === -1 ? (fetchCurrentTime(coupons[index]["couponEndDate"]) !== -1 ? `Ends in ${fetchCurrentTime(coupons[index]["couponEndDate"])}` : "Expired") : `Starts in ${fetchCurrentTime(coupons[index]["couponStartDate"])}`}</div>
+
+              <div className="font-semibold tracking-wide text-lg sm:text-xl underline">
+                Coupons
               </div>
             </div>
-          ))}
-        </div>
 
-      </div>}
+            {/* Coupon Cards */}
+            {coupons.map((_, index) => (
+              <div
+                key={index}
+                className="
+            w-full
+            bg-white
+            rounded-2xl
+            p-4
+            flex flex-col gap-2
+            shadow-sm
+            hover:shadow-lg
+            transition-all duration-300
+            cursor-pointer
+            border border-gray-100
+          "
+              >
+                <div className="flex justify-between items-center gap-2">
+                  <div
+                    className="
+                border-2 border-dashed border-gray-800
+                px-3 py-1
+                rounded-lg
+                font-semibold
+                tracking-widest
+                text-sm sm:text-lg
+              "
+                  >
+                    {coupons[index]["couponCode"]}
+                  </div>
+
+                  {coupanIndex !== index && (
+                    <div
+                      className={`
+                  px-4 py-1.5
+                  rounded-full
+                  text-sm font-medium text-white
+                  transition-all duration-300
+                  ${checkCoupon(
+                        coupons[index]["couponStartDate"],
+                        coupons[index]["couponEndDate"]
+                      )
+                          ? "bg-blue-500 hover:bg-blue-600 active:scale-95"
+                          : "bg-blue-400 opacity-50 pointer-events-none"}
+                `}
+                      onClick={() => { setCoupanIndex(index); }}
+                    >
+                      Apply
+                    </div>
+                  )}
+
+                  {coupanIndex === index && (
+                    <div className="flex items-center gap-1 text-emerald-500 font-medium text-sm">
+                      <IoCheckmarkDoneOutline size={16} />
+                      Applied
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-emerald-600 text-sm sm:text-base font-medium">
+                  Save upto ₹
+                  <span className="font-semibold">
+                    {discountAmount(
+                      total - shipping,
+                      Number(coupons[index]["couponDiscountValue"])
+                    )}{" "}
+                    ; {coupons[index]["couponDiscountValue"]}%
+                  </span>
+                </div>
+
+                <div className="text-[11px] sm:text-sm flex justify-between text-gray-500">
+                  <div>*T&C Applied</div>
+                  <div>
+                    {fetchCurrentTime(coupons[index]["couponStartDate"]) === -1
+                      ? fetchCurrentTime(coupons[index]["couponEndDate"]) !== -1
+                        ? `Ends in ${fetchCurrentTime(coupons[index]["couponEndDate"])}`
+                        : "Expired"
+                      : `Starts in ${fetchCurrentTime(coupons[index]["couponStartDate"])}`}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

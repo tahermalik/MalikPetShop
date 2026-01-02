@@ -9,6 +9,7 @@ import { useState } from "react";
 import { USER_ENDPOINTS } from "./endpoints";
 import { useDispatch } from "react-redux";
 import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/slices/userSlice";
+import toast from "react-hot-toast";
 
 export function EmptyWishlist() {
     const navigate = useNavigate();
@@ -79,10 +80,12 @@ export default function WishListUI() {
 
             console.log("inside remove btn", userId, productId)
 
+            /// if the user is logged in then directly remove the product from the wishlist from the backend itself
             if (userId !== undefined) {
                 dispatch(setProductIdInUserWishList({ productId: productId, productVariation: productVariation }))
                 console.log("holaaaaaa")
                 const result = await axios.post(`${USER_ENDPOINTS}/favourite`, { userId: userId, productId: productId, toAdd: false, productVariation: productVariation }, { withCredentials: true })
+                toast.success(result?.data?.message)
             } else {
                 const obj = {
                     productId: productId,
@@ -102,14 +105,14 @@ export default function WishListUI() {
             <div className="sticky top-0 z-30">
                 <div
                     className="
-          flex items-center gap-4
-          px-4 py-3
-          rounded-2xl
-          bg-white/70 backdrop-blur-xl
-          shadow-[0_8px_30px_rgba(0,0,0,0.08)]
-          border border-white/40
-          transition-all duration-300
-        "
+                    flex items-center gap-4
+                    px-4 py-3
+                    rounded-2xl
+                    bg-white/70 backdrop-blur-xl
+                    shadow-[0_8px_30px_rgba(0,0,0,0.08)]
+                    border border-white/40
+                    transition-all duration-300
+                    "
                 >
                     {/* Back Button */}
                     <Link

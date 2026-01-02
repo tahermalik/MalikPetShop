@@ -1,5 +1,6 @@
 ///// this is been created for user who havent logged in
 import { createSlice } from "@reduxjs/toolkit";
+import toast from "react-hot-toast";
 
 const cartSlice = createSlice({
   name: "cart",
@@ -13,14 +14,18 @@ const cartSlice = createSlice({
     addProduct:(state,action)=>{
       /// if the product is already present then it will be simply skipped
       const exists=state.products.some((item)=> item["productId"]===action.payload.productId && item["productVariation"]===action.payload.productVariation)
-      if(!exists) state.products.push(action.payload)
+      if(!exists){
+        state.products.push(action.payload)
+        toast.success("Product added in the Cart")
+      }else toast.success("Product is already present")
     },
 
     removeProduct:(state,action)=>{
       const exists=state.products.some((item)=> item["productId"]===action.payload.productId && item["productVariation"]===action.payload.productVariation)
       if(exists){
         state.products=state.products.filter((item)=>!(item["productId"]===action.payload.productId && item["productVariation"]===action.payload.productVariation))
-      }
+        toast.success("Product removed from the Cart")
+      }else toast.error("Product is not in the cart")
     },  
 
     incrementQuantity:(state,action)=>{
