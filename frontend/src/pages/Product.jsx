@@ -17,6 +17,7 @@ import toast from "react-hot-toast"
 import { FiFilter } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";
 import { FaArrowLeftLong } from "react-icons/fa6";
+import { SideBar,SubMenu } from "./LandingPage"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -398,9 +399,8 @@ export async function addToCart(e, userId, productId, productVariation, logInFla
 
         if (logInFlag) {      // user is logged in so backend stuff will be called
             const result = await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: userId, productId: productId, productVariation: productVariation }, { withCredentials: true })
-            if (result?.data?.comment === "Already Present") toast.success("Product Already Present")
-            else if (result?.data?.bool === false) toast.error("Some problem in product addition to cart")
-            else toast.success(`Product added successfully`)
+            
+            if (result?.data?.bool === false) toast.error("Some problem in product addition to cart")
         }
     } catch (error) {
         console.log(error);
@@ -766,11 +766,14 @@ export default function Product() {
     console.log("query :" + query + " data :" + data)
 
     const [mobFilterVisible, setMobFilterVisible] = useState(false);
-
+    const [open, setOpen] = useState(false);
+    const [animal, setAnimal] = useState("");
 
     return (
         <>
-            <Header />
+            <Header open={open} setOpen={setOpen} />
+            <SideBar open={open} setOpen={setOpen} setAnimal={setAnimal} />
+            <SubMenu animal={animal} />
             <div className={`w-[100%] flex flex-col sm:flex-row`} style={{ height: `${productHeight}px` }}>
 
                 {/* Filter Display for Desktop */}

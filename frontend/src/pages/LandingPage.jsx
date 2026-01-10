@@ -101,8 +101,6 @@ function Brands(props) {
     );
 }
 
-
-
 function AutoBrandSlider() {
     const [activeSlide, setActiveSlide] = useState(0);
 
@@ -218,7 +216,6 @@ function Owner() {
     );
 }
 
-
 function SmoothUnderline() {
     return (
         <>
@@ -228,7 +225,6 @@ function SmoothUnderline() {
         </>
     )
 }
-
 
 export const cat = {
     "cat food": ["dry food", "wet food", "kitten food", "veterinary food"],
@@ -302,7 +298,6 @@ function MobileCatStuff() {
         </div>
     );
 }
-
 
 export const dog = {
     "dog food": ["dry food", "wet food", "puppy food", "veterinary food"],
@@ -481,9 +476,7 @@ function MobileSmallPetStuff() {
     );
 }
 
-
-
-function SideBar({ open, setOpen, setAnimal }) {
+export function SideBar({ open, setOpen, setAnimal }) {
     const menu = [
         { label: "Cat", icon: PawPrint },
         { label: "Dog", icon: PawPrint },
@@ -642,9 +635,6 @@ export function SubMenu({ animal }) {
         </div>
     );
 }
-
-
-
 
 export function Header({ open, setOpen }) {
     const dispatch = useDispatch();

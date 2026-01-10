@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { USER_ENDPOINTS } from './endpoints';
+import toast from 'react-hot-toast';
 /**
  * PasswordRecovery.jsx
  * Single-file React component (Tailwind CSS required)
@@ -39,15 +40,24 @@ export default function PasswordRecovery() {
 
   async function submitMail(e) {
     try {
+
+      //// to prevent the backend call
+      const mailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if(!mailRegex.test(email)){
+        toast.error("Email is not valid")
+        return;
+      }
+
       e.preventDefault();
       e.stopPropagation();
       setLoading(true)
       const result = await axios.post(`${USER_ENDPOINTS}/forgotPassword`, { userEmail: email },{withCredentials:true})
       setShowOTP(true)
-      setLoading(false)
-
     } catch (error) {
+      toast.error(error?.response?.data?.message)
       console.log("Wrong in submit mail", error)
+    } finally{
+      setLoading(false)
     }
   }
 
@@ -83,6 +93,7 @@ export default function PasswordRecovery() {
       e.preventDefault();
       e.stopPropagation();
       if(password!==confirmPassword) {
+        toast.error("Both the field should contain the same data")
         console.log("Both the field should contain the same data")
         return;
       }
@@ -92,9 +103,13 @@ export default function PasswordRecovery() {
         return;
       }
       const res=await axios.post(`${USER_ENDPOINTS}/resetPassword`,{password:password,email:email},{withCredentials:true});
-      if(res?.data?.bool) navigate("/Login",{state:{user:"user"}})
+      if(res?.data?.bool){
+        toast.success(res?.data?.message)
+        navigate("/Login",{state:{user:"user"}})
+      }
 
     }catch(error){
+      toast.error(error?.response?.data?.message)
       console.log("front end error at submit password "+error)
     }
 
