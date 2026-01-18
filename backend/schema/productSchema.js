@@ -40,8 +40,15 @@ const productSchema = new mongoose.Schema({
         type: String,
         match: /^[A-Za-z]+$/
     },
+
+    // as each product have multiple variation so we are making use of array in stock and reservedStock
     stock: {
         type: [Number],
+        default: []
+    },
+    reservedStock:{
+        type:[Number],
+        default: [],
     },
     breed: {
         type: String,
@@ -112,6 +119,29 @@ const productSchema = new mongoose.Schema({
     }
 
 }, { timestamps: true })
+
+productSchema.pre("save", function (next) {
+  const len = this.netWeight?.length || 0;
+
+  const arraysToCheck = [
+    this.stock,
+    this.reservedStock,
+    this.discountValue,
+    this.discountType,
+    this.image,
+    this.productString,
+  ];
+
+  for (const arr of arraysToCheck) {
+    if (arr && arr.length !== len) {
+      return next(
+        new Error("Variation arrays length mismatch")
+      );
+    }
+  }
+
+  next();
+});
 
 const Product = mongoose.model("Product", productSchema);
 export default Product

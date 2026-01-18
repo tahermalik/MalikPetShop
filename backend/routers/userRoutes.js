@@ -1,5 +1,5 @@
 import express from "express"
-import { login, register ,logout, viewCompanyFood, viewFood, addCart, placeOrder,createFeedBack,displayFeedBack, favourite, viewWishList, forgotPassword, verifyOTP, resetPassword,setAddress} from "../controllers/userController.js";
+import { login, register ,logout, viewCompanyFood, viewFood, addCart, placeOrder,createFeedBack,displayFeedBack, favourite, viewWishList, forgotPassword, verifyOTP, resetPassword,setAddress, demo, getGuestId} from "../controllers/userController.js";
 import { authenticate } from "../controllers/middleware.js";
 
 const uRouter=express.Router();
@@ -29,4 +29,10 @@ uRouter.get("/displayFeedBack",(req,res)=>displayFeedBack(req,res))
 
 /// address routes
 uRouter.post("/setAddress",(req,res)=>setAddress(req,res))
+
+/// Guest
+uRouter.get("/getGuestId",(req,res)=>getGuestId(req,res))
+
+/// demo
+uRouter.get("/demo",(req,res)=>demo(req,res))
 export default uRouter

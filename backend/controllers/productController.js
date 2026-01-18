@@ -1,5 +1,4 @@
 import Product from "../schema/productSchema.js";
-import fs from "fs";
 import natural from "natural";
 import User from "../schema/userSchema.js";
 import { cartCleanUp } from "./cartController.js";
@@ -54,7 +53,7 @@ export async function addProduct(req, res) {
         }
 
         /// creating the product String
-        console.log("product Data", productData)
+        // console.log("product Data", productData)
         const textFields = [
             pet, category, type, flavor, breed, diet, brand, productName, color, material
         ];
@@ -62,8 +61,8 @@ export async function addProduct(req, res) {
         productString = textFields.filter(Boolean).join(" ") + " " + netWeight + " ";
 
 
-        //// identifying the product uniquely on the basis of name, netWeight and company
-        const product_db = await Product.findOne({ pet: pet, brand: brand })
+        //// identifying the product uniquely on the basis of followong field so that variations can be indentified like if the product is an variation or not
+        const product_db = await Product.findOne({ pet: pet, brand: brand ,category:category, type:type, flavor:flavor, breed:breed, diet:diet})
         // console.log(product_db)
         if (product_db) {
 
@@ -109,7 +108,7 @@ export async function addProduct(req, res) {
             productString = productString.trim().replace(/\s+/g, " ").toLowerCase();
             await Product.updateOne(
                 { _id: product_db._id },
-                { $push: { netWeight: Number(netWeight), discountType: discountType, discountValue: Number(discountValue), expiryDate: expiryDate, manufactureDate: manufactureDate, stock: Number(stock), originalPrice: Number(originalPrice), image: imagePath ? imagePath : null, productString: productString } }
+                { $push: { netWeight: Number(netWeight), discountType: discountType, discountValue: Number(discountValue), expiryDate: expiryDate, manufactureDate: manufactureDate, stock: Number(stock),reservedStock:0, originalPrice: Number(originalPrice), image: imagePath ? imagePath : null, productString: productString } }
             );
 
             return res.status(200).json({ message: "Variation of existing item added" })
@@ -132,6 +131,7 @@ export async function addProduct(req, res) {
             netWeight: [Number(netWeight)],
             pet: pet,
             stock: [Number(stock)],
+            reservedStock:[0],
             height: Number(height),
             width: Number(width),
             length: Number(length),
@@ -278,7 +278,7 @@ export async function deleteProduct(req, res) {
 
         for (let i = 0; i < keyArray.length; i++) {
             let value = productObj[keyArray[i]];
-
+            // console.log(i,value)
             //// condition is written to ensure the deletion of variation and not the complete product
             if (Array.isArray(value) && keyArray[i] !== "wishList" && keyArray[i] != "cart") {
                 if (value.length > 1) {
@@ -311,7 +311,7 @@ export async function deleteProduct(req, res) {
     }
 }
 
-//// function specially created for cart; ///working
+//// function specially created for cart as it stores product via their ID's ; ///working
 export async function getProductsViaIds(req, res) {
     try {
         const { productIds } = req?.body

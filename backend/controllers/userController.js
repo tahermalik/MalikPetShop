@@ -9,14 +9,19 @@ import { mergeCartItems } from "./cartController.js";
 import ForgotPassword from "../schema/forgotPassword.js";
 import nodemailer from "nodemailer";
 import Address from "../schema/addressSchema.js";
-import axios from "axios";
+import Cart from "../schema/cartSchema.js";
+import { v4 as uuidv4 } from "uuid";
 
 /// working
 export async function login(req, res) {
     try {
         console.log("in this login component")
         const { email, password, reduxCartData, reduxWishListData } = req.body;
+        const guestId=req?.cookies?.guestId
         const role = req.params?.role || "user";
+
+        const isGuest=!!guestId
+        if(!isGuest) return res.status(404).json({message:"Something is wrong"})
 
         console.log("role", role)
 
@@ -43,10 +48,10 @@ export async function login(req, res) {
             { expiresIn: "1h" } // token valid for 1 hour
         );
         await mergeWishList(user._id, reduxWishListData)
-        await mergeCartItems(user._id, reduxCartData)
+        await mergeCartItems(user._id,guestId)
 
         const updatedUser = await User.findById(user._id).select("-email")
-        return res.status(200).cookie("token", token, { httpOnly: true, sameSite: "None", maxAge: 3600000 }).json({ message: `login ${user.username}`, bool: true, user: updatedUser })
+        return res.status(200).cookie("token", token, { httpOnly: true, sameSite: "None", maxAge: 3600000 }).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser })
     } catch (error) {
         console.log("wrong in login", error)
         return res.status(500).json({ message: "something wrong at the server side", bool: false })
@@ -418,7 +423,7 @@ export async function displayFeedBack(req, res) {
         // console.log(allFeedBack)
         return res.status(200).json({ feedBackData: allFeedBack?.allFeedBack })
     } catch (error) {
-        console.log("wrong in display FeedBack")
+        console.log("wrong in display FeedBack",error)
         return res.status(500).json({ message: "Server fucked up in display feedback" })
     }
 }
@@ -491,6 +496,15 @@ export async function forgotPassword(req, res) {
             }
         });
 
+        //// just to check whther SMTP is running fine or not
+        transporter.verify((error, success) => {
+            if (error) {
+                console.log("SMTP ERROR:", error);
+            } else {
+                console.log("SMTP READY");
+            }
+        });
+
         await sendOTPEmail(transporter, userEmail, OTP)
 
 
@@ -552,7 +566,7 @@ export async function resetPassword(req, res) {
         console.log("password changed")
         await User.updateOne({ email: email }, { password: newHashedPassword });
 
-        return res.status(200).json({ message: "Password rest succesfully", bool: true });
+        return res.status(200).json({ message: "Password reset succesfully", bool: true });
 
 
     } catch (error) {
@@ -609,5 +623,40 @@ export async function setAddress(req, res) {
     }
 }
 
+export async function demo(req,res){
+    try{
+        const now = new Date();
+        const RESERVATION_PERIOD = 30 * 60 * 1000; // 30 min
+        const carts = await Cart.find({
+            "products.reservedAt": { $lt: new Date(now - RESERVATION_PERIOD) }
+        });
 
+        const carts2=await Cart.find({
+            "products.reservedAt":{$lt:new Date(now - (15 * 60 * 1000))}
+        })
+
+        console.log("Hola",carts2)
+
+    }catch(error){
+        console.log(error)
+        return res.status(500).json({message:"Server went wrong in demo"})
+    }
+}
+
+/// working
+export async function getGuestId(req,res){
+    try{
+        if (!req.cookies?.guestId) {
+            const guestId = uuidv4();
+            res.cookie("guestId", guestId, {
+            httpOnly: true,
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            });
+        }
+        res.status(200).json({ message: "Guest ID set" });
+    }catch(error){
+        console.log("error while generating guest id")
+    }
+}
 

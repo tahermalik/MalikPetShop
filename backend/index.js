@@ -15,6 +15,8 @@ import path from "path"
 import offerRouter from "./routers/offerRoutes.js";
 import Offer from "./schema/offerSchema.js";
 import ForgotPassword from "./schema/forgotPassword.js";
+import Product from "./schema/productSchema.js";
+import Cart from "./schema/cartSchema.js";
 
 
 const app=express();
@@ -72,6 +74,57 @@ cron.schedule("0 * * * *", async () => {
   }
 });
 
+//// cron for the product's presence expiry
+cron.schedule("*/5 * * * *", async () => {
+  try {
+    const now = new Date();
+    const RESERVATION_PERIOD = 30 * 60 * 1000; // 30 min
+
+    const carts = await Cart.find({
+      "products.reservedAt": { $lt: new Date(now - RESERVATION_PERIOD) }
+    });
+
+    for (const cart of carts) {
+      let updated = false;
+
+      for (let i = cart.products.length - 1; i >= 0; i--) {
+        const item = cart.products[i];
+        if (now - item.reservedAt > RESERVATION_PERIOD) {
+          await Product.updateOne(
+            { _id: item.productId },
+            { $inc: { [`reservedStock.${item.productVariation}`]: -item.productQuantity } }
+          );
+
+          cart.products.splice(i, 1);
+          updated = true;
+        }
+      }
+
+      if (updated) await cart.save();
+    }
+
+    console.log("✅ Released expired cart reservations");
+  } catch (error) {
+    console.error("Error releasing expired reservations:", error);
+  }
+});
+
+//// cron for the cart that has no products in it
+cron.schedule("*/30 * * * *", async () => {
+  try {
+    const THRESHOLD = new Date(Date.now() - 15 * 60 * 1000);
+
+    await Cart.deleteMany({
+      guestId: { $exists: true },
+      products: { $size: 0 },
+      updatedAt: { $lt: THRESHOLD }
+    });
+    
+    console.log("✅ Released empty carts");
+  } catch (error) {
+    console.error("Error releasing empty carts:", error);
+  }
+});
 
 /// to parse the HTTP request
 app.use(express.urlencoded({extended:true}));
@@ -92,6 +145,7 @@ app.use("/feedback",feedbackRouter)
 app.use("/coupon",cRouter)
 app.use("/cart",cartRouter)
 app.use("/offer",offerRouter)
+app.use("/demo",uRouter)
 
 app.listen(process.env.PORT_NUM,()=>console.log(`${process.env.PORT_NUM}`))
 
