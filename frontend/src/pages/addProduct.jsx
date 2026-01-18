@@ -6,6 +6,7 @@ import Select from "react-select";
 import { cat ,dog,hamster,birds,turtle,rabbit} from "./LandingPage";
 import { items_flavor,items_brands,items_breed,items_diet } from "./Product";
 import { PRODUCT_ENDPOINTS } from "./endpoints";
+import toast from "react-hot-toast";
 
 export default function AddProduct() {
   const [path,setPath]=useState(
@@ -168,14 +169,17 @@ export default function AddProduct() {
         formData.append("image", image);
       }else{
         console.log("Upload the product image")
+        toast.error("Upload the product image")
         return
       } 
       const res=await axios.post(`${PRODUCT_ENDPOINTS}/addProduct`,formData,{withCredentials:true,headers:{"Content-Type":"multipart/form-data"}})
       console.log(res)
+      toast.success(res?.data?.message)
 
 
     }catch(error){
       console.log("error occured in add Product in frontend",error)
+
     }
 
   }

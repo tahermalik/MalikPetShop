@@ -20,6 +20,7 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { AiOutlineClose } from "react-icons/ai";
 import { PawPrint, Tag, Package } from "lucide-react";
 import toast from "react-hot-toast";
+import { useIsDesktop } from "../hooks/useIsDesktop.js";
 
 
 function Brands(props) {
@@ -747,9 +748,10 @@ export function Header({ open, setOpen }) {
             e.preventDefault();
 
             //// when the user is logged in
-            if (userId) {
-                await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`, { userId: userId, reduxCartData: reduxCartData })
-            }
+            //// for now lets stop this
+            // if (userId) {
+            //     await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`, { userId: userId, reduxCartData: reduxCartData })
+            // }
             navigate("/cart", { state: { userId: userId } })
 
         } catch (error) {
@@ -1020,7 +1022,7 @@ export function ReviewCardSkeleton() {
 
 export function ReviewCard(props) {
     return (
-        <div className="w-[90%] bg-blue-50 rounded-2xl shadow-md flex flex-col gap-3 hover:shadow-lg transition h-[300px] p-4">
+        <div className="w-[95%] bg-blue-50 rounded-2xl shadow-md flex flex-col gap-3 hover:shadow-lg transition h-[300px] p-4">
 
             {/* User Info */}
             <div className="flex items-center gap-3">
@@ -1073,6 +1075,7 @@ function ShowFeedBack({ feedBack = [] }) {
     const [animating, setAnimating] = useState(false); // track animation
     const [direction, setDirection] = useState("next"); // "next" or "prev"
     const total = feedBack.length;
+    const isDesktop=useIsDesktop()
 
     if (total === 0) {
         return (
@@ -1081,6 +1084,23 @@ function ShowFeedBack({ feedBack = [] }) {
                     What Our Customers Say 💬
                 </h2>
                 <p className="text-gray-500 mt-4">No feedback available yet.</p>
+            </div>
+        );
+    }
+
+    if(isDesktop && total<=3){
+        return (
+            <div className="relative bg-blue-50 py-10 px-2 md:px-6">
+                <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 text-gray-800">
+                    What Our Customers Say 💬
+                </h2>
+                <div className="grid grid-cols-3 gap-3">
+                    {feedBack.map((review, index) => (
+                        <div key={index} className="w-full">
+                            <Card review={review} />
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
@@ -1226,15 +1246,10 @@ export function Footer() {
 
 export default function LandingPage() {
     const [feedBackRefresh, setFeedBackRefresh] = useState(0)
-    const feedBack = useGetAllFeedBack(feedBackRefresh);
+    const feedBack = useGetAllFeedBack(feedBackRefresh) || [];
     const [open, setOpen] = useState(false);
     const [animal, setAnimal] = useState("");
-    if (!feedBack) {
-        return (
-            <div>Loading...</div>
-        )
-    }
-
+    
     useEffect(() => {
         const root = document.getElementById("root");
 
@@ -1251,6 +1266,16 @@ export default function LandingPage() {
             root.style.overflow = "";
         };
     }, [animal]);
+
+    console.log("feedback",feedBack)
+
+    if (!feedBack) {
+        return (
+            <div>Loading...</div>
+        )
+    }
+
+    
 
 
     return (

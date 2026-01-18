@@ -17,7 +17,7 @@ import toast from "react-hot-toast"
 import { FiFilter } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";
 import { FaArrowLeftLong } from "react-icons/fa6";
-import { SideBar,SubMenu } from "./LandingPage"
+import { SideBar, SubMenu } from "./LandingPage"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -303,8 +303,8 @@ function MobileFilter({ mobFilterVisible, setMobFilterVisible }) {
             onClick={(e) => { e.stopPropagation() }}
         >
             <div className="flex flex-row justify-between items-center">
-                <div onClick={(e)=>{e.stopPropagation(); setMobFilterData(null)}} className={`${mobFilterData===null ? "hidden":"block"}`}>
-                    <FaArrowLeftLong/>
+                <div onClick={(e) => { e.stopPropagation(); setMobFilterData(null) }} className={`${mobFilterData === null ? "hidden" : "block"}`}>
+                    <FaArrowLeftLong />
                 </div>
                 <div>
                     {mobFilterData === null ? "Filters" : mobFilterData}
@@ -353,25 +353,25 @@ function MobileFilter({ mobFilterVisible, setMobFilterVisible }) {
                 </div>
             }
 
-            {mobFilterData==="Breed Size" &&
+            {mobFilterData === "Breed Size" &&
                 <div className="flex flex-row flex-wrap gap-2 justify-evenly items-center p-2">
                     <CheckBoxes type="breed" chekcedList={checkedListBreed} items={items_breed} />
                 </div>
             }
 
-            {mobFilterData==="Diet" &&
+            {mobFilterData === "Diet" &&
                 <div className="flex flex-row flex-wrap gap-2 justify-evenly items-center p-2">
                     <CheckBoxes type="diet" chekcedList={checkedListDiet} items={items_diet} />
                 </div>
             }
 
-            {mobFilterData==="Brands" &&
+            {mobFilterData === "Brands" &&
                 <div className="flex flex-row flex-wrap gap-2 justify-evenly items-center p-2">
                     <CheckBoxes type="brands" chekcedList={checkedListBrands} items={items_brands} />
                 </div>
             }
 
-            {mobFilterData==="Price" &&
+            {mobFilterData === "Price" &&
                 <div className="flex flex-row flex-wrap gap-2 justify-evenly items-center p-2">
                     <PriceRange />
                 </div>
@@ -384,24 +384,21 @@ function MobileFilter({ mobFilterVisible, setMobFilterVisible }) {
 
 
 /// function written for both loggedIn user & user who is not loggedIn
-export async function addToCart(e, userId, productId, productVariation, logInFlag, dispatch) {
+export async function addToCart(e, qty, userId, productId, productVariation, logInFlag, dispatch) {
     try {
         e.stopPropagation();
-        e.preventDefault();
-        const obj = {
-            productId: productId,
-            productVariation: productVariation,
-            productQuantity: 1
-        }
-
-        //// this will done in both scenerio when the user is logged iN and when the user is not logged in
-        dispatch(addProduct(obj))   /// just adding an product to the redux cart
-
-        if (logInFlag) {      // user is logged in so backend stuff will be called
-            const result = await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: userId, productId: productId, productVariation: productVariation }, { withCredentials: true })
-            
+        let result
+        // user is logged in so backend stuff will be called
+        if (logInFlag) {      
+            console.log("Endpoint called",qty)
+            result = await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: userId, productId: productId, productVariation: productVariation, quantity: qty }, { withCredentials: true })
+            if (result?.data?.bool === false) toast.error("Some problem in product addition to cart")
+        }else{      /// when the user is not logged in
+            console.log("User not loggedin endpoint called")
+            result =await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: null, productId: productId, productVariation: productVariation, quantity: qty }, { withCredentials: true })
             if (result?.data?.bool === false) toast.error("Some problem in product addition to cart")
         }
+        toast.success(result?.data?.message)
     } catch (error) {
         console.log(error);
         toast.error(error?.response?.data?.message)
@@ -523,6 +520,32 @@ function ProductCard(props) {
         }
     }
 
+    // let quantityPresentInCart = 0;
+
+    const [quantityPresent,setQuantityPresentInCart]=useState(0)
+    useEffect(() => {
+        const fetchQuantity = async () => {
+            try {
+                if (userData !== null) {
+                    const res = await axios.post(
+                        `${CART_ENDPOINTS}/getProductQuantityViaUserId`,
+                        {
+                            userId,
+                            productId: props.productId,
+                            productVariation: imgCounter,
+                        },
+                        { withCredentials: true }
+                    );
+
+                    setQuantityPresentInCart(res?.data?.quantity || 0);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        fetchQuantity();
+    }, []);
 
     //// fetching the wishList for the user who is not logged in
     const wishList = useSelector((state) => state?.user?.userDataNotLoggedIn?.wishList)
@@ -570,6 +593,20 @@ function ProductCard(props) {
             setSkeleton(false);
         }, 500)
     }, [])
+
+
+    // Button Controls for Quantity like increment or decrement
+    const [qty, setQty] = useState(1);
+    const decreaseQty = (e) => {
+        e.stopPropagation();
+        if (qty > 1) setQty(qty - 1);
+    };
+    const increaseQty = (e) => {
+        e.stopPropagation();
+        if (qty <= 19) setQty(qty + 1);
+        else toast.error("You can't select any product in bulk")
+    };
+
     return (
         <>
             {skeleton ? <ProductCardSkeleton /> :
@@ -602,27 +639,59 @@ function ProductCard(props) {
                             {props.productName}
                         </div>
 
-                        <div className="price font-sans text-gray-800">
-                            <span className="font-sans sm:text-lg lg:text-xl text-blue-700 font-semibold">
-                                &#8377;{discountCalc(props.originalPriceArray[imgCounter], props.discountArray[imgCounter])}
-                            </span>
-
-                            <span className="font-sans sm:text-sm text-blue-500 ml-1">
-                                (&#8377;{gramAmountCalc(
-                                    props.originalPriceArray[imgCounter],
-                                    props.discountArray[imgCounter],
-                                    props.netWeightArray[imgCounter]
-                                )}/100g)
-                            </span>
-
-                            <p className="text-gray-500">
-                                <span className="line-through font-sans sm:text-sm">
-                                    &#8377;{props.originalPriceArray[imgCounter]}
+                        <div className="price font-sans text-gray-800 flex justify-between items-center">
+                            <div className="w-[70%]">
+                                <span className="font-sans sm:text-lg lg:text-xl text-blue-700 font-semibold">
+                                    &#8377;{discountCalc(props.originalPriceArray[imgCounter], props.discountArray[imgCounter])}
                                 </span>
-                                <span className="sm:text-sm text-blue-600 ml-1 font-medium">
-                                    Discount {props.discountArray[imgCounter]}%
+
+                                <span className="font-sans sm:text-sm text-blue-500 ml-1">
+                                    (&#8377;{gramAmountCalc(
+                                        props.originalPriceArray[imgCounter],
+                                        props.discountArray[imgCounter],
+                                        props.netWeightArray[imgCounter]
+                                    )}/100g)
                                 </span>
-                            </p>
+
+                                <p className="text-gray-500">
+                                    <span className="line-through font-sans sm:text-sm">
+                                        &#8377;{props.originalPriceArray[imgCounter]}
+                                    </span>
+                                    <span className="sm:text-sm text-blue-600 ml-1 font-medium">
+                                        Discount {props.discountArray[imgCounter]}%
+                                    </span>
+                                </p>
+                            </div>
+
+                            {/* code for increment decrement of button for Product Card */}
+                            <div className="flex items-center justify-between w-[30%]">
+                                {/* Decrement */}
+                                <div
+                                    onClick={(e) => decreaseQty(e)}
+                                    className="flex justify-center items-center w-6 h-6 rounded-full border border-blue-500
+                                            text-blue-600 font-bold text-lg
+                                            hover:bg-blue-50 active:scale-95 transition"
+                                >
+                                    −
+                                </div>
+
+                                {/* Quantity */}
+                                <span className="min-w-[20px] text-center font-semibold text-gray-800">
+                                    {qty}
+                                </span>
+
+                                {/* Increment */}
+                                <div
+                                    onClick={(e) => increaseQty(e)}
+                                    className="flex justify-center items-center w-6 h-6 rounded-full bg-blue-600
+                                        text-white font-bold text-lg
+                                        hover:bg-blue-700 active:scale-95 transition"
+                                >
+                                    +
+                                </div>
+                            </div>
+
+
                         </div>
 
                         <div className="flex justify-between items-center">
@@ -674,23 +743,34 @@ function ProductCard(props) {
                         </div>
                     </div>
 
-                    <div className="flex flex-row justify-center items-center h-[15%] w-[100%] rounded-2xl">
+                    <div className="relative flex flex-row justify-center items-center h-[15%] w-[100%] rounded-2xl">
                         <button className="flex flex-row justify-center items-center w-[100%] h-[100%] 
                         bg-blue-600 text-white font-semibold rounded-b-2xl cursor-pointer 
                         transition-all duration-300 hover:bg-blue-700 hover:tracking-wide"
                             onClick={(e) => {
-                                addToCart(
-                                    e,
-                                    userId,
-                                    props.productId,
-                                    imgCounter,
-                                    !(userData === null),
-                                    dispatch
-                                );
+                                e.stopPropagation()
+                                if (qty > (props?.stock[imgCounter] - props?.reservedStock[imgCounter])) {
+                                    toast.error("We currently dont have the requested amount of quantity in stock")
+                                }
+                                else {
+                                    
+                                    addToCart(
+                                        e,
+                                        qty,
+                                        userId,
+                                        props.productId,
+                                        imgCounter,
+                                        !(userData === null),
+                                        dispatch
+                                    );
+                                }
                             }}
                         >
                             Add to Cart
                         </button>
+                        {userData !== null && <div onClick={(e)=>{e.stopPropagation()}} className="absolute bottom-0 w-[100%] flex justify-center items-center text-sm">
+                            {quantityPresent} items present in the cart
+                        </div>}
                     </div>
 
                 </div>
@@ -740,7 +820,7 @@ function DisplayProducts(props) {
                 {productData.map((products) => {
                     return (
                         <div onClick={() => productClicked(products)} className="h-fit w-[90%] sm:w-[250px] gap-2">
-                            <ProductCard imagesArray={products.image} netWeightArray={products.netWeight} originalPriceArray={products.originalPrice} discountArray={products.discountValue} productName={products.productName} productId={products._id} refresh={props.refresh} setRefresh={props.setRefresh} />
+                            <ProductCard imagesArray={products.image} netWeightArray={products.netWeight} originalPriceArray={products.originalPrice} discountArray={products.discountValue} productName={products.productName} productId={products._id} stock={products.stock} reservedStock={products.reservedStock} refresh={props.refresh} setRefresh={props.setRefresh} />
                         </div>
                     )
                 })}

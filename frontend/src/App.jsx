@@ -16,9 +16,25 @@ import OrderSuccess from "./pages/orderSuccess";
 import Checkout from "./pages/Checkout";
 import UserAddressForm from "./pages/userAddressForm";
 import useLenis from "./hooks/useLenis";
+import { USER_ENDPOINTS } from "./pages/endpoints";
+import { useEffect } from "react";
+import axios from "axios";
 
 function App() {
   useLenis();
+  useEffect(() => {
+    async function setGuestId() {
+      console.log
+      try {
+        await axios.get(`${USER_ENDPOINTS}/getGuestId`, { withCredentials: true });
+      } catch (err) {
+        console.error("Failed to set guest ID", err);
+      }
+    }
+
+    setGuestId();
+  }, []);
+
   return (
     <div className="h-auto w-screen bg-white font-serif">
       <BrowserRouter>
