@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Coupon } from "./Coupon.jsx";
+import { Breadcrumbs } from "./Breadcrumbs.jsx";
 
 function CartCardSkeleton() {
   return (
@@ -70,9 +71,9 @@ export default function CartPage() {
   const productObj = useMemo(() => {
     const obj = {};
     for (let p of productData) {
-      for(let i=0;i<realCartData.length;i++){
-        if(p._id.toString()===realCartData[i].productId.toString()){
-          obj[`${realCartData[i].productId.toString()}_${realCartData[i].productVariation}`]=p
+      for (let i = 0; i < realCartData.length; i++) {
+        if (p._id.toString() === realCartData[i].productId.toString()) {
+          obj[`${realCartData[i].productId.toString()}_${realCartData[i].productVariation}`] = p
         }
       }
     }
@@ -126,6 +127,7 @@ export default function CartPage() {
   const user = useSelector((state) => state?.user?.userData)
   const reduxCartData = useSelector((state) => state?.cart?.products)
   const userId = user?._id;
+  
   async function placeOrder(e, totalAmount) {
     try {
       e.preventDefault();
@@ -186,10 +188,7 @@ export default function CartPage() {
   function decreaseQty(productId, productVariation) {
     setCartData(prev =>
       prev.map(item => {
-        if (
-          item.productId.toString() === productId &&
-          item.productVariation === productVariation
-        ) {
+        if (item.productId.toString() === productId && item.productVariation === productVariation) {
           if (item.productQuantity <= 1) {
             toast.error("Minimum quantity is 1");
             return item;
@@ -213,122 +212,123 @@ export default function CartPage() {
 
 
   return (
-    <div className=" relative min-h-screen bg-blue-50 py-10 px-4 flex flex-col items-center md:items-start md:flex-row justify-center gap-10">
-      {/* Left - Cart Items */}
-      <div className="bg-white w-[90%] md:w-[70%] md:max-w-3xl rounded-2xl shadow-md p-6">
-        <h2 className="text-2xl font-semibold text-blue-700 mb-4">Your Cart</h2>
-        {cartData.length === 0 ? (
-          <div className="text-center py-10 text-gray-500">
-            🛒 Your cart is empty
+    <>
+      <Breadcrumbs/>
+      <div className=" relative min-h-screen bg-blue-50 py-10 px-4 flex flex-col items-center md:items-start md:flex-row justify-center gap-10">
+        {/* Left - Cart Items */}
+        <div className="bg-white w-[90%] md:w-[70%] md:max-w-3xl rounded-2xl shadow-md p-6">
+          <h2 className="text-2xl font-semibold text-blue-700 mb-4">Your Cart</h2>
+          {cartData.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              🛒 Your cart is empty
+            </div>
+          ) : (
+            <div className="space-y-6">
+
+              {/* Cart Items */}
+              {cartData.map((item, index) => {
+                const product = productObj[`${item.productId.toString()}_${item.productVariation}`];
+                // ⛔ product data not loaded yet
+                if (!product) return <></>
+                //// written in order to implement skeleton effect
+                return skeleton ? <CartCardSkeleton /> :
+                  <div
+                    className="grid grid-cols-2 grid-rows-[1.5fr_0.5fr] sm:grid-cols-[2fr_0fr_0.5fr_0.5fr] sm:grid-rows-1 border-b border-gray-200 pb-4"
+                  >
+                    <div className="flex items-center gap-4 p-2 col-span-2">
+                      <img
+                        src={`http://localhost:3000/${product.image[item.productVariation]}`}
+                        alt={item.productName}
+                        className="w-25 h-25 object-cover rounded-lg "
+                      />
+                      <div className="w-full">
+                        <h3 className="font-medium text-gray-800">{product.productName}</h3>
+                        <p className="text-sm text-gray-500">₹{product.originalPrice[item.productVariation] - discountAmount(product.originalPrice[item.productVariation], product.discountValue[item.productVariation])}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-start sm:justify-center gap-3 pl-2 sm:p-2">
+                      <div
+                        onClick={() => decreaseQty(item.productId.toString(), item.productVariation)}
+                        className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
+                      >
+                        −
+                      </div>
+                      <span className="font-semibold font-sans">{item.productQuantity}</span>  {/* This need to change*/}
+                      <div
+                        onClick={() => increaseQty(product.stock[item.productVariation] - product.reservedStock[item.productVariation], item.productId.toString(), item.productVariation)}    ///want at least one product to stay
+                        className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
+                      >
+                        +
+                      </div>
+                    </div>
+
+                    <div className="text-right pr-2 flex flex-col items-end sm:p-2 sm:justify-center">
+                      <p className="font-semibold text-gray-700 font-sans">
+                        ₹{(product.originalPrice[item.productVariation] - discountAmount(product.originalPrice[item.productVariation], product.discountValue[item.productVariation])) * Number(item.productQuantity)}
+                      </p>
+                      <button
+                        onClick={(e) => removeItem(e, item.productId.toString(), userData?._id, item.productVariation)}
+                        className="text-sm text-red-500 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+              })}
+            </div>
+          )}
+        </div>
+
+
+        {/* Right - Order Summary */}
+        <div className="flex flex-col gap-3 md:w-[30%] w-[90%]">
+          <div className="flex justify-center items-center bg-gradient-to-r from-blue-500 via-blue-400 to-blue-300 hover:from-blue-600 hover:via-blue-500 hover:to-blue-400 cursor-pointer rounded-2xl py-2 px-1 hover:text-white" onClick={() => setCoupanVisible(!coupanVisible)}>
+            <span>Apply Coupans for Extra discount!!!</span>
           </div>
-        ) : (
-          <div className="space-y-6">
+          <div className="bg-white w-full h-fit rounded-2xl shadow-md p-6">
+            <h3 className="text-xl font-semibold text-blue-700 mb-4">
+              Order Summary
+            </h3>
+            <div className="space-y-2 text-gray-700">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span className="font-sans">₹{subtotal}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Coupan</span>
+                <span className="font-sans">₹0</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span className="font-sans">{shipping === 0 ? "Free" : `₹${shipping}`}</span>
+              </div>
+              <div className="border-t border-gray-200 my-3"></div>
+              <div className="flex justify-between font-semibold text-gray-900">
+                <span>Total</span>
+                <span className="font-sans">₹{total - 0}</span>
+              </div>
+            </div>
 
-            {/* Cart Items */}
-            {cartData.map((item, index) => {
-              const product = productObj[`${item.productId.toString()}_${item.productVariation}`];
-              console.log("hola",productObj)
-              // ⛔ product data not loaded yet
-              if (!product) return <></>
-              console.log("what is happening")
-              //// written in order to implement skeleton effect
-              return skeleton ? <CartCardSkeleton /> :
-                <div
-                  className="grid grid-cols-2 grid-rows-[1.5fr_0.5fr] sm:grid-cols-[2fr_0fr_0.5fr_0.5fr] sm:grid-rows-1 border-b border-gray-200 pb-4"
-                >
-                  <div className="flex items-center gap-4 p-2 col-span-2">
-                    <img
-                      src={`http://localhost:3000/${product.image[item.productVariation]}`}
-                      alt={item.productName}
-                      className="w-25 h-25 object-cover rounded-lg "
-                    />
-                    <div className="w-full">
-                      <h3 className="font-medium text-gray-800">{product.productName}</h3>
-                      <p className="text-sm text-gray-500">₹{product.originalPrice[item.productVariation] - discountAmount(product.originalPrice[item.productVariation], product.discountValue[item.productVariation])}</p>
-                    </div>
-                  </div>
+            <div onClick={(e) => { placeOrder(e, total - coupanAmount) }} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center">
+              Proceed to Checkout
+            </div>
 
-                  <div className="flex items-center justify-start sm:justify-center gap-3 pl-2 sm:p-2">
-                    <div
-                      onClick={() => decreaseQty(item.productId.toString(), item.productVariation)}
-                      className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
-                    >
-                      −
-                    </div>
-                    <span className="font-semibold font-sans">{item.productQuantity}</span>  {/* This need to change*/}
-                    <div
-                      onClick={() => increaseQty(product.stock[item.productVariation] - product.reservedStock[item.productVariation], item.productId.toString(), item.productVariation)}    ///want at least one product to stay
-                      className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold hover:bg-blue-200 flex items-center justify-center"
-                    >
-                      +
-                    </div>
-                  </div>
-
-                  <div className="text-right pr-2 flex flex-col items-end sm:p-2 sm:justify-center">
-                    <p className="font-semibold text-gray-700 font-sans">
-                      ₹{(product.originalPrice[item.productVariation] - discountAmount(product.originalPrice[item.productVariation], product.discountValue[item.productVariation])) * Number(item.productQuantity)}
-                    </p>
-                    <button
-                      onClick={(e) => removeItem(e, item.productId.toString(), userData?._id, item.productVariation)}
-                      className="text-sm text-red-500 hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-            })}
+            <p className="text-sm text-center text-gray-500 mt-3 font-sans">
+              You’re ₹{5000 - subtotal > 0 ? 5000 - subtotal : 0} away from free
+              shipping!
+            </p>
           </div>
+        </div>
+
+
+
+        {/* Coupan Window */}
+        {coupanVisible && (
+          <Coupon />
         )}
+
       </div>
-
-
-      {/* Right - Order Summary */}
-      <div className="flex flex-col gap-3 md:w-[30%] w-[90%]">
-        <div className="flex justify-center items-center bg-gradient-to-r from-blue-500 via-blue-400 to-blue-300 hover:from-blue-600 hover:via-blue-500 hover:to-blue-400 cursor-pointer rounded-2xl py-2 px-1 hover:text-white" onClick={() => setCoupanVisible(!coupanVisible)}>
-          <span>Apply Coupans for Extra discount!!!</span>
-        </div>
-        <div className="bg-white w-full h-fit rounded-2xl shadow-md p-6">
-          <h3 className="text-xl font-semibold text-blue-700 mb-4">
-            Order Summary
-          </h3>
-          <div className="space-y-2 text-gray-700">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span className="font-sans">₹{subtotal}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Coupan</span>
-              <span className="font-sans">₹0</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              <span className="font-sans">{shipping === 0 ? "Free" : `₹${shipping}`}</span>
-            </div>
-            <div className="border-t border-gray-200 my-3"></div>
-            <div className="flex justify-between font-semibold text-gray-900">
-              <span>Total</span>
-              <span className="font-sans">₹{total - 0}</span>
-            </div>
-          </div>
-
-          <div onClick={(e) => { placeOrder(e, total - coupanAmount) }} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center">
-            Proceed to Checkout
-          </div>
-
-          <p className="text-sm text-center text-gray-500 mt-3 font-sans">
-            You’re ₹{5000 - subtotal > 0 ? 5000 - subtotal : 0} away from free
-            shipping!
-          </p>
-        </div>
-      </div>
-
-
-
-      {/* Coupan Window */}
-      {coupanVisible && (
-        <Coupon />
-      )}
-
-    </div>
+    </>
   );
 }

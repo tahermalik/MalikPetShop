@@ -10,6 +10,7 @@ import { USER_ENDPOINTS } from "./endpoints";
 import { useDispatch } from "react-redux";
 import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/slices/userSlice";
 import toast from "react-hot-toast";
+import { Breadcrumbs } from "./Breadcrumbs";
 
 export function EmptyWishlist() {
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ export function EmptyWishlist() {
         try {
             e.preventDefault();
             e.stopPropagation();
-            navigate("/product")
+            navigate("/Product_Page")
         } catch (error) {
             console.log(error + "error in browsing the product")
         }
@@ -101,10 +102,12 @@ export default function WishListUI() {
     }
 
     return (
-        <div className="flex flex-col gap-2 ">
-            <div className="sticky top-0 z-30">
-                <div
-                    className="
+        <>
+            <Breadcrumbs/>
+            <div className="flex flex-col gap-2 ">
+                {true===false && <div className="sticky top-0 z-30">
+                    <div
+                        className="
                     flex items-center gap-4
                     px-4 py-3
                     rounded-2xl
@@ -113,11 +116,11 @@ export default function WishListUI() {
                     border border-white/40
                     transition-all duration-300
                     "
-                >
-                    {/* Back Button */}
-                    <Link
-                        to="/product"
-                        className="
+                    >
+                        {/* Back Button */}
+                        <Link
+                            to="/product"
+                            className="
             group
             flex items-center justify-center
             h-10 w-10
@@ -129,50 +132,51 @@ export default function WishListUI() {
             active:scale-95
             transition-all duration-300
           "
-                    >
-                        <FaArrowLeft
-                            size={18}
-                            className="text-gray-700 group-hover:-translate-x-1 transition-transform duration-300"
-                        />
-                    </Link>
+                        >
+                            <FaArrowLeft
+                                size={18}
+                                className="text-gray-700 group-hover:-translate-x-1 transition-transform duration-300"
+                            />
+                        </Link>
 
-                    {/* Title */}
-                    <span className="text-lg font-semibold tracking-wide text-gray-800">
-                        Wishlist
-                    </span>
+                        {/* Title */}
+                        <span className="text-lg font-semibold tracking-wide text-gray-800">
+                            Wishlist
+                        </span>
+                    </div>
+                </div>}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+                    {productData.map((product, index) => (
+                        <div className="w-full bg-blue-50 flex flex-col rounded-2xl shadow hover:shadow-lg hover:bg-blue-100 transition duration-200">
+                            <div className="h-[200px] w-full p-2 flex justify-center items-center">
+                                <img
+                                    src={`http://localhost:3000/${product.image[productVariationData[index]]}`}
+                                    alt={product.productName}
+                                    className="h-full w-full object-contain rounded-xl"
+                                />
+                            </div>
+                            <div className="flex flex-col justify-between h-[180px] p-2">
+                                <div className="font-semibold line-clamp-2 text-blue-900">{product.productName}</div>
+                                <div className="flex flex-col gap-1 text-blue-800">
+                                    <span className="text-lg font-sans">
+                                        &#8377;{product.originalPrice[productVariationData[index]] - Math.floor((product.originalPrice[productVariationData[index]] * product.discountValue[productVariationData[index]]) / 100)}
+                                    </span>
+                                    <span className="line-through text-sm">&#8377;{product.originalPrice[productVariationData[index]]}</span>
+                                    <span className="text-sm">Discount {product.discountValue[productVariationData[index]]}%</span>
+                                </div>
+                                <div className="flex justify-between items-center mt-2">
+                                    <div className="flex items-center px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200" onClick={(e) => removeFavourite(e, product._id, productVariationData[index])}>
+                                        <IoIosHeart size={18} className="mr-1" /> Remove
+                                    </div>
+                                    <span className="text-sm text-blue-700">{product.netWeight[productVariationData[index]]} kg</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-                {productData.map((product, index) => (
-                    <div className="w-full bg-blue-50 flex flex-col rounded-2xl shadow hover:shadow-lg hover:bg-blue-100 transition duration-200">
-                        <div className="h-[200px] w-full p-2 flex justify-center items-center">
-                            <img
-                                src={`http://localhost:3000/${product.image[productVariationData[index]]}`}
-                                alt={product.productName}
-                                className="h-full w-full object-contain rounded-xl"
-                            />
-                        </div>
-                        <div className="flex flex-col justify-between h-[180px] p-2">
-                            <div className="font-semibold line-clamp-2 text-blue-900">{product.productName}</div>
-                            <div className="flex flex-col gap-1 text-blue-800">
-                                <span className="text-lg font-sans">
-                                    &#8377;{product.originalPrice[productVariationData[index]] - Math.floor((product.originalPrice[productVariationData[index]] * product.discountValue[productVariationData[index]]) / 100)}
-                                </span>
-                                <span className="line-through text-sm">&#8377;{product.originalPrice[productVariationData[index]]}</span>
-                                <span className="text-sm">Discount {product.discountValue[productVariationData[index]]}%</span>
-                            </div>
-                            <div className="flex justify-between items-center mt-2">
-                                <div className="flex items-center px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200" onClick={(e) => removeFavourite(e, product._id, productVariationData[index])}>
-                                    <IoIosHeart size={18} className="mr-1" /> Remove
-                                </div>
-                                <span className="text-sm text-blue-700">{product.netWeight[productVariationData[index]]} kg</span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
+        </>
 
     );
 

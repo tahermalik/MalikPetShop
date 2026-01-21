@@ -18,6 +18,8 @@ import { FiFilter } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { SideBar, SubMenu } from "./LandingPage"
+import { Breadcrumbs } from "./Breadcrumbs"
+import { setCompleteProductInfo } from "../redux/slices/productSlice"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -783,10 +785,12 @@ function DisplayProducts(props) {
 
     const [page, setPage] = useState(1);
     const navigate = useNavigate();
+    const dispatch=useDispatch()
 
     const { productData, hasMore, loading } = useGetAllProduct(props?.refresh, props?.query, page, setPage);
-    function productClicked(products) {
-        navigate("/singleProductDisplay", { state: products })
+    function productClicked(product) {
+        dispatch(setCompleteProductInfo(product))
+        navigate("/Product_Page/SingleProductDisplay", { state: product })
     }
 
     useEffect(() => {
@@ -817,10 +821,10 @@ function DisplayProducts(props) {
 
         return (
             <>
-                {productData.map((products) => {
+                {productData.map((product) => {
                     return (
-                        <div onClick={() => productClicked(products)} className="h-fit w-[90%] sm:w-[250px] gap-2">
-                            <ProductCard imagesArray={products.image} netWeightArray={products.netWeight} originalPriceArray={products.originalPrice} discountArray={products.discountValue} productName={products.productName} productId={products._id} stock={products.stock} reservedStock={products.reservedStock} refresh={props.refresh} setRefresh={props.setRefresh} />
+                        <div onClick={() => productClicked(product)} className="h-fit w-[90%] sm:w-[250px] gap-2">
+                            <ProductCard imagesArray={product.image} netWeightArray={product.netWeight} originalPriceArray={product.originalPrice} discountArray={product.discountValue} productName={product.productName} productId={product._id} stock={product.stock} reservedStock={product.reservedStock} refresh={props.refresh} setRefresh={props.setRefresh} />
                         </div>
                     )
                 })}
@@ -849,11 +853,19 @@ export default function Product() {
     const [open, setOpen] = useState(false);
     const [animal, setAnimal] = useState("");
 
+
+    /// Implementing this line of code for bread crumbs
+    const pathString = location.pathname;
+    const pathArray = pathString.split("/");
+    const pathArrayLength=pathArray.length;
+
     return (
         <>
-            <Header open={open} setOpen={setOpen} />
+            <Header open={open} setOpen={setOpen} approachedFrom={"Product_Page"}/>
             <SideBar open={open} setOpen={setOpen} setAnimal={setAnimal} />
             <SubMenu animal={animal} />
+
+            <Breadcrumbs/>
             <div className={`w-[100%] flex flex-col sm:flex-row`} style={{ height: `${productHeight}px` }}>
 
                 {/* Filter Display for Desktop */}

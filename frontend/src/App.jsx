@@ -39,19 +39,35 @@ function App() {
     <div className="h-auto w-screen bg-white font-serif">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/product" element={<Product/>}></Route>
-          <Route path="/singleProductDisplay" element={<SingleProductDisplay/>}></Route>
+          <Route path="/Product_Page" element={<Product/>}></Route>
+          <Route path="/Product_Page/SingleProductDisplay" element={<SingleProductDisplay/>}></Route>
           <Route path="/cart" element={<Cart/>}></Route>
-          <Route path="/offer" element={<OfferSection/>}></Route>
+          
+          {/* All offer routes */}
+          <Route path="/Offer" element={<OfferSection/>}></Route>
+          <Route path="/Product_Page/Offer" element={<OfferSection/>}></Route>
+          <Route path="/Product_Page/SingleProductDisplay/Offer" element={<OfferSection/>}></Route>
+          
+          {/* All cart routes */}
+          <Route path="/Cart" element={<Cart/>}></Route>
+          <Route path="/Product_Page/Cart" element={<Cart/>}></Route>
+          <Route path="/Product_Page/SingleProductDisplay/Cart" element={<Cart/>}></Route>
+          
+          {/* Admin Routes */}
           <Route path="/adminSetting" element={<AdminSetting/>}>
             <Route path="" element={<AddProduct/>}></Route>
             <Route path="addProduct" element={<AddProduct/>}></Route>
             <Route path="createCoupon" element={<CouponRuleCreator/>}></Route>
             <Route path="createOffer" element={<CreateOffer/>}></Route>
           </Route>
-          <Route path="/WishListUI" element={<WishListUI/>}></Route>
+
+          {/* All wishlist routes */}
+          <Route path="/Wish_List" element={<WishListUI/>}></Route>
+          <Route path="/Product_Page/Wish_List" element={<WishListUI/>}></Route>
+          <Route path="/Product_Page/SingleProductDisplay/Wish_List" element={<WishListUI/>}></Route>
+          
           <Route path="/forgotPassword" element={<PasswordRecovery/>}></Route>
           <Route path="/orderSuccess" element={<OrderSuccess/>}></Route>
           <Route path="/addressForm" element={<UserAddressForm/>}></Route>

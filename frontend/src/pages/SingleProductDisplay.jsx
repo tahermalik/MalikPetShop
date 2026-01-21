@@ -5,6 +5,7 @@ import { setImageCounter } from "../redux/slices/activeSlice";
 import { useLocation, useNavigate } from "react-router-dom";
 import { addToCart } from "./Product";
 import { SideBar,SubMenu } from "./LandingPage";
+import { Breadcrumbs } from "./Breadcrumbs";
 
 function OfferComponent(props) {
     const dispath = useDispatch();
@@ -137,7 +138,7 @@ function ProductInfo(props) {
             {/* offer button and add to cart button */}
             <div className="w-[100%] flex sm:flex-col sm:gap-5 gap-3">
                 <div
-                    onClick={(e) => { e.stopPropagation(); navigate("/offer") }}
+                    onClick={(e) => { e.stopPropagation(); navigate("/Product_Page/SingleProductDisplay/Offer") }}
                     className="flex flex-row items-center justify-center w-full rounded-2xl py-3 px-4 border border-blue-300/40 bg-white/50 backdrop-blur-lg sm:text-lg lg:text-xl font-medium text-blue-900 shadow-[0_8px_25px_rgba(37,99,235,0.15)]
                     cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:shadow-[0_12px_35px_rgba(37,99,235,0.25)]"
                 >
@@ -149,9 +150,12 @@ function ProductInfo(props) {
                     className="flex flex-row items-center justify-center w-full rounded-2xl py-3 px-4 sm:text-lg lg:text-xl font-semibold tracking-wide cursor-pointer text-white
                     bg-gradient-to-r from-blue-600 to-blue-700 shadow-[0_12px_30px_rgba(37,99,235,0.35)] transition-all duration-300 hover:from-blue-500 hover:to-blue-600
                     hover:shadow-[0_18px_45px_rgba(37,99,235,0.45)] active:scale-[0.98]"
+
+                    // sending the default quantity as 1 from SingleProductDisplay
                     onClick={(e) =>
                         addToCart(
                             e,
+                            1,
                             userId,
                             props.productId,
                             productVariation,
@@ -335,9 +339,10 @@ export default function SingleProductDisplay() {
 
     return (
         <>
-            <Header open={open} setOpen={setOpen} />
+            <Header open={open} setOpen={setOpen} approachedFrom={"SingleProductDisplay"}/>
             <SideBar open={open} setOpen={setOpen} setAnimal={setAnimal} />
             <SubMenu animal={animal} />
+            <Breadcrumbs/>
             <div
                 className="w-full flex sm:flex-row flex-col gap-0 bg-gradient-to-br from-blue-50/60 via-blue-100/50 to-blue-200/40 backdrop-blur-xl border border-blue-200/40
                 shadow-[0_20px_60px_rgba(37,99,235,0.25)] animate-fadeInProductDisplay"

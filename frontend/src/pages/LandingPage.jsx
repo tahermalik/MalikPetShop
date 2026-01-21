@@ -247,7 +247,7 @@ function CatStuff() {
                     <div className="sm:text-sm">
                         {
                             cat[categories].map((item) => (
-                                <div key={item}><Link to="/product"><span className="relative group" onClick={() => { dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></Link></div>
+                                <div key={item}><Link to="/Product_Page"><span className="relative group" onClick={() => { dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></Link></div>
                             ))
                         }
                     </div>
@@ -278,7 +278,7 @@ function MobileCatStuff() {
                     {/* Category items */}
                     <div className="flex flex-col gap-2">
                         {cat[category].map((item) => (
-                            <Link to="/product" key={item}>
+                            <Link to="/Product_Page" key={item}>
                                 <span
                                     onClick={() =>
                                         dispatch(setTypeFilter(item.toLowerCase()))
@@ -318,7 +318,7 @@ function DogStuff() {
                     <div className="sm:text-sm">
                         {
                             dog[categories].map((item) => (
-                                <div key={item}><Link to="/product"><span className="relative group" onClick={() => { dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></Link></div>
+                                <div key={item}><Link to="/Product_Page"><span className="relative group" onClick={() => { dispatch(setTypeFilter(item.toLowerCase())) }}>{item} {<SmoothUnderline />}</span></Link></div>
                             ))
                         }
                     </div>
@@ -349,7 +349,7 @@ function MobileDogStuff() {
                     {/* Category items */}
                     <div className="flex flex-col gap-2">
                         {dog[category].map((item) => (
-                            <Link to="/product" key={item}>
+                            <Link to="/Product_Page" key={item}>
                                 <span
                                     onClick={() =>
                                         dispatch(setTypeFilter(item.toLowerCase()))
@@ -455,7 +455,7 @@ function MobileSmallPetStuff() {
                         {/* Category items */}
                         <div className="flex flex-col gap-2">
                             {smallPetsObj[types].map((item) => (
-                                <Link to="/product" key={item}>
+                                <Link to="/Product_Page" key={item}>
                                     <span
                                         onClick={() =>
                                             dispatch(setTypeFilter(item.toLowerCase()))
@@ -637,7 +637,7 @@ export function SubMenu({ animal }) {
     );
 }
 
-export function Header({ open, setOpen }) {
+export function Header({ open, setOpen,approachedFrom }) {
     const dispatch = useDispatch();
     const show = useSelector((state) => state?.user?.categoryState)
     const showLoginOption = useSelector((state) => state?.user?.loginOption) // initally going to be false
@@ -721,7 +721,7 @@ export function Header({ open, setOpen }) {
 
     function handleKeyDown(e) {
         if (e.key === "Enter") {
-            navigate("/product", { state: { query: query, data: "search" } });
+            navigate("/Product_Page", { state: { query: query, data: "search" } });
         }
     }
 
@@ -734,28 +734,36 @@ export function Header({ open, setOpen }) {
             e.stopPropagation();
             e.preventDefault();
 
-            navigate("/WishListUI", { state: { userId: userId } })
+            if(approachedFrom==="Home") navigate("/Wish_List", { state: { userId: userId } })
+            else if (approachedFrom==="Product_Page") navigate("/Product_Page/Wish_List", { state: { userId: userId } })
+            else if (approachedFrom==="SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/Wish_List", { state: { userId: userId } })
 
         } catch (error) {
             console.log("wrong in viewWishist frontend", error);
         }
     }
 
-    const reduxCartData = useSelector((state) => state?.cart?.products)
     async function viewCart(e) {
         try {
             e.stopPropagation();
             e.preventDefault();
-
-            //// when the user is logged in
-            //// for now lets stop this
-            // if (userId) {
-            //     await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`, { userId: userId, reduxCartData: reduxCartData })
-            // }
-            navigate("/cart", { state: { userId: userId } })
+            if(approachedFrom==="Home") navigate("/Cart", { state: { userId: userId } })
+            else if (approachedFrom==="Product_Page") navigate("/Product_Page/Cart", { state: { userId: userId } })
+            else if (approachedFrom==="SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/Cart", { state: { userId: userId } })
 
         } catch (error) {
             console.log("wrong in viewCart frontend" + error);
+        }
+    }
+
+    async function offerClicked(e){
+        try{
+            e.stopPropagation();
+            if(approachedFrom==="Home") navigate("/Offer")
+            else if (approachedFrom==="Product_Page") navigate("/Product_Page/Offer")
+            else if (approachedFrom==="SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/Offer")
+        }catch(error){
+            console.log("Error occured while click on offer",error)
         }
     }
 
@@ -882,11 +890,11 @@ export function Header({ open, setOpen }) {
                             {(!show || data !== "brands") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "brands" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <Link to="/offer">
+                        <div onClick={(e)=>offerClicked(e)}>
                             <div className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline text-black cursor-pointer px-4 py-1 rounded-xl transition-all duration-200">
                                 <span>Offer</span>
                             </div>
-                        </Link>
+                        </div>
                     </div>
                 </div>
 
@@ -1281,12 +1289,12 @@ export default function LandingPage() {
     return (
         <div className="root-conatiner relative">
             {/* {console.log("Hey taher",feedBack)} */}
-            <Header open={open} setOpen={setOpen} />
+            <Header open={open} setOpen={setOpen} approachedFrom={"Home"}/>
             <SideBar open={open} setOpen={setOpen} setAnimal={setAnimal} />
             <SubMenu animal={animal} />
 
             {/* This feature is currently under development */}
-            {/* <Breadcrumbs/> */}
+            <Breadcrumbs/>
             <AutoBrandSlider />
             <Owner />
             <ShowFeedBack feedBack={feedBack} />

@@ -3,34 +3,35 @@ import { Gift, Sparkles, Tag } from "lucide-react";
 import { FiArrowLeft } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { useGetOffer } from "../hooks/useGetOffers";
+import { Breadcrumbs } from "./Breadcrumbs";
 
 
 export default function OfferSection() {
-  let offerDetails="Expired"
+  let offerDetails = "Expired"
 
-  function fetchCurrentTime(expiry,startDate) {
+  function fetchCurrentTime(expiry, startDate) {
     //// expiry time will be in date and time
     const now = new Date();
     // const futureDate = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes later
     // const exp = futureDate.toISOString();
     const exp = new Date(expiry);
-    const start=new Date(startDate)
-  
+    const start = new Date(startDate)
+
     let timeLeftMs
-    if(now>=exp) return 0;
-    else if(now<=start){
-      timeLeftMs=start-now
-      offerDetails="Not Started"
-    }else{
-      timeLeftMs=exp-now;
-      offerDetails="Started"
+    if (now >= exp) return 0;
+    else if (now <= start) {
+      timeLeftMs = start - now
+      offerDetails = "Not Started"
+    } else {
+      timeLeftMs = exp - now;
+      offerDetails = "Started"
     }
 
     const seconds = Math.floor(timeLeftMs / 1000) % 60;
     const minutes = Math.floor(timeLeftMs / (1000 * 60)) % 60;
     const hours = Math.floor(timeLeftMs / (1000 * 60 * 60)) % 24;
     const days = Math.floor(timeLeftMs / (1000 * 60 * 60 * 24));
-  
+
     if (days !== 0) return days >= 2 ? `${days} Days` : `${days} Day`
     else if (hours !== 0) return `${hours} Hour`
     else return `${minutes} Minute : ${seconds} Seconds`
@@ -88,10 +89,10 @@ export default function OfferSection() {
     return () => clearInterval(a)
   }, [])
 
-  const colors={
-    0:"from-blue-500 to-blue-400",
-    1:"from-blue-400 to-blue-300",
-    2:"from-blue-600 to-blue-500"
+  const colors = {
+    0: "from-blue-500 to-blue-400",
+    1: "from-blue-400 to-blue-300",
+    2: "from-blue-600 to-blue-500"
   }
 
   if (!offers) {
@@ -100,33 +101,35 @@ export default function OfferSection() {
     )
   } else {
 
-    console.log("offer",offers)
+    console.log("offer", offers)
     return (
-      <div className="bg-blue-50 rounded-2xl shadow-md p-5 h-[100%] mb-6 overflow-auto scrollbar-hide relative">
-        <Link to="/"><div className="mb-3 hover:bg-blue-200 w-fit p-1 hover:rounded-full"><FiArrowLeft size={30} color={"blue"} /></div></Link>
-        <div className="flex flex-row items-center gap-2 mb-3">
-          <Sparkles className="text-blue-600" size={22} />
-          <h2 className="text-2xl font-semibold text-blue-700">Special Offers</h2>
-        </div>
+      <>
+        <Breadcrumbs/>
+        <div className="bg-blue-50 rounded-2xl shadow-md p-5 h-[100%] mb-6 overflow-auto scrollbar-hide relative">
+          <div className="flex flex-row items-center gap-2 mb-3">
+            <Sparkles className="text-blue-600" size={22} />
+            <h2 className="text-2xl font-semibold text-blue-700">Special Offers</h2>
+          </div>
 
-        <div className="flex flex-col gap-4">
-          {offers.map((offer,index) => (
-            <div
-              key={offer.id}
-              className={`bg-gradient-to-r ${colors[index%3]} text-white rounded-xl p-4 flex flex-row justify-between items-center hover:shadow-lg transition-all duration-200`}
-            >
-              <div>
-                <h3 className="font-bold text-lg">{offer.offerName}</h3>
-                <p className="text-sm">{offer.offerDesc}</p>
+          <div className="flex flex-col gap-4">
+            {offers.map((offer, index) => (
+              <div
+                key={offer.id}
+                className={`bg-gradient-to-r ${colors[index % 3]} text-white rounded-xl p-4 flex flex-row justify-between items-center hover:shadow-lg transition-all duration-200`}
+              >
+                <div>
+                  <h3 className="font-bold text-lg">{offer.offerName}</h3>
+                  <p className="text-sm">{offer.offerDesc}</p>
+                </div>
+                <div className="flex flex-col gap-2 justify-center items-end font-sans">
+                  <Tag className="text-white opacity-90" size={28} />
+                  <div>{fetchCurrentTime(offer.offerEndDate, offer.offerStartDate) === 0 ? "Offer Expired" : offerDetails === "Started" ? `Ends in ${fetchCurrentTime(offer.offerEndDate, offer.offerStartDate)}` : `Starts in ${fetchCurrentTime(offer.offerEndDate, offer.offerStartDate)}`}</div>
+                </div>
               </div>
-              <div className="flex flex-col gap-2 justify-center items-end font-sans">
-                <Tag className="text-white opacity-90" size={28} />
-                <div>{fetchCurrentTime(offer.offerEndDate,offer.offerStartDate)===0 ? "Offer Expired" : offerDetails==="Started" ? `Ends in ${fetchCurrentTime(offer.offerEndDate,offer.offerStartDate)}`:`Starts in ${fetchCurrentTime(offer.offerEndDate,offer.offerStartDate)}`}</div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 }

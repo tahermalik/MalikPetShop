@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const productSlice = createSlice({
   name: "product",
   initialState: {
-    originalPrices:[],discounts:[],images:[],netQuantity:[],productName:null,nutrition:"null",calories:"null",skinHealth:"null",digestion:"null",dentalHealth:"null",manufacturerDetails:null,productDescription:null
+    originalPrices:[],discounts:[],images:[],netQuantity:[],productName:null,nutrition:"null",calories:"null",skinHealth:"null",digestion:"null",dentalHealth:"null",manufacturerDetails:null,productDescription:null,completeProductInfo:null
   },
   reducers: {
     setOriginalPrice:(state,action)=>{
@@ -41,9 +41,12 @@ const productSlice = createSlice({
     },
     setProductDescription:(state,action)=>{
         state.productDescription.includes(action.payload)
+    },
+    setCompleteProductInfo:(state,action)=>{
+        state.completeProductInfo=action.payload
     }
   }
 })
 
-export const { setOriginalPrice,setDiscount,setImage,setProductName,setNetQuantity,setNutrition,setCalories,setSkinHealth,setDigestion,setDentalHealth,setManufacturerDetails,setProductDescription} = productSlice.actions;
+export const { setOriginalPrice,setDiscount,setImage,setProductName,setNetQuantity,setNutrition,setCalories,setSkinHealth,setDigestion,setDentalHealth,setManufacturerDetails,setProductDescription,setCompleteProductInfo} = productSlice.actions;
 export default productSlice.reducer;
