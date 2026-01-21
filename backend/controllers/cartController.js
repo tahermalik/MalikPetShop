@@ -10,24 +10,24 @@ import toast from "react-hot-toast";
 
 /// wroking for both
 export async function addToCart(req, res) {
-    let userId, productId, productVariation, quantity,guestId;
+    let userId, productId, productVariation, quantity, guestId;
     let reservation = false
     try {
         console.log("adding the product into cart")
         userId = req?.body?.userId
-        guestId=req?.cookies?.guestId
+        guestId = req?.cookies?.guestId
         productId = req?.body?.productId
         productVariation = req?.body?.productVariation
         quantity = req?.body?.quantity
 
-        const isUser=!!userId
-        const isGuest=!!guestId
+        const isUser = !!userId
+        const isGuest = !!guestId
 
         // so the productData is the object
-        if(!isUser && !isGuest) return res.status(400).json({message:"Both fields cannot be null"})
-        
+        if (!isUser && !isGuest) return res.status(400).json({ message: "Both fields cannot be null" })
+
         if (!productId || productVariation === undefined || quantity === undefined) return res.status(400).json({ message: "All the fields are mandatory" })
-        
+
         if (quantity <= 0) {
             return res.status(400).json({ message: "Invalid quantity" });
         }
@@ -36,8 +36,8 @@ export async function addToCart(req, res) {
 
 
         let cart
-        if(isUser) cart=await Cart.findOne({ userId: userId })
-        else cart=await Cart.findOne({ guestId: guestId })
+        if (isUser) cart = await Cart.findOne({ userId: userId })
+        else cart = await Cart.findOne({ guestId: guestId })
 
         // console.log("Cart", cart, userId)
         if (!productData) return res.status(404).json({ message: "product not found" })
@@ -46,16 +46,18 @@ export async function addToCart(req, res) {
         if (productData.netWeight.length <= productVariation || productVariation < 0) return res.status(400).json({ message: "Something went wrong while adding product to the cart" })
 
         /// checking the availabilty of the product
-        console.log(productData["stock"][productVariation],"Helo")
+        console.log(productData["stock"][productVariation], "Helo")
         const reserveResult = await Product.updateOne(
             {
                 _id: productId,
                 [`stock.${productVariation}`]: { $gte: quantity },
                 $expr: {
                     $gte: [
-                        { $subtract:[{ $arrayElemAt: ["$stock", productVariation] },
-                                    { $arrayElemAt: ["$reservedStock", productVariation]}
-                        ]},
+                        {
+                            $subtract: [{ $arrayElemAt: ["$stock", productVariation] },
+                            { $arrayElemAt: ["$reservedStock", productVariation] }
+                            ]
+                        },
                         quantity
                     ]
                 }
@@ -97,7 +99,7 @@ export async function addToCart(req, res) {
 
             console.log("Adding item to the cart ", quantity)
 
-            if(isUser){
+            if (isUser) {
                 await Cart.findOneAndUpdate(
                     { userId },
                     {
@@ -112,7 +114,7 @@ export async function addToCart(req, res) {
                     },
                     { upsert: true }
                 );
-            }else{
+            } else {
                 await Cart.findOneAndUpdate(
                     { guestId },
                     {
@@ -134,8 +136,8 @@ export async function addToCart(req, res) {
             console.log("creating the cart", quantity)
 
             /// only do rollback when reservation is done successfully
-            
-            if(isUser){
+
+            if (isUser) {
                 await Cart.create({
                     userId: userId,
                     products: [{
@@ -145,7 +147,7 @@ export async function addToCart(req, res) {
                         reservedAt: new Date()
                     }]
                 })
-            }else{
+            } else {
                 await Cart.create({
                     guestId: guestId,
                     products: [{
@@ -156,11 +158,11 @@ export async function addToCart(req, res) {
                     }]
                 })
             }
-            
+
         }
 
         ///// adding the userID into the cart; it only contains unique userId
-        if(isUser) await Product.findByIdAndUpdate(productId, { $addToSet: { cart: userId } })
+        if (isUser) await Product.findByIdAndUpdate(productId, { $addToSet: { cart: userId } })
 
         return res.status(200).json({ message: "item added to the cart successfully" })
 
@@ -181,16 +183,16 @@ export async function getCartItems(req, res) {
     try {
         console.log("inside getCartItems")
         const userId = req?.params?.userId;
-        const isUser=!!userId
-        const guestId=req?.cookies?.guestId;
-        const isGuest=!!guestId
+        const isUser = !!userId
+        const guestId = req?.cookies?.guestId;
+        const isGuest = !!guestId
 
-        if(!isUser && !isGuest) return res.status(400).json({message:"User should either be Guest or loggedIn"})
-        
+        if (!isUser && !isGuest) return res.status(400).json({ message: "User should either be Guest or loggedIn" })
+
         let result;
-        if(isUser && userId!=="undefined") result=await Cart.findOne({ userId:userId })
-        else{
-            result=await Cart.findOne({guestId:guestId})
+        if (isUser && userId !== "undefined") result = await Cart.findOne({ userId: userId })
+        else {
+            result = await Cart.findOne({ guestId: guestId })
             // console.log("Tahah",result)
         }
 
@@ -205,48 +207,50 @@ export async function getCartItems(req, res) {
 
 /// working for both
 export async function removerCartItem(req, res) {
-    let update=false
-    let userId,productId, productVariation,guestId,productQuantityData;
+    let update = false
+    let userId, productId, productVariation, guestId, productQuantityData;
     try {
-        userId=req?.body?.userId
-        productId=req?.body?.productId
-        productVariation=req?.body?.productVariation
-        guestId=req?.cookies?.guestId
+        userId = req?.body?.userId
+        productId = req?.body?.productId
+        productVariation = req?.body?.productVariation
+        guestId = req?.cookies?.guestId
 
-        const isUser=!!userId
-        const isGuest=!!guestId
+        const isUser = !!userId
+        const isGuest = !!guestId
 
-        if(!isUser && !isGuest) return res.status(400).json({message:"User should be either logged or guest"})
+        if (!isUser && !isGuest) return res.status(400).json({ message: "User should be either logged or guest" })
 
         let cart
-        if(isUser){
-            cart= await Cart.findOne({ userId }).select("products")
-        }else cart= await Cart.findOne({ guestId:guestId }).select("products")
-        console.log("Taher",cart,guestId)
+        if (isUser) {
+            cart = await Cart.findOne({ userId }).select("products")
+        } else cart = await Cart.findOne({ guestId: guestId }).select("products")
+        console.log("Taher", cart, guestId)
         if (!cart) return res.status(404).json({ message: "Cart not found", bool: false })
 
-        const cartItem=cart.products.find((p)=> p.productId.toString()===productId && p.productVariation===productVariation)
-        
-        if(!cartItem) return res.status(404).json({message:"Product not Found"})
-        
-        productQuantityData=cartItem["productQuantity"]
+        const cartItem = cart.products.find((p) => p.productId.toString() === productId && p.productVariation === productVariation)
 
-        const productResult= await Product.updateOne(
-            {_id:productId,
-            [`reservedStock.${productVariation}`]:{$gte:productQuantityData}},
-            {$inc:{[`reservedStock.${productVariation}`]:-productQuantityData}}
+        if (!cartItem) return res.status(404).json({ message: "Product not Found" })
+
+        productQuantityData = cartItem["productQuantity"]
+
+        const productResult = await Product.updateOne(
+            {
+                _id: productId,
+                [`reservedStock.${productVariation}`]: { $gte: productQuantityData }
+            },
+            { $inc: { [`reservedStock.${productVariation}`]: -productQuantityData } }
         )
 
-        
-        if(productResult.modifiedCount===0) return res.status(400).json({message:"failed to release reservation"}) 
-        update=true
+
+        if (productResult.modifiedCount === 0) return res.status(400).json({ message: "failed to release reservation" })
+        update = true
         let result
-        if(isUser){
+        if (isUser) {
             result = await Cart.updateOne(
                 { userId: userId },
                 { $pull: { products: { productId: productId, productVariation: productVariation } } }
             )
-        }else{
+        } else {
             result = await Cart.updateOne(
                 { guestId: guestId },
                 { $pull: { products: { productId: productId, productVariation: productVariation } } }
@@ -257,7 +261,7 @@ export async function removerCartItem(req, res) {
 
 
         /// this is done to find out whether any variation of product is still present in the cart or not
-        if(isUser){
+        if (isUser) {
             cart = await Cart.findOne({ userId }).select("products")
             const exists = cart.products.some((item) => item["productId"].toString() === productId)
             if (!exists) {
@@ -267,11 +271,12 @@ export async function removerCartItem(req, res) {
 
         return res.status(200).json({ message: "Product removed from the cart", bool: true })
     } catch (error) {
-        if(update){
+        if (update) {
             await Product.updateOne({
-                _id:productId,
-                [`reservedStock.${productVariation}`]:{$gte:productQuantityData}},
-                {$inc:{[`reservedStock.${productVariation}`]:productQuantityData}}
+                _id: productId,
+                [`reservedStock.${productVariation}`]: { $gte: productQuantityData }
+            },
+                { $inc: { [`reservedStock.${productVariation}`]: productQuantityData } }
             )
         }
         console.log("wrong in removeCartItem", error);
@@ -283,101 +288,104 @@ export async function removerCartItem(req, res) {
 
 /// per user there is only one cart; working for both
 export async function mergeCartItems(userId, guestId) {
-    const session=await mongoose.startSession() // this will start the session
+    const session = await mongoose.startSession() // this will start the session
     console.log("inside merge cart items")
     try {
-        
-        const isGuest=!!guestId
-        if(!isGuest) return false;
+
+        const isGuest = !!guestId
+        if (!isGuest) return false;
         session.startTransaction();
-        let guestProducts=await Cart.findOne({guestId:guestId}).session(session)
-        let userProducts=await Cart.findOne({userId:userId}).session(session)
+        let guestProducts = await Cart.findOne({ guestId: guestId }).session(session)
+        let userProducts = await Cart.findOne({ userId: userId }).session(session)
 
-        
-        guestProducts=guestProducts?.products || []
-        userProducts=userProducts?.products || []
-        
-        const productMap=new Map();
-        for(let i=0;i<userProducts.length;i++){
-            const key=`${userProducts[i].productId}_${userProducts[i].productVariation}`
-            productMap.set(key,userProducts[i])
+
+        guestProducts = guestProducts?.products || []
+        userProducts = userProducts?.products || []
+
+        const productMap = new Map();
+        for (let i = 0; i < userProducts.length; i++) {
+            const key = `${userProducts[i].productId}_${userProducts[i].productVariation}`
+            productMap.set(key, userProducts[i])
         }
 
-        for(let i=0;i<guestProducts.length;i++){
-            const key=`${guestProducts[i].productId}_${guestProducts[i].productVariation}`
-            const item=productMap.get(key)
-            if(item){
-                item.productQuantity+=guestProducts[i].productQuantity
-                item.reservedAt=new Date()
-            }else productMap.set(key,guestProducts[i])
+        for (let i = 0; i < guestProducts.length; i++) {
+            const key = `${guestProducts[i].productId}_${guestProducts[i].productVariation}`
+            const item = productMap.get(key)
+            if (item) {
+                item.productQuantity += guestProducts[i].productQuantity
+                item.reservedAt = new Date()
+            } else productMap.set(key, guestProducts[i])
         }
 
-        for(let i=0;i<guestProducts.length;i++){
-            const item=guestProducts[i]
-            const res=await Product.updateOne(
-                {_id:item.productId,[`reservedStock.${item.productVariation}`]:{$gte:item.productQuantity}},
-                {$inc:{
-                    [`reservedStock.${item.productVariation}`]:-item.productQuantity
-                }},
-                {session}
+        for (let i = 0; i < guestProducts.length; i++) {
+            const item = guestProducts[i]
+            const res = await Product.updateOne(
+                { _id: item.productId, [`reservedStock.${item.productVariation}`]: { $gte: item.productQuantity } },
+                {
+                    $inc: {
+                        [`reservedStock.${item.productVariation}`]: -item.productQuantity
+                    }
+                },
+                { session }
             )
-            if(res.modifiedCount===0) throw new Error("Reservation relaease failed")
+            if (res.modifiedCount === 0) throw new Error("Reservation relaease failed")
         }
 
-        await Cart.deleteOne({guestId:guestId}).session(session)
+        await Cart.deleteOne({ guestId: guestId }).session(session)
 
-        const mergedArray=Array.from(productMap.values());
-        for(let i=0;i<mergedArray.length;i++){
-            const item=mergedArray[i];
+        const mergedArray = Array.from(productMap.values());
+        for (let i = 0; i < mergedArray.length; i++) {
+            const item = mergedArray[i];
 
-            const ele=userProducts.find((p)=>{
-                return p.productId.toString()===item.productId.toString() && p.productVariation===item.productVariation
+            const ele = userProducts.find((p) => {
+                return p.productId.toString() === item.productId.toString() && p.productVariation === item.productVariation
             })
 
-            let qty=0;
-            if(ele) qty=ele.productQuantity
-            
-            const guestQuantity=item.productQuantity-qty
+            let qty = 0;
+            if (ele) qty = ele.productQuantity
 
-            if(guestQuantity>0){
-                const res=await Product.updateOne(
-                    {_id:item.productId,[`stock.${item.productVariation}`]:{$gte:guestQuantity}},
-                    {$inc:
+            const guestQuantity = item.productQuantity - qty
+
+            if (guestQuantity > 0) {
+                const res = await Product.updateOne(
+                    { _id: item.productId, [`stock.${item.productVariation}`]: { $gte: guestQuantity } },
+                    {
+                        $inc:
                         {
-                            [`reservedStock.${item.productVariation}`]:guestQuantity
+                            [`reservedStock.${item.productVariation}`]: guestQuantity
                         }
                     },
-                    {session}
+                    { session }
                 )
 
-                if(res.modifiedCount===0) throw new Error("Stock reservation failed")
+                if (res.modifiedCount === 0) throw new Error("Stock reservation failed")
             }
         }
 
-        const keys=new Set()
-        for(let i=0;i<mergedArray.length;i++){
-            const key=mergedArray[i].productId
+        const keys = new Set()
+        for (let i = 0; i < mergedArray.length; i++) {
+            const key = mergedArray[i].productId
             keys.add(key)
         }
         await Product.updateMany(
-            {_id:{$in:[...keys]}},
-            {$addToSet:{cart:userId}},
-            {session}
+            { _id: { $in: [...keys] } },
+            { $addToSet: { cart: userId } },
+            { session }
         )
 
         ///if we dont make use of upsert : true then
         //// case where user is completely new and instead of adding anything to the cart perform login directly 
         // now this case will fail
         await Cart.updateOne(
-            {userId:userId},
-            {$set:{products:mergedArray}},
-            {session,upsert:true}
+            { userId: userId },
+            { $set: { products: mergedArray } },
+            { session, upsert: true }
         )
 
         await session.commitTransaction()
         return true
 
-    }catch(error){
+    } catch (error) {
         await session.abortTransaction()
         console.log(error)
         return false
@@ -401,124 +409,124 @@ export async function cartCleanUp(productId, productVariation) {
     }
 }
 
-export async function updateCart(req,res){
-    let userId,guestId;
-    const session=await mongoose.startSession(); 
-    try{
+export async function updateCart(req, res) {
+    let userId, guestId;
+    const session = await mongoose.startSession();
+    try {
         session.startTransaction();
-        userId=req?.body?.userId;
-        guestId=req?.cookies?.guestId
+        userId = req?.body?.userId;
+        guestId = req?.cookies?.guestId
 
-        const isUser=!!userId
-        const isGuest=!!guestId
+        const isUser = !!userId
+        const isGuest = !!guestId
 
-        if(!isUser && !isGuest) throw new Error("user should be either logged in or guest")
-        
-        let cart,cartProducts;
-        if(isUser){
-            cart=await Cart.findOne({userId:userId}).session(session)
-            cartProducts=cart?.products;
-        }else{
-            cart=await Cart.findOne({guestId:guestId}).session(session)
-            cartProducts=cart?.products
-        }
-        
-        let updatedCartProducts=req?.body?.cartItems
+        if (!isUser && !isGuest) throw new Error("user should be either logged in or guest")
 
-        if(cartProducts.length!==updatedCartProducts.length) throw new Error("Something wrong with the cart") 
-        
-        let productMap=new Map()
-        for(let i=0;i<cartProducts.length;i++){
-            const key=`${cartProducts[i].productId}_${cartProducts[i].productVariation}`
-            productMap.set(key,cartProducts[i]);
+        let cart, cartProducts;
+        if (isUser) {
+            cart = await Cart.findOne({ userId: userId }).session(session)
+            cartProducts = cart?.products;
+        } else {
+            cart = await Cart.findOne({ guestId: guestId }).session(session)
+            cartProducts = cart?.products
         }
 
-        for(let i=0;i<updatedCartProducts.length;i++){
-            const key=`${updatedCartProducts[i].productId}_${updatedCartProducts[i].productVariation}`
-            const item=productMap.get(key)
-            if(!item) throw new Error("Something wrong with cart")
+
+        // console.log("hola",cartProducts)
+
+        let updatedCartProducts = req?.body?.cartItems
+        // console.log("Updated Cart",updatedCartProducts)
+
+
+        let productMap = new Map()
+        for (let i = 0; i < cartProducts?.length; i++) {
+            const key = `${cartProducts[i].productId.toString()}_${cartProducts[i].productVariation}`
+            productMap.set(key, cartProducts[i]);
+        }
+
+        for (let i = 0; i < updatedCartProducts?.length; i++) {
+            const key = `${updatedCartProducts[i].productId.toString()}_${updatedCartProducts[i].productVariation}`
+            const item = productMap.get(key)
+            // console.log(item,"item of DB cart",updatedCartProducts[i],"    ")
+
+            if (!item) throw new Error("Something wrong with cart")
         }
 
         ///// reserving the products
-        for(let i=0;i<updatedCartProducts.length;i++){
-            const item=updatedCartProducts[i];
-            const key=`${item?.productId}_${item?.productVariation}`
-            let diff=productMap.get(key).productQuantity-item?.productQuantity
+        for (let i = 0; i < updatedCartProducts?.length; i++) {
+            const item = updatedCartProducts[i];
+            const key = `${item?.productId.toString()}_${item?.productVariation}`
+            console.log(key)
+            let diff = item?.productQuantity - productMap.get(key).productQuantity
             /// do some reservation
-            if(diff<0){
-                const res= await Product.updateOne(
-                    {_id:item?.productId,
+            if (diff > 0) {
+                const res = await Product.updateOne(
+                    {
+                        _id: item?.productId,
                         $expr:
                         {
-                            $gte:[
+                            $gte: [
                                 {
-                                    $subtract:[`stock.${item?.productVariation}`,`reservedStock.${item?.productVariation}`],
-                                },Math.abs(diff)
+                                    $subtract: [{ $arrayElemAt: ["$stock", item?.productVariation] },
+                                    { $arrayElemAt: ["$reservedStock", item?.productVariation] }
+                                    ]
+                                }, diff
                             ]
                         }
                     },
                     {
-                        $inc:{
-                            [`reservedStock.${item?.productVariation}`]:Math.abs(diff)
+                        $inc: {
+                            [`reservedStock.${item?.productVariation}`]: diff
                         }
                     },
-                    {session}
+                    { session }
                 )
-                if(res?.modifiedCount===0) throw new Error("Something went wrong in reservation")
+                if (res.matchedCount === 0) {
+                    throw new Error("Insufficient stock");
+                }
             }
-            else if(diff>0){
-                const res= await Product.updateOne(
-                    {_id:item?.productId,[`reservedStock.${item?.productVariation}`]:{$gte:diff}},
+            else if (diff < 0) {
+                const res = await Product.updateOne(
+                    { _id: item?.productId, [`reservedStock.${item?.productVariation}`]: { $gte: Math.abs(diff) } },
                     {
-                        $inc:{
-                            [`reservedStock.${item?.productVariation}`]:-diff
+                        $inc: {
+                            [`reservedStock.${item?.productVariation}`]: diff
                         }
                     },
-                    {session}
+                    { session }
                 )
-    
-                if(res?.modifiedCount===0) throw new Error("Something went wrong in reservation")
-            }else continue;
+                if (res.matchedCount === 0) {
+                    throw new Error("Invalid reserved stock release");
+                }
+            } else continue;
 
-            diff*=-1
-            if(isUser){
-                await Cart.updateOne(
-                    {
-                        userId,
-                        "products.productId": item.productId,
-                        "products.productVariation": item.productVariation
-                    },
-                    {
-                        $inc: {
-                        "products.$.productQuantity": diff
+            const productId = new mongoose.Types.ObjectId(item.productId);
+            const res = await Cart.updateOne(
+                isUser ? { userId } : { guestId },
+                {
+                    $inc: {
+                        "products.$[elem].productQuantity": diff
+                    }
+                },
+                {
+                    session,
+                    arrayFilters: [
+                        {
+                            "elem.productId": productId,
+                            "elem.productVariation": item.productVariation
                         }
-                    },
-                    { session }
-                );
-            }else{
-                await Cart.updateOne(
-                    {
-                        guestId,
-                        "products.productId": item.productId,
-                        "products.productVariation": item.productVariation
-                    },
-                    {
-                        $inc: {
-                        "products.$.productQuantity": diff
-                        }
-                    },
-                    { session }
-                );
-            }
+                    ]
+                }
+            );
         }
         await session.commitTransaction()
 
         return res.status(200).json({ bool: true });
-    }catch(error){
+    } catch (error) {
         await session.abortTransaction()
         console.log(error);
-        return res.status(500).json({message:"Server side gone wrong at update Cart"})
-    }finally{
+        return res.status(500).json({ message: "Server side gone wrong at update Cart" })
+    } finally {
         await session.endSession();
     }
 }

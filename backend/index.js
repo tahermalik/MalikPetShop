@@ -75,39 +75,39 @@ cron.schedule("0 * * * *", async () => {
 });
 
 //// cron for the product's presence expiry
-cron.schedule("*/5 * * * *", async () => {
-  try {
-    const now = new Date();
-    const RESERVATION_PERIOD = 30 * 60 * 1000; // 30 min
+// cron.schedule("*/5 * * * *", async () => {
+//   try {
+//     const now = new Date();
+//     const RESERVATION_PERIOD = 30 * 60 * 1000; // 30 min
 
-    const carts = await Cart.find({
-      "products.reservedAt": { $lt: new Date(now - RESERVATION_PERIOD) }
-    });
+//     const carts = await Cart.find({
+//       "products.reservedAt": { $lt: new Date(now - RESERVATION_PERIOD) }
+//     });
 
-    for (const cart of carts) {
-      let updated = false;
+//     for (const cart of carts) {
+//       let updated = false;
 
-      for (let i = cart.products.length - 1; i >= 0; i--) {
-        const item = cart.products[i];
-        if (now - item.reservedAt > RESERVATION_PERIOD) {
-          await Product.updateOne(
-            { _id: item.productId },
-            { $inc: { [`reservedStock.${item.productVariation}`]: -item.productQuantity } }
-          );
+//       for (let i = cart.products.length - 1; i >= 0; i--) {
+//         const item = cart.products[i];
+//         if (now - item.reservedAt > RESERVATION_PERIOD) {
+//           await Product.updateOne(
+//             { _id: item.productId },
+//             { $inc: { [`reservedStock.${item.productVariation}`]: -item.productQuantity } }
+//           );
 
-          cart.products.splice(i, 1);
-          updated = true;
-        }
-      }
+//           cart.products.splice(i, 1);
+//           updated = true;
+//         }
+//       }
 
-      if (updated) await cart.save();
-    }
+//       if (updated) await cart.save();
+//     }
 
-    console.log("✅ Released expired cart reservations");
-  } catch (error) {
-    console.error("Error releasing expired reservations:", error);
-  }
-});
+//     console.log("✅ Released expired cart reservations");
+//   } catch (error) {
+//     console.error("Error releasing expired reservations:", error);
+//   }
+// });
 
 //// cron for the cart that has no products in it
 cron.schedule("*/30 * * * *", async () => {
