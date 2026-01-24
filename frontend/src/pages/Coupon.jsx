@@ -1,13 +1,19 @@
-export async function Coupon() {
+import { useState, useRef, useEffect } from "react";
+import { FiArrowLeft } from "react-icons/fi";
+import axios from "axios";
+import { COUPON_ENDPOINT } from "./endpoints";
+import { IoCheckmarkDoneOutline } from "react-icons/io5";
+import toast from "react-hot-toast";
+export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total, shipping, setCouponAmount }) {
 
-    const [coupanAmount, setCoupanAmount] = useState(0);
-    
-    const [coupanIndex, setCoupanIndex] = useState(-1) /// none of the coupans are applied initially
+    const [couponIndex, setCouponIndex] = useState(-1) /// none of the coupans are applied initially
     const [coupons, setCoupons] = useState([]);
     const [nextCursor, setNextCursor] = useState(null);
     const [loading, setLoading] = useState(false);
     const hadfetched = useRef(false);
     const [checkTime, setCheckTime] = useState(0)
+
+    // console.log(couponIndex, "CouponIndex")
     /// just to force re rendering of the components in every second
     useEffect(() => {
         const a = setInterval(() => {
@@ -80,42 +86,34 @@ export async function Coupon() {
         }
     }, []);
 
+    async function coponClicked(e, couponSelected) {
+        try {
+            e.stopPropagation();
+            console.log(couponSelected)
+            const res = await axios.post(`${COUPON_ENDPOINT}/selectCoupon`, { couponSelected: couponSelected ,total:total}, { withCredentials: true })
+            toast.success(res?.data?.message)
+        } catch (error) {
+            console.log(error)
+            toast.error(error?.response?.data?.message)
+        }
+    }
+
 
     return (
         <div
-            className="
-      fixed inset-0 z-[999]
-      bg-black/30 backdrop-blur-sm
-      flex justify-center items-end sm:items-center
-      animate-fadeIn
-    "
+            className="fixed inset-0 z-[999] bg-black/30 backdrop-blur-sm flex justify-center items-end sm:items-center animate-fadeIn"
         >
             <div
-                className="
-        relative
-        w-full h-full
-        sm:top-0 sm:w-[420px] sm:h-[620px]
-        bg-white/80 backdrop-blur-xl
-        sm:rounded-3xl
-        shadow-[0_20px_60px_rgba(0,0,0,0.25)]
-        flex flex-col
-        overflow-auto scrollbar-hide
-        p-4 gap-4
-        animate-slideUp sm:animate-scaleIn
-      "
+                className="relative w-full h-full sm:top-0 sm:w-[420px] sm:h-[620px] bg-white/80 backdrop-blur-xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] flex flex-col
+                overflow-auto scrollbar-hide p-4 gap-4 animate-slideUp sm:animate-scaleIn"
                 onScroll={(e) => scrollHandle(e)}
             >
 
                 {/* Header */}
                 <div className="flex items-center rounded-3xl gap-3 sticky top-0 bg-white/70 backdrop-blur-md py-2 px-2 z-10 w-[100%]">
                     <div
-                        className="
-                cursor-pointer
-                p-2 rounded-full
-                hover:bg-blue-100
-                active:scale-95
-                transition
-              "
+                        className="cursor-pointer p-2 rounded-full hover:bg-blue-100 active:scale-95
+                        transition"
                         onClick={() => { setCoupanVisible(false); }}
                     >
                         <FiArrowLeft size={18} />
@@ -130,54 +128,31 @@ export async function Coupon() {
                 {coupons.map((_, index) => (
                     <div
                         key={index}
-                        className="
-            w-full
-            bg-white
-            rounded-2xl
-            p-4
-            flex flex-col gap-2
-            shadow-sm
-            hover:shadow-lg
-            transition-all duration-300
-            cursor-pointer
-            border border-gray-100
-          "
+                        className="w-full bg-white rounded-2xl p-4 flex flex-col gap-2 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100"
                     >
                         <div className="flex justify-between items-center gap-2">
                             <div
-                                className="
-                border-2 border-dashed border-gray-800
-                px-3 py-1
-                rounded-lg
-                font-semibold
-                tracking-widest
-                text-sm sm:text-lg
-              "
+                                className="border-2 border-dashed border-gray-800 px-3 py-1 rounded-lg font-semibold tracking-widest text-sm sm:text-lg"
                             >
                                 {coupons[index]["couponCode"]}
                             </div>
 
-                            {coupanIndex !== index && (
+                            {couponIndex !== index && (
                                 <div
-                                    className={`
-                  px-4 py-1.5
-                  rounded-full
-                  text-sm font-medium text-white
-                  transition-all duration-300
-                  ${checkCoupon(
+                                    className={`px-4 py-1.5 rounded-full text-sm font-medium        text-white transition-all duration-300 ${checkCoupon(
                                         coupons[index]["couponStartDate"],
                                         coupons[index]["couponEndDate"]
                                     )
-                                            ? "bg-blue-500 hover:bg-blue-600 active:scale-95"
-                                            : "bg-blue-400 opacity-50 pointer-events-none"}
-                `}
-                                    onClick={() => { setCoupanIndex(index); }}
+                                        ? "bg-blue-500 hover:bg-blue-600 active:scale-95"
+                                        : "bg-blue-400 opacity-50 pointer-events-none"}
+                                    `}
+                                    onClick={(e) => { coponClicked(e, coupons[index]) }}
                                 >
                                     Apply
                                 </div>
                             )}
 
-                            {coupanIndex === index && (
+                            {couponIndex === index && (
                                 <div className="flex items-center gap-1 text-emerald-500 font-medium text-sm">
                                     <IoCheckmarkDoneOutline size={16} />
                                     Applied

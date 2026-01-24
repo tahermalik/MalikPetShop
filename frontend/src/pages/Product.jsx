@@ -12,7 +12,6 @@ import { useMemo } from "react"
 import { IoIosHeart } from "react-icons/io";
 import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/slices/userSlice"
 import { setImageCounter } from "../redux/slices/activeSlice"
-import { addProduct } from "../redux/slices/cartSlice"
 import toast from "react-hot-toast"
 import { FiFilter } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";

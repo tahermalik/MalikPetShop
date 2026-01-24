@@ -1,8 +1,22 @@
 import axios from "axios";
 import React, { useRef, useState } from "react";
 import { COUPON_ENDPOINT } from "./endpoints";
+import toast from "react-hot-toast";
+import Select from "react-select";
 
 export default function CouponRuleCreator() {
+  /// in future this will be comming from DB
+  let brandsName=[
+    { _id: "1", name: "Smart Heart" },
+    { _id: "2", name: "Pedigree" },
+    { _id: "3", name: "Whiskas" },
+    { _id: "4", name: "Purepet" }
+  ]
+  const brandOptions = brandsName.map(b => ({
+    value: b.name.toLowerCase(),
+    label: b.name
+  }));
+
   const [coupon, setCoupon] = useState({
     couponCode: "",
     couponDesc: "",
@@ -15,19 +29,9 @@ export default function CouponRuleCreator() {
     newUser: false,
     couponStartDate: "",
     couponEndDate: "",
-    productID: []
+    brands: []
   });
 
-  const idRef = useRef(null)
-  const [productID, setProductID] = useState("")
-
-  function submitID() {
-    if (idRef.current) {
-      // console.log(idRef.current?.value)
-      setCoupon({ ...coupon, productID: [...coupon.productID, idRef.current?.value] })
-      setProductID("") // resetting after succesfull submission
-    }
-  }
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -37,10 +41,12 @@ export default function CouponRuleCreator() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res=axios.post(`${COUPON_ENDPOINT}/setCoupons`,coupon,{withCredentials:true})
-    
-    console.log("Coupon Rule Saved:", coupon);
-    
+    const res = axios.post(`${COUPON_ENDPOINT}/setCoupons`, coupon, { withCredentials: true })
+
+    // console.log("Coupon Rule Saved:", coupon);
+    toast.success(res?.data?.message)
+
+
   };
 
   return (
@@ -147,24 +153,13 @@ export default function CouponRuleCreator() {
                 />
               </div>
               <div>
-                <label className="block font-medium">Max Uses per User</label>
+                <label className="block font-medium">Max Uses of the Coupon</label>
                 <input
                   type="number"
                   name="couponMaxUses"
                   value={coupon.couponMaxUses}
                   onChange={handleChange}
                   placeholder="1"
-                  className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block font-medium">Total Usage Limit</label>
-                <input
-                  type="number"
-                  name="couponTotalUsage"
-                  value={coupon.couponTotalUsage}
-                  onChange={handleChange}
-                  placeholder="100"
                   className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
                 />
               </div>
@@ -186,25 +181,23 @@ export default function CouponRuleCreator() {
           {/* Product on which discount need to be applied */}
           <section>
             <h2 className="text-lg font-semibold text-blue-600 mb-3 border-b pb-1">
-              Product ID
+              Brands on which Coupon Can be applied
             </h2>
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <div className="flex flex-row items-center justify-between mb-2">
-                  <label className="block font-medium">Enter the Product ID </label>
-                  <div onClick={() => submitID()} className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 cursor-pointer">Submit Product ID</div>
-                </div>
-                <input
-                  ref={idRef}
-                  type="text"
-                  name="productID"
-                  value={productID}
-                  onChange={(e) => setProductID(e.currentTarget.value)}
-                  placeholder="Enter the Product ID"
-                  className="w-full border rounded-lg px-3 py-2 focus:outline-blue-500"
-                />
-              </div>
-            </div>
+            <Select
+              isMulti
+              options={brandOptions}
+              placeholder="Select brands..."
+              className="text-sm"
+              value={brandOptions.filter(option =>
+                coupon.brands.includes(option.value)
+              )}
+              onChange={(selected) => {
+                setCoupon(prev => ({
+                  ...prev,
+                  brands: selected.map(item => item.value)
+                }));
+              }}
+            />
 
           </section>
 
@@ -254,7 +247,7 @@ export default function CouponRuleCreator() {
                   (New users only)
                 </span>
               )}
-              Product ID's : {coupon.productID.join(", ") || "—"}
+              Brands : {coupon.brands.length > 0 ? coupon.brands.join(", "): "All Brands"}
             </p>
           </section>
 
@@ -276,7 +269,7 @@ export default function CouponRuleCreator() {
                   newUser: false,
                   couponStartDate: "",
                   couponEndDate: "",
-                  productID: []
+                  brands: []
                 })
               }
             >

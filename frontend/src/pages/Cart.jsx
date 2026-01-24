@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios"
 import { CART_ENDPOINTS, COUPON_ENDPOINT } from "./endpoints";
-import { useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetAllCartItems } from "../hooks/useGetAllCartItems";
 import { useMemo } from "react";
-
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Coupon } from "./Coupon.jsx";
@@ -60,6 +58,7 @@ export default function CartPage() {
   const [shouldCallDB, setShouldCallDB] = useState(true)
   const [refresh, setRefresh] = useState(0) /// specially when item is removed from the cart
   const [cartData, setCartData] = useState([])
+  const [couponAmount, setCouponAmount] = useState(0);
   const { productData, productVariationData, productQuantityData, realCartData } = useGetAllCartItems(userData?._id, refresh, shouldCallDB)
   // realCartData is an array of objects
 
@@ -297,7 +296,7 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between">
                 <span>Coupan</span>
-                <span className="font-sans">₹0</span>
+                <span className="font-sans">₹{couponAmount}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
@@ -306,11 +305,11 @@ export default function CartPage() {
               <div className="border-t border-gray-200 my-3"></div>
               <div className="flex justify-between font-semibold text-gray-900">
                 <span>Total</span>
-                <span className="font-sans">₹{total - 0}</span>
+                <span className="font-sans">₹{total - couponAmount}</span>
               </div>
             </div>
 
-            <div onClick={(e) => { placeOrder(e, total - coupanAmount) }} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center">
+            <div onClick={(e) => { placeOrder(e, total - couponAmount) }} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center">
               Proceed to Checkout
             </div>
 
@@ -325,7 +324,7 @@ export default function CartPage() {
 
         {/* Coupan Window */}
         {coupanVisible && (
-          <Coupon />
+          <Coupon setCoupanVisible={setCoupanVisible} coupanVisible={coupanVisible} discountAmount={discountAmount} total={total} shipping={shipping} setCouponAmount={setCouponAmount}/>
         )}
 
       </div>
