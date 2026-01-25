@@ -25,7 +25,6 @@ export default function CouponRuleCreator() {
     couponMaxDiscount: "",
     couponMinOrderAmount: "",
     couponMaxUses: "",
-    couponTotalUsage: "",
     newUser: false,
     couponStartDate: "",
     couponEndDate: "",
@@ -41,12 +40,11 @@ export default function CouponRuleCreator() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = axios.post(`${COUPON_ENDPOINT}/setCoupons`, coupon, { withCredentials: true })
+    const res = await axios.post(`${COUPON_ENDPOINT}/setCoupons`, coupon, { withCredentials: true })
 
     // console.log("Coupon Rule Saved:", coupon);
+    // console.log(res)
     toast.success(res?.data?.message)
-
-
   };
 
   return (
@@ -265,7 +263,6 @@ export default function CouponRuleCreator() {
                   couponMaxDiscount: "",
                   couponMinOrderAmount: "",
                   couponMaxUses: "",
-                  couponTotalUsage: "",
                   newUser: false,
                   couponStartDate: "",
                   couponEndDate: "",

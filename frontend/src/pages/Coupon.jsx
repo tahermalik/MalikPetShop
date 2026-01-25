@@ -4,6 +4,7 @@ import axios from "axios";
 import { COUPON_ENDPOINT } from "./endpoints";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total, shipping, setCouponAmount }) {
 
     const [couponIndex, setCouponIndex] = useState(-1) /// none of the coupans are applied initially
@@ -54,7 +55,7 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
     }
 
     //// function to check whether the coupon can be applied or not
-    function checkCoupon(start, end) {
+    function checkCoupon(start, end, validity) {
         const now = new Date();
         start = new Date(start);
 
@@ -64,16 +65,18 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
         }
 
         if (start >= now) return false;
-        return true;
+
+        return validity;
     }
 
     //// dealing with Pagination
+    const userId = useSelector((state) => state?.user?.userData?._id)
     const fetchCoupons = async () => {
         if (loading) return;
         setLoading(true);
 
-        const res = await axios.post(`${COUPON_ENDPOINT}/viewCoupons`, { limit: 10, lastId: nextCursor }, { withCredentials: true });
-        console.log("Taher Malik", res.data.coupons.length)
+        const res = await axios.post(`${COUPON_ENDPOINT}/viewCoupons`, { limit: 10, lastId: nextCursor, userId: userId }, { withCredentials: true });
+        // console.log("Taher Malik", res.data.coupons.length)
         setCoupons(prev => [...prev, ...res.data.coupons]);
         setNextCursor(res.data.nextCursor);
         setLoading(false);
@@ -90,11 +93,24 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
         try {
             e.stopPropagation();
             console.log(couponSelected)
-            const res = await axios.post(`${COUPON_ENDPOINT}/selectCoupon`, { couponSelected: couponSelected ,total:total}, { withCredentials: true })
+            const res = await axios.post(`${COUPON_ENDPOINT}/selectCoupon`, { couponSelected: couponSelected, total: total }, { withCredentials: true })
             toast.success(res?.data?.message)
         } catch (error) {
             console.log(error)
             toast.error(error?.response?.data?.message)
+        }
+    }
+
+
+    const [showTC, setShowTC] = useState(null)
+    function TCClicked(e, index) {
+        try {
+            e.stopPropagation();
+            setShowTC(index)
+
+        } catch (error) {
+            console.log(error)
+            toast.error("Cant Display Terms and Condition currently")
         }
     }
 
@@ -137,11 +153,11 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
                                 {coupons[index]["couponCode"]}
                             </div>
 
-                            {couponIndex !== index && (
+                            {(couponIndex !== index) && (
                                 <div
-                                    className={`px-4 py-1.5 rounded-full text-sm font-medium        text-white transition-all duration-300 ${checkCoupon(
+                                    className={`px-4 py-1.5 rounded-full text-sm font-medium text-white transition-all duration-300 ${checkCoupon(
                                         coupons[index]["couponStartDate"],
-                                        coupons[index]["couponEndDate"]
+                                        coupons[index]["couponEndDate"], coupons[index]["isValid"]
                                     )
                                         ? "bg-blue-500 hover:bg-blue-600 active:scale-95"
                                         : "bg-blue-400 opacity-50 pointer-events-none"}
@@ -172,7 +188,9 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
                         </div>
 
                         <div className="text-[11px] sm:text-sm flex justify-between text-gray-500">
-                            <div>*T&C Applied</div>
+                            <div onMouseEnter={(e) => TCClicked(e, index)}>
+                                *T&C Applied
+                            </div>
                             <div>
                                 {fetchCurrentTime(coupons[index]["couponStartDate"]) === -1
                                     ? fetchCurrentTime(coupons[index]["couponEndDate"]) !== -1
@@ -181,6 +199,44 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
                                     : `Starts in ${fetchCurrentTime(coupons[index]["couponStartDate"])}`}
                             </div>
                         </div>
+
+                        {showTC === index && (
+                            <div
+                                className="mt-3 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-700 animate-slideDown"
+                            >
+                                <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                                    Coupon applicable if
+                                </h3>
+
+                                <ul className="space-y-2 text-xs">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-emerald-600 mt-[2px]">✔</span>
+                                        Minimum order value:
+                                        <span className="font-medium text-gray-900 ml-1">
+                                            ₹{coupons[index]["couponMinOrderAmount"]}
+                                        </span>
+                                    </li>
+
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-blue-600 mt-[2px]">✔</span>
+                                        Applicable brands:
+                                    </li>
+
+                                    <div className="flex flex-wrap gap-1 ml-6">
+                                        {coupons[index]["brands"].map((brand, i) => (
+                                            <span
+                                                key={i}
+                                                className="px-2 py-[2px] rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium"
+                                            >
+                                                {brand}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </ul>
+                            </div>
+                        )}
+
+
                     </div>
                 ))}
             </div>
