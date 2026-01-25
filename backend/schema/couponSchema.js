@@ -12,26 +12,35 @@ const couponSchema = new mongoose.Schema({
         required: true,    // Must be provided
         unique: true,      // No duplicate emails {will gonna identify users uniquely on the basis of the email}
         lowercase: true,   // Converts to lowercase before saving
-        match: /^[A-Za-z0-9 ]+$/ // Optional: regex to validate email format
+        match: /^[a-z0-9]+$/ // Optional: regex to validate email format
     },
     couponDiscountValue:{
         type:Number,
         required:true,
-        match:/^[0-9]+$/
     },
     couponDesc:{
         type:String,
         required:true,
     },
     couponDiscountType:{
-        type:String
+        type:String,
+        default:"percentage"
     },
-    couponMaxDiscount:{type:Number},
-    couponMinOrderAmount:{type:Number},
-    couponMaxUses:{type:Number},
-    couponTotalUsage:{type:Number},
+    couponMaxDiscount:{type:Number,required:true,default:0},
+    couponMinOrderAmount:{type:Number,required:true,default:0},
+
+    /// Number of times copon can be used globally
+    couponMaxUses:{type:Number,required:true,default:1},
+
+    // number of times coupon is used till the present time
+    couponTotalUsage:{type:Number,required:true,default:0},
     newUser:{type:Boolean},
-    productID:[],
+    brands:[
+        {
+            type:String,
+            default: []
+        }
+    ],
     couponStartDate:{type:Date},
     couponEndDate:{type:Date}
 })

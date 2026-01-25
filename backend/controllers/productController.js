@@ -12,7 +12,7 @@ export async function addProduct(req, res) {
         const imagePath = req.file ? req.file.path : null;
         let productString = ""
 
-        const {
+        let {
             pet,
             category,
             type,
@@ -36,6 +36,9 @@ export async function addProduct(req, res) {
             manufactureDate,
 
         } = productData;
+
+        /// just to avoid bugs in future
+        brand=brand.toLowerCase()
 
         const number_regex = /^\d+(\.\d+)?$/
 
