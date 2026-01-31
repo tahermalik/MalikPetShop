@@ -1,7 +1,13 @@
 import { createClient } from 'redis';
 
 const redisClient = createClient({
-    url: process.env.REDIS_URL
+  url: process.env.REDIS_URL,
+  socket: {
+    keepAlive: 10_000, // 🔑 prevents idle disconnects
+    reconnectStrategy: (retries) => {
+      return Math.min(retries * 100, 3000); // graceful backoff
+    }
+  }
 });
 
 redisClient.on("connect", () => {
