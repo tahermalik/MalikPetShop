@@ -16,11 +16,12 @@ import { v4 as uuidv4 } from "uuid";
 export async function login(req, res) {
     try {
         console.log("in this login component")
-        const { email, password, reduxCartData, reduxWishListData } = req.body;
+        const { email, password, reduxWishListData } = req.body;
         const guestId=req?.cookies?.guestId
         const role = req.params?.role || "user";
 
         const isGuest=!!guestId
+        console.log(isGuest,"Holaaa")
         if(!isGuest) return res.status(404).json({message:"Something is wrong"})
 
         console.log("role", role)
@@ -51,7 +52,7 @@ export async function login(req, res) {
         await mergeCartItems(user._id,guestId)
 
         const updatedUser = await User.findById(user._id).select("-email")
-        return res.status(200).cookie("token", token, { httpOnly: true, sameSite: "None", maxAge: 3600000 }).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser })
+        return res.status(200).cookie("token", token, { httpOnly: true, sameSite: "None",secure: true, maxAge: 3600000 }).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser })
     } catch (error) {
         console.log("wrong in login", error)
         return res.status(500).json({ message: "something wrong at the server side", bool: false })

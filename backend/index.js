@@ -21,7 +21,8 @@ import Cart from "./schema/cartSchema.js";
 
 const app=express();
 app.use(cors({
-  origin: "http://localhost:5173",  // your React frontend URL
+  origin:[ "http://localhost:5173","https://malikpetshop.onrender.com"],  // your React frontend URL
+
   credentials: true,                 // if you use cookies or auth
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], // allowed methods
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"] // allowed headers
