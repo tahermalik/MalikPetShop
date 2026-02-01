@@ -20,9 +20,9 @@ export async function login(req, res) {
         const guestId=req?.cookies?.guestId
         const role = req.params?.role || "user";
 
-        const isGuest=!!guestId
-        console.log(isGuest,"Holaaa")
-        if(!isGuest) return res.status(404).json({message:"Something is wrong"})
+        // const isGuest=!!guestId
+        // console.log(isGuest,"Holaaa")
+        // if(!isGuest) return res.status(404).json({message:"Something is wrong"})
 
         console.log("role", role)
 
@@ -52,13 +52,19 @@ export async function login(req, res) {
         await mergeCartItems(user._id,guestId)
 
         const updatedUser = await User.findById(user._id).select("-email")
-        return res.status(200).cookie("token", token, { httpOnly: true, sameSite: "None",secure: true, maxAge: 3600000 }).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser })
+        // console.log("toeken",token)
+        res.cookie("token", token, {
+            httpOnly: true,
+            sameSite: "none",
+            secure:true,
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+        return res.status(200).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser })
     } catch (error) {
         console.log("wrong in login", error)
         return res.status(500).json({ message: "something wrong at the server side", bool: false })
     }
 }
-
 
 /// working
 export async function register(req, res) {
@@ -98,16 +104,20 @@ export async function register(req, res) {
     }
 }
 
+/// workinig
 export async function logout(req, res) {
     try {
         console.log("inside the logout function")
+        const token=req?.cookies?.token
+        if(!token) return res.status(400).json({message:"user is not logged in"})
         res.clearCookie("token", {
             httpOnly: true,
             secure: true,     // same as when you set it
-            sameSite: "strict"
+            sameSite: "none"
         });
+
         // console.log(req.user)
-        return res.status(200).json({ message: `${req.user.username} logout successfully` })
+        return res.status(200).json({ message: ` logout successfully` })
 
     } catch (error) {
         console.log("something went wrong in logout", error)
@@ -152,83 +162,59 @@ export async function viewFood(req, res) {
     }
 }
 
-export async function addCart(req, res) {
-    try {
-        const product_id = req.params.id;
-        let cartData = await User.findById(req?.user?.id).select("-password")
-        cartData = cartData.cart
-
-        let item_price = await Product.findById(product_id)
-        item_price = Math.ceil((item_price.originalPrice * item_price.discount) / 100)
-        //// removing the item from the cart
-        for (let i = 0; i < cartData.length; i++) {
-            if (cartData[i]["product_id"] == product_id) {
-                await User.findByIdAndUpdate(
-                    req?.user?.id,
-                    { $pull: { cart: { product_id: product_id } } },
-                    { new: true }
-                );
-                return res.status(200).json({ message: "Item removed from the cart" })
-            }
-        }
-
-
-        //// adding the item into the cart
-        await User.findByIdAndUpdate(
-            req?.user?.id,
-            { $push: { cart: { product_id: product_id, price: item_price } } },
-            { new: true }
-        );
-        return res.status(200).json({ message: "Item added succesfully" })
-
-    } catch (error) {
-        console.log("Something wrong at server side in addCart", error)
-        return res.status(500).json("something wrong at server end")
-    }
-}
-
-/// working -> addition and removal of the products  ;;; user should be login for this
+/// need to work on this feature next week
 export async function favourite(req, res) {
+    const session=await mongoose.startSession()
     try {
         console.log("inside favourite")
+        await session.startTransaction()
         let { userId, productId, toAdd, productVariation } = req?.body
 
         let result = await Product.findById(productId)
-        if (!result) return res.status(404).json({ message: "Product not found", bool: false })
+        if (!result){
+            await session.abortTransaction()
+            return res.status(404).json({ message: "Product not found", bool: false })
+        }
 
         result = await User.findById(userId)
-        if (!result) return res.status(404).json({ message: "User not found", bool: false })
+        if (!result){
+            await session.abortTransaction()
+            return res.status(404).json({ message: "User not found", bool: false })
+        }
         // console.log(userId,productId)
         if (toAdd) {
             console.log("Adding Product to wishList")
             await Promise.all([
-                User.findByIdAndUpdate(userId, { $addToSet: { wishList: { productId: productId, productVariation: productVariation } } }),
-                Product.findByIdAndUpdate(productId, { $addToSet: { wishList: userId } })
+                User.findByIdAndUpdate(userId, { $addToSet: { wishList: { productId: productId, productVariation: productVariation } } },{session}),
+                Product.findByIdAndUpdate(productId, { $addToSet: { wishList: userId } },{session})
             ]);
         } else {
             console.log("removing product from wishList")
             /// we dont need to remove it from the wishlist
 
-            await User.findByIdAndUpdate(userId, { $pull: { wishList: { productId: productId, productVariation: productVariation } } })
+            await User.findByIdAndUpdate(userId, { $pull: { wishList: { productId: productId, productVariation: productVariation } } },{session})
 
-            result = await User.findById(userId).select("wishList")
+            result = await User.findById(userId).select("wishList").session(session)
             const exists = result.wishList.some((item) => item["productId"].toString() === productId)
 
-            if (!exists) await Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } })
+            if (!exists) await Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } },{session})
 
             ///// this is done in order to delete the userId from product on cart removal
-
+            await session.commitTransaction()
             return res.status(200).json({ message: "Item removed from the wishlist" })
         }
+
+        await session.commitTransaction()
         return res.status(200).json({ message: "Item added succesfully to wishlist" })
 
     } catch (error) {
         console.log("Something wrong at server side in addWhishList", error)
+        session.abortTransaction()
         return res.status(500).json("something wrong at server end")
+    }finally{
+        await session.endSession()
     }
 }
-
-////  user should be login for this ; working
 export async function viewWishList(req, res) {
     try {
         const userId = req?.params?.id /// receiving the user id
@@ -270,7 +256,6 @@ export async function viewWishList(req, res) {
         return res.status(500).json({ message: "Server fucked up in view WishList" })
     }
 }
-
 /// working
 export async function mergeWishList(userId, reduxWishListData) {
     try {
@@ -325,7 +310,7 @@ export async function mergeWishList(userId, reduxWishListData) {
     }
 }
 
-
+//// will work on this 
 export async function placeOrder(req, res) {
     try {
         const user_id = req?.user?.id;
@@ -370,8 +355,7 @@ export async function placeOrder(req, res) {
     }
 }
 
-
-//// working
+//// working--> no need of transaction over here
 export async function createFeedBack(req, res) {
     let result
     try {
@@ -393,7 +377,6 @@ export async function createFeedBack(req, res) {
         topMostFeedBacks(req?.body?.message, req?.body?.rating, result?.username)
     }
 }
-
 
 /// working
 async function topMostFeedBacks(message, rating, username) {
@@ -429,15 +412,15 @@ export async function displayFeedBack(req, res) {
     }
 }
 
-// working
-export async function wishListCleanUp(productId, productVariation) {
+// working and is session aware
+export async function wishListCleanUp(productId, productVariation,session) {
     try {
-        let wishListUserIds = await Product.findById(productId).select("wishList")
+        let wishListUserIds = await Product.findById(productId).select("wishList").session(session)
         wishListUserIds = wishListUserIds["wishList"] /// it will be array of ids
 
         await Promise.all(
             wishListUserIds.map(async id => {
-                await User.findByIdAndUpdate(id, { $pull: { wishList: { productId: productId, productVariation: productVariation } } })
+                await User.findByIdAndUpdate(id, { $pull: { wishList: { productId: productId, productVariation: productVariation } } },{session})
             })
         )
 
@@ -651,7 +634,8 @@ export async function getGuestId(req,res){
             const guestId = uuidv4();
             res.cookie("guestId", guestId, {
             httpOnly: true,
-            sameSite: "strict",
+            sameSite: "none",
+            secure:true,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
             });
         }

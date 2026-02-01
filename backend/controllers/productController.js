@@ -3,6 +3,7 @@ import natural from "natural";
 import User from "../schema/userSchema.js";
 import { cartCleanUp } from "./cartController.js";
 import { wishListCleanUp } from "./userController.js";
+import mongoose from "mongoose";
 
 //// working
 export async function addProduct(req, res) {
@@ -85,27 +86,9 @@ export async function addProduct(req, res) {
             const percentage = (matches / total) * 100;
 
             //// if the product satisfies my candidate key
-            ///// for now if we want to update a variation then simply delete that variation and add the variation with updated fields again
+
+            /// this feature is currently under development as planned it will contain stuff for updating the product variation
             if (product_db.netWeight.includes(Number(netWeight)) && percentage >= 90) {
-                // let counter=0;      /// fetching the index of the variation that is to be updated
-                // for(let i=0;i<product_db.netWeight.length;i++){
-                //     if(product_db.netWeight[i]===netWeight){
-                //         counter=i;
-                //         break;
-                //     }
-                // }
-
-                // product_db["flavor"][counter]=flavor
-                // product_db["expiryDate"][counter]=expiryDate
-                // product_db["manufactureDate"][counter]=manufactureDate
-
-                // product_db["discountValue"][counter]=discountValue
-                // product_db["discountType"][counter]=discountType
-                // product_db["originalPrice"][counter]=originalPrice
-
-                // product_db["stock"][counter]=stock
-                // product_db["image"][index] = imagePath;
-
                 return res.status(200).json({ message: "Product is already present" })
             }
             productString = productString.trim().replace(/\s+/g, " ").toLowerCase();
@@ -154,9 +137,9 @@ export async function addProduct(req, res) {
     }
 }
 
+/// working
 export async function displayProduct(req, res) {
     try {
-
         const limit = parseInt(req.body.limit) || 20;
         const page = parseInt(req.body.page) || 1;
         const skip = (page - 1) * limit;
@@ -247,6 +230,7 @@ export async function displayProduct(req, res) {
 
 /// working
 export async function deleteProduct(req, res) {
+    const session=await mongoose.startSession()
     try {
         const productId = req?.params?.id;
         let { imgCounter } = req.body;
@@ -264,7 +248,7 @@ export async function deleteProduct(req, res) {
             return res.status(400).json({ message: "only numbers are allowed" })
         }
 
-        const product = await Product.findById(productId);
+        const product = await Product.findById(productId).session(session);
         if (!product) return res.status(404).json({ message: "Product is not available" })
 
         //// if the product is available
@@ -273,11 +257,18 @@ export async function deleteProduct(req, res) {
         console.log(productObj, keyArray)
         let hasUpdated = false
 
+        await session.startTransaction()
+
         /// so that both can execute in parallel
-        await Promise.all([
-            cartCleanUp(productId, imgCounter), /// productId,productVariation
-            wishListCleanUp(productId, imgCounter)
-        ])
+        try{
+            await Promise.all([
+                cartCleanUp(productId, imgCounter,session), /// productId,productVariation
+                wishListCleanUp(productId, imgCounter,session)
+            ])
+        }catch(error){
+            await session.abortTransaction()
+            return res.status(500).json({message:"Wrong in cart or wishlist cleanup"})
+        }
 
         for (let i = 0; i < keyArray.length; i++) {
             let value = productObj[keyArray[i]];
@@ -292,11 +283,7 @@ export async function deleteProduct(req, res) {
                     value.splice(imgCounter, 1)
                     hasUpdated = true
                 } else {
-                    const wishUserId = productObj["wishList"]
-                    for (const userId of wishUserId) {
-                        await User.findByIdAndUpdate(userId, { $pull: { wishList: productId } });
-                    }
-                    await Product.deleteOne({ _id: productId })
+                    await Product.deleteOne({ _id: productId }).session(session)
                     console.log("Deleting the entire product")
                 }
             }
@@ -304,13 +291,18 @@ export async function deleteProduct(req, res) {
 
         /// exceuted when the product variation is deleted
         if (hasUpdated) {
-            await product.save()
+            await product.save({session})
         }
+
+        await session.commitTransaction()
 
         return res.status(200).json({ message: "product deleted successfully" })
     } catch (error) {
         console.log("wrong in deleteProduct", error);
+        await session.abortTransaction()
         return res.status(500).json({ message: "Something went wrong at server side in deleteProduct" })
+    }finally{
+        await session.endSession()
     }
 }
 

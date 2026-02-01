@@ -1,6 +1,6 @@
 import Cart from "../schema/cartSchema.js";
 import Product from "../schema/productSchema.js";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import User from "../schema/userSchema.js";
 import toast from "react-hot-toast";
 import redisClient from "../config/redis.js";
@@ -12,11 +12,12 @@ import redisClient from "../config/redis.js";
 /// wroking for both
 export async function addToCart(req, res) {
     let userId, productId, productVariation, quantity, guestId;
-    let reservation = false
+    const session=await mongoose.startSession()
     try {
         console.log("adding the product into cart")
         userId = req?.body?.userId
         guestId = req?.cookies?.guestId
+        console.log("guestId --> ",guestId)
         productId = req?.body?.productId
         productVariation = req?.body?.productVariation
         quantity = req?.body?.quantity
@@ -52,7 +53,8 @@ export async function addToCart(req, res) {
         if (productData.netWeight.length <= productVariation || productVariation < 0) return res.status(400).json({ message: "Something went wrong while adding product to the cart" })
 
         /// checking the availabilty of the product
-        console.log(productData["stock"][productVariation], "Helo")
+        // console.log(productData["stock"][productVariation], "Helo")
+        await session.startTransaction()
         const reserveResult = await Product.updateOne(
             {
                 _id: productId,
@@ -73,15 +75,14 @@ export async function addToCart(req, res) {
                 $inc: {
                     [`reservedStock.${productVariation}`]: quantity
                 }
-            }
+            },
+            {session}
         )
 
         if (reserveResult.matchedCount === 0) {
+            await session.abortTransaction()
             return res.status(400).json({ message: "Product out of stock" });
         }
-
-        reservation = true;
-
         
         await redisClient.hSet(hashKey,redisKey,quantity)
         if(isGuest) await redisClient.expire(hashKey,60*60);
@@ -100,9 +101,11 @@ export async function addToCart(req, res) {
                 // rollback reservation
                 await Product.updateOne(
                     { _id: productId },
-                    { $inc: { [`reservedStock.${productVariation}`]: -quantity } }
+                    { $inc: { [`reservedStock.${productVariation}`]: -quantity } },
+                    {session}
                 );
 
+                await session.abortTransaction()
                 return res.status(409).json({ message: "Product already in cart" });
             }
 
@@ -121,7 +124,7 @@ export async function addToCart(req, res) {
                             }
                         }
                     },
-                    { upsert: true }
+                    { upsert: true,session }
                 );
             } else {
                 await Cart.findOneAndUpdate(
@@ -136,7 +139,7 @@ export async function addToCart(req, res) {
                             }
                         }
                     },
-                    { upsert: true }
+                    { upsert: true ,session}
                 );
 
             }
@@ -171,17 +174,16 @@ export async function addToCart(req, res) {
         }
 
         ///// adding the userID into the cart; it only contains unique userId
-        if (isUser) await Product.findByIdAndUpdate(productId, { $addToSet: { cart: userId } })
+        if (isUser) await Product.findByIdAndUpdate(productId, { $addToSet: { cart: userId } },{session})
+            
+        /// commiting the transaction
+        await session.commitTransaction()
 
+        await redisClient.del(hashKey); // invalidate cache
         return res.status(200).json({ message: "item added to the cart successfully" })
 
     } catch (error) {
-        if (reservation) {
-            await Product.updateOne(
-                { _id: productId },
-                { $inc: { [`reservedStock.${productVariation}`]: -quantity } }
-            );
-        }
+        session.abortTransaction()
         console.log("wrong in add to cart", error);
         return res.status(500).json({ message: "Server fucked at add to cart" })
     }
@@ -191,14 +193,20 @@ export async function addToCart(req, res) {
 export async function getCartItems(req, res) {
     try {
         console.log("inside getCartItems")
-        const userId = req?.params?.userId;
-        const isUser = !!userId
-        const guestId = req?.cookies?.guestId;
-        const isGuest = !!guestId
+        let userId = req?.params?.userId;
+        let isUser = !!userId
+        let guestId = req?.cookies?.guestId;
+        let isGuest = !!guestId
+        if(userId==="undefined"){
+            isUser=false
+            userId=undefined
+        }
 
         if (!isUser && !isGuest) return res.status(400).json({ message: "User should either be Guest or loggedIn" })
 
+        
         const hashKey=isUser ? `user:${userId}`:`guest:${guestId}`
+        console.log(hashKey)
 
         try{
             const isPresent=await redisClient.exists(hashKey)
@@ -210,7 +218,10 @@ export async function getCartItems(req, res) {
                 for(let i=0;i<products.length;i++){
                     productsArray.push(JSON.parse(products[i]));
                 }
+                console.log("redis is returning")
                 return res.status(200).json({ cartData:  productsArray})
+            }else{
+                console.log("Mongo is returning")
             }
         }catch(error){
             console.log("redis failed",error)
@@ -232,8 +243,10 @@ export async function getCartItems(req, res) {
                 const productKey=`${result?.products[i].productId}_${result?.products[i].productVariation}`
                 productMap[productKey]=JSON.stringify(result?.products[i]);
             }
-            await redisClient.hset(hashKey,productMap)
-            await redisClient.expire(hashKey,60*60)
+            if (Object.keys(productMap).length > 0) {
+                await redisClient.hSet(hashKey, productMap);
+                await redisClient.expire(hashKey,60*60)
+            }
         }catch(error){
             console.log("redis failed",error)
         }
@@ -262,11 +275,15 @@ export async function removerCartItem(req, res) {
         
         if (!isUser && !isGuest) return res.status(400).json({ message: "User should be either logged or guest" })
            
+        const hashKey=isUser ? `user:${userId}`:`guest:${guestId}`
+        const redisKey=`${productId}_${productVariation}`
+
+        // console.log("remove button got clicked")
         let cart
         if (isUser) {
             cart = await Cart.findOne({ userId }).select("products").session(session)
         } else cart = await Cart.findOne({ guestId: guestId }).select("products").session(session)
-        console.log("Taher", cart, guestId)
+        // console.log("Taher", cart, guestId)
         if (!cart) return res.status(404).json({ message: "Cart not found", bool: false })
 
         const cartItem = cart.products.find((p) => p.productId.toString() === productId && p.productVariation === productVariation)
@@ -325,14 +342,15 @@ export async function removerCartItem(req, res) {
         await session.commitTransaction();
 
         // Redis failure must never affect API success once DB commit is done
-        await redisClient.hDel(hashKey,redisKey).catch(err => {
+        const deleted=await redisClient.del(hashKey).catch(err => {
             console.error("Redis cleanup failed", err)
         });
+        
 
         return res.status(200).json({ message: "Product removed from the cart", bool: true })
     } catch (error) {
-        await session.abortTransaction();
         console.log("wrong in removeCartItem", error);
+        await session.abortTransaction();
         return res.status(500).json({ message: "Error from server end in removeCartItems", bool: false })
     }
 }
@@ -440,18 +458,20 @@ export async function mergeCartItems(userId, guestId) {
         await session.abortTransaction()
         console.log(error)
         return false
+    }finally{
+        await session.endSession()
     }
 }
 
 // working
-export async function cartCleanUp(productId, productVariation) {
+export async function cartCleanUp(productId, productVariation,session) {
     try {
-        let cartUserIds = await Product.findById(productId).select("cart")
+        let cartUserIds = await Product.findById(productId).select("cart").session(session)
         cartUserIds = cartUserIds["cart"] /// it will be array of ids
 
         await Promise.all(
             cartUserIds.map(async id => {
-                await Cart.findOneAndUpdate({ userId: id }, { $pull: { products: { productId: productId, productVariation: productVariation } } })
+                await Cart.findOneAndUpdate({ userId: id }, { $pull: { products: { productId: productId, productVariation: productVariation } } },{session})
             })
         )
 
@@ -465,6 +485,7 @@ export async function updateCart(req, res) {
     const session = await mongoose.startSession();
     try {
         session.startTransaction();
+        
         userId = req?.body?.userId;
         guestId = req?.cookies?.guestId
 
