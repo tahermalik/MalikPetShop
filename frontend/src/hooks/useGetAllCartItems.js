@@ -21,7 +21,7 @@ export function useGetAllCartItems(userId,refresh,shouldCallDB){
                     result=await axios.get(`${CART_ENDPOINTS}/getCartItems/${userId}`,{withCredentials:true})
                     cartData=result?.data?.cartData
                 }else{          //// if the user is not loggedIn
-                    result=await axios.get(`${CART_ENDPOINTS}/getCartItems/${userId}`,{withCredentials:true})
+                    result=await axios.get(`${CART_ENDPOINTS}/getCartItems/${userId=undefined}`,{withCredentials:true})
                     cartData=result?.data?.cartData
                 }
 

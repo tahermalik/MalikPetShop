@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { addToCart } from "./Product";
 import { SideBar,SubMenu } from "./LandingPage";
 import { Breadcrumbs } from "./Breadcrumbs";
+import { BASE_URL } from "./endpoints";
 
 function OfferComponent(props) {
     const dispath = useDispatch();
@@ -216,7 +217,7 @@ function ProductImg({ imagesArray = [], productHeight }) {
                  transition-all duration-500"
         >
             <img
-                src={`http://localhost:3000/${imageSrc}`}
+                src={`${BASE_URL}/${imageSrc}`}
                 alt="Product image"
                 className="w-full h-full object-contain
                    rounded-xl

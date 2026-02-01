@@ -439,7 +439,7 @@ function MobileSmallPetStuff() {
     return (
         <div className="flex flex-col gap-2 px-4 py-2 w-[100%]">
             {Object.keys(smallPetsObj).map((types) => {
-                return(
+                return (
 
                     <div
                         key={types}
@@ -451,7 +451,7 @@ function MobileSmallPetStuff() {
                                 {types}
                             </h2>
                         </div>
-    
+
                         {/* Category items */}
                         <div className="flex flex-col gap-2">
                             {smallPetsObj[types].map((item) => (
@@ -472,7 +472,8 @@ function MobileSmallPetStuff() {
                             ))}
                         </div>
                     </div>
-                )})}
+                )
+            })}
         </div>
     );
 }
@@ -637,7 +638,7 @@ export function SubMenu({ animal }) {
     );
 }
 
-export function Header({ open, setOpen,approachedFrom }) {
+export function Header({ open, setOpen, approachedFrom }) {
     const dispatch = useDispatch();
     const show = useSelector((state) => state?.user?.categoryState)
     const showLoginOption = useSelector((state) => state?.user?.loginOption) // initally going to be false
@@ -734,12 +735,13 @@ export function Header({ open, setOpen,approachedFrom }) {
             e.stopPropagation();
             e.preventDefault();
 
-            if(approachedFrom==="Home") navigate("/Wish_List", { state: { userId: userId } })
-            else if (approachedFrom==="Product_Page") navigate("/Product_Page/Wish_List", { state: { userId: userId } })
-            else if (approachedFrom==="SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/Wish_List", { state: { userId: userId } })
+            if (approachedFrom === "Home") navigate("/Wish_List", { state: { userId: userId } })
+            else if (approachedFrom === "Product_Page") navigate("/Product_Page/Wish_List", { state: { userId: userId } })
+            else if (approachedFrom === "SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/Wish_List", { state: { userId: userId } })
 
         } catch (error) {
             console.log("wrong in viewWishist frontend", error);
+            toast.error(error?.response?.data?.message)
         }
     }
 
@@ -747,23 +749,38 @@ export function Header({ open, setOpen,approachedFrom }) {
         try {
             e.stopPropagation();
             e.preventDefault();
-            if(approachedFrom==="Home") navigate("/Cart", { state: { userId: userId } })
-            else if (approachedFrom==="Product_Page") navigate("/Product_Page/Cart", { state: { userId: userId } })
-            else if (approachedFrom==="SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/Cart", { state: { userId: userId } })
+            if (approachedFrom === "Home") navigate("/Cart", { state: { userId: userId } })
+            else if (approachedFrom === "Product_Page") navigate("/Product_Page/Cart", { state: { userId: userId } })
+            else if (approachedFrom === "SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/Cart", { state: { userId: userId } })
 
         } catch (error) {
             console.log("wrong in viewCart frontend" + error);
+            toast.error(error?.response?.data?.message)
         }
     }
 
-    async function offerClicked(e){
-        try{
+    async function offerClicked(e) {
+        try {
             e.stopPropagation();
-            if(approachedFrom==="Home") navigate("/Offer")
-            else if (approachedFrom==="Product_Page") navigate("/Product_Page/Offer")
-            else if (approachedFrom==="SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/Offer")
+            if (approachedFrom === "Home") navigate("/Offer")
+            else if (approachedFrom === "Product_Page") navigate("/Product_Page/Offer")
+            else if (approachedFrom === "SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/Offer")
+        } catch (error) {
+            console.log("Error occured while click on offer", error)
+            toast.error(error?.response?.data?.message)
+        }
+    }
+
+    async function logoutClicked(e){
+        let result
+        try{
+            e.stopPropagation()
+            result=await axios.post(`${USER_ENDPOINTS}/logout`,{},{withCredentials:true})
+            toast.success(result?.data?.message)
         }catch(error){
-            console.log("Error occured while click on offer",error)
+            console.log("error while clicking logout")
+            toast.error(error?.response?.data?.message)
+
         }
     }
 
@@ -776,14 +793,14 @@ export function Header({ open, setOpen,approachedFrom }) {
                 {/* Upper Header */}
                 <div className="upper_header grid grid-cols-[0.2fr_1.8fr] grid-rows-2 sm:flex sm:flex-row justify-center sm:justify-evenly items-center gap-3 py-3 w-[100vw] text-[#0A3D62]">
                     <div className="l-upper-header flex flex-row gap-2 items-center justify-center">
-                        <div className="hidden sm:flex justify-center items-center">
+                        <div onClick={(e)=>{e.stopPropagation(); navigate("/")}} className="hidden sm:flex justify-center items-center">
                             <img
                                 src="/header_logo.svg"
                                 alt="paws_img"
                                 className="w-10 h-10 sm:w-auto sm:h-auto drop-shadow-md"
                             />
                         </div>
-                        <div className="hidden sm:flex flex-col text-[#0A3D62] leading-3 p-1">
+                        <div onClick={(e)=>{e.stopPropagation(); navigate("/")}} className="hidden sm:flex flex-col text-[#0A3D62] leading-3 p-1">
                             <span className="font-bold text-xl">Malik</span>
                             <span className="text-sm opacity-80">Pet Shop</span>
                         </div>
@@ -848,7 +865,10 @@ export function Header({ open, setOpen,approachedFrom }) {
                                     <div className="w-fit h-auto backdrop-blur-xl absolute top-[50px] flex flex-col gap-1 bg-white/90 p-3 shadow-lg rounded-2xl">
                                         <Link to="/Login" state={{ user: "user" }}><div className="hover:bg-[#DFF3FF] hover:rounded-xl px-3 py-1 cursor-pointer text-[#054873]">User Login</div></Link>
                                         <Link to="/Login" state={{ user: "admin" }}><div className="hover:bg-[#DFF3FF] hover:rounded-xl px-3 py-1 cursor-pointer text-[#054873]">Admin Login</div></Link>
-                                        <div className="hover:bg-[#DFF3FF] hover:rounded-xl px-3 py-1 cursor-pointer text-[#054873]">Logout</div>
+
+                                        <div onClick={(e)=>logoutClicked(e)} className="hover:bg-[#DFF3FF] hover:rounded-xl px-3 py-1 cursor-pointer text-[#054873]">
+                                            Logout
+                                        </div>
                                     </div>
                                 }
                             </div>
@@ -890,7 +910,7 @@ export function Header({ open, setOpen,approachedFrom }) {
                             {(!show || data !== "brands") && <div><RiArrowDropDownLine size={20} color="black" /></div>}
                             {show && data === "brands" && <div><RiArrowDropUpLine size={20} color="black" /></div>}
                         </div>
-                        <div onClick={(e)=>offerClicked(e)}>
+                        <div onClick={(e) => offerClicked(e)}>
                             <div className="xs:text-xs sm:text-sm md:text-lg flex flex-row justify-center items-center hover:underline text-black cursor-pointer px-4 py-1 rounded-xl transition-all duration-200">
                                 <span>Offer</span>
                             </div>
@@ -934,7 +954,7 @@ function FeedBack(props) {
     const user = useSelector((state) => state?.user?.userData);
 
     async function submitFeedBack() {
-        if (!user){
+        if (!user) {
             toast.error("User needs to login first")
         }
         else if (text.trim().length === 0) toast.error("Feedback can't be empty")
@@ -1083,7 +1103,7 @@ function ShowFeedBack({ feedBack = [] }) {
     const [animating, setAnimating] = useState(false); // track animation
     const [direction, setDirection] = useState("next"); // "next" or "prev"
     const total = feedBack.length;
-    const isDesktop=useIsDesktop()
+    const isDesktop = useIsDesktop()
 
     if (total === 0) {
         return (
@@ -1096,7 +1116,7 @@ function ShowFeedBack({ feedBack = [] }) {
         );
     }
 
-    if(isDesktop && total<=3){
+    if (isDesktop && total <= 3) {
         return (
             <div className="relative bg-blue-50 py-10 px-2 md:px-6">
                 <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 text-gray-800">
@@ -1257,7 +1277,7 @@ export default function LandingPage() {
     const feedBack = useGetAllFeedBack(feedBackRefresh) || [];
     const [open, setOpen] = useState(false);
     const [animal, setAnimal] = useState("");
-    
+
     useEffect(() => {
         const root = document.getElementById("root");
 
@@ -1275,7 +1295,7 @@ export default function LandingPage() {
         };
     }, [animal]);
 
-    console.log("feedback",feedBack)
+    console.log("feedback", feedBack)
 
     if (!feedBack) {
         return (
@@ -1283,18 +1303,18 @@ export default function LandingPage() {
         )
     }
 
-    
+
 
 
     return (
         <div className="root-conatiner relative">
             {/* {console.log("Hey taher",feedBack)} */}
-            <Header open={open} setOpen={setOpen} approachedFrom={"Home"}/>
+            <Header open={open} setOpen={setOpen} approachedFrom={"Home"} />
             <SideBar open={open} setOpen={setOpen} setAnimal={setAnimal} />
             <SubMenu animal={animal} />
 
             {/* This feature is currently under development */}
-            <Breadcrumbs/>
+            <Breadcrumbs />
             <AutoBrandSlider />
             <Owner />
             <ShowFeedBack feedBack={feedBack} />

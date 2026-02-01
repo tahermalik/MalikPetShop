@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios"
-import { CART_ENDPOINTS, COUPON_ENDPOINT } from "./endpoints";
+import { BASE_URL, CART_ENDPOINTS, COUPON_ENDPOINT } from "./endpoints";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetAllCartItems } from "../hooks/useGetAllCartItems";
 import { useMemo } from "react";
@@ -236,7 +236,7 @@ export default function CartPage() {
                   >
                     <div className="flex items-center gap-4 p-2 col-span-2">
                       <img
-                        src={`http://localhost:3000/${product.image[item.productVariation]}`}
+                        src={`${BASE_URL}/${product.image[item.productVariation]}`}
                         alt={item.productName}
                         className="w-25 h-25 object-cover rounded-lg "
                       />

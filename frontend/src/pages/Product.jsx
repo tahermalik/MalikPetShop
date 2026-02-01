@@ -6,7 +6,7 @@ import { MdArrowDropDown, MdArrowDropUp, MdOutlineDeleteOutline } from "react-ic
 import { Range } from "react-range";
 import { useGetAllProduct } from "../hooks/useGetAllProducts"
 import axios from "axios"
-import { CART_ENDPOINTS, PRODUCT_ENDPOINTS, USER_ENDPOINTS } from "./endpoints"
+import { BASE_URL, CART_ENDPOINTS, PRODUCT_ENDPOINTS, USER_ENDPOINTS } from "./endpoints"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useMemo } from "react"
 import { IoIosHeart } from "react-icons/io";
@@ -629,7 +629,7 @@ function ProductCard(props) {
                         <img
                             className="h-[100%] w-[100%] object-contain 
                        transition-transform duration-300 hover:scale-105"
-                            src={`http://localhost:3000/${props.imagesArray[imgCounter]}`}
+                            src={`${BASE_URL}/${props.imagesArray[imgCounter]}`}
                             alt={`${props.imagesArray[imgCounter]}`}
                         />
                     </div>

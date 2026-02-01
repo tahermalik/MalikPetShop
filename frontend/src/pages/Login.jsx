@@ -22,12 +22,11 @@ function Login() {
   const categoryState=useSelector((state)=>state?.user?.categoryState)
 
   const wishListDataNotLoggedIn=useSelector((state)=>state?.user?.userDataNotLoggedIn?.wishList)
-  const cartDataNotLoggedIn=useSelector((state)=>state?.cart?.products)
 
   async function loginUser(){
     try{
       // console.log("Playing around with admin")
-      const res= await axios.post(`${USER_ENDPOINTS}/login/${user}`,{email:email,password:password,reduxCartData:cartDataNotLoggedIn,reduxWishListData:wishListDataNotLoggedIn},{withCredentials:true})
+      const res= await axios.post(`${USER_ENDPOINTS}/login/${user}`,{email:email,password:password,reduxWishListData:wishListDataNotLoggedIn},{withCredentials:true})
       let result=res?.data?.bool
       // console.log(result)
       if(result){
