@@ -20,12 +20,14 @@ function Login() {
   const showLoginOption=useSelector((state)=>state?.user?.loginOption)
   const showDetailOption=useSelector((state)=>state?.user?.detailOption)
   const categoryState=useSelector((state)=>state?.user?.categoryState)
+  const [processing,setProcessing]=useState(false)
 
   const wishListDataNotLoggedIn=useSelector((state)=>state?.user?.userDataNotLoggedIn?.wishList)
 
   async function loginUser(){
     try{
       // console.log("Playing around with admin")
+      setProcessing(true)
       const res= await axios.post(`${USER_ENDPOINTS}/login/${user}`,{email:email,password:password,reduxWishListData:wishListDataNotLoggedIn},{withCredentials:true})
       let result=res?.data?.bool
       // console.log(result)
@@ -41,12 +43,15 @@ function Login() {
     }catch(error){
       toast.error(error?.response?.data?.message)
       console.log("Wrong in user login",error)
+    }finally{
+      setProcessing(false);
     }
 
   }
 
   async function registerUser(){
     try{
+      setProcessing(true);
       const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
       const userNameRegex=/^[A-Za-z]+(?: [A-Za-z]+)*$/
       if(password!==confirmPassword){
@@ -84,6 +89,8 @@ function Login() {
     }catch(error){
       console.log("Wrong in user register",error)
       toast.error(error?.response?.data?.message)
+    }finally{
+      setProcessing(false);
     }
   }
   
@@ -180,7 +187,7 @@ function Login() {
           {/* shared button  */}
           <button type="button" className="w-full p-3 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 text-white rounded-full text-lg font-medium hover:opacity-90 transition cursor-pointer"
             onClick={(e)=>{e.preventDefault();isLoginMode ? loginUser():registerUser()}}>
-            {isLoginMode ? "Login" : "Signup"}
+            {isLoginMode ? (processing ? "Logging-In ...":"Login") : (processing ? "Registering...":"Sign-Up")}
           </button>
 
           {/* switch link  */}
