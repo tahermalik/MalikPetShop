@@ -11,6 +11,7 @@ import nodemailer from "nodemailer";
 import Address from "../schema/addressSchema.js";
 import Cart from "../schema/cartSchema.js";
 import { v4 as uuidv4 } from "uuid";
+import redisClient from "../config/redis.js";
 
 /// working
 export async function login(req, res) {
@@ -162,7 +163,7 @@ export async function viewFood(req, res) {
     }
 }
 
-/// need to work on this feature next week
+/// This 3 features are working but here the data of the user who is not logged in is on the redux
 export async function favourite(req, res) {
     const session=await mongoose.startSession()
     try {
@@ -310,51 +311,6 @@ export async function mergeWishList(userId, reduxWishListData) {
     }
 }
 
-//// will work on this 
-export async function placeOrder(req, res) {
-    try {
-        const user_id = req?.user?.id;
-        const user_data = await User.findById(user_id).select("-password")
-        let cart = user_data.cart;
-
-        let totalAmount = 0
-
-        for (let i = 0; i < cart.length; i++) {
-            totalAmount += cart[i].price;
-        }
-
-
-        await Order.create({
-            user: req?.user?.id,
-            items: user_data.cart,
-            totalAmount: totalAmount,
-            status: "Pending"
-        })
-
-        let order = await Order.find({ user: req?.user?.id })
-        let order_id;
-
-        for (let i = 0; i < order.length; i++) {
-            if (order[i].user == req?.user?.id) {
-                order_id = order[i]?._id;
-            }
-        }
-
-        await User.findByIdAndUpdate(
-            req?.user?.id,
-            { $push: { orders: order?._id } },
-            { new: true } // returns the updated document
-        );
-
-        return res.status(200).json({ message: "Order placed successfully" })
-
-
-    } catch (error) {
-        console.log("wrong in place order", error);
-        res.status(500).json({ message: "wrong at server end in the placeOrder" })
-    }
-}
-
 //// working--> no need of transaction over here
 export async function createFeedBack(req, res) {
     let result
@@ -462,12 +418,19 @@ export async function forgotPassword(req, res) {
         const mailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
         if (!mailRegex.test(userEmail)) return res.status(400).json({ message: "Enter the valid email address", bool: false })
 
-        const userId = await User.findOne({ email: userEmail }).select("_id");
-        if (!userId) return res.status(404).json({ message: "User is not registered", bool: false })
 
+        let userId = await User.findOne({ email: userEmail }).select("_id");
+        if (!userId){
+            return res.status(404).json({ message: "User is not registered", bool: false })
+        }
+        userId=userId?._id;
         const OTP = Math.floor(100000 + Math.random() * 900000); // 6-digit number
 
-        await ForgotPassword.findOneAndUpdate({ userId: userId._id }, { otp: OTP, expiryDate: new Date(Date.now() + 10 * 60 * 1000) }, { upsert: true })
+        //// seeting the OTP key ; for faster access
+        const hashKey=`user:OTP:${userId}`
+        await redisClient.setEx(hashKey,60*5,String(OTP))
+
+        await ForgotPassword.findOneAndUpdate({ userId: userId._id }, { otp: OTP, expiryDate: new Date(Date.now() + 5 * 60 * 1000) }, { upsert: true })
 
 
         const transporter = nodemailer.createTransport({
@@ -480,19 +443,16 @@ export async function forgotPassword(req, res) {
             }
         });
 
-        //// just to check whther SMTP is running fine or not
-        transporter.verify((error, success) => {
-            if (error) {
-                console.log("SMTP ERROR:", error);
-            } else {
-                console.log("SMTP READY");
-            }
-        });
+        // //// just to check whther SMTP is running fine or not
+        // transporter.verify((error, success) => {
+        //     if (error) {
+        //         console.log("SMTP ERROR:", error);
+        //     } else {
+        //         console.log("SMTP READY");
+        //     }
+        // });
 
         await sendOTPEmail(transporter, userEmail, OTP)
-
-
-
         return res.status(200).json({ message: "OTP sent to you mail" })
 
 
@@ -512,6 +472,25 @@ export async function verifyOTP(req, res) {
         if (!userId) return res.status(404).json({ message: "Either OTP or email is not correct", bool: false })
         userId = userId._id
 
+        /// this contains the OTP sent by the user
+        const sentOTP = Number(OTPArray.join(""))
+        const hashKey=`user:OTP:${userId}`
+        const isPresent= await redisClient.exists(hashKey)
+        if(isPresent){
+            const redisOTP=Number(await redisClient.get(hashKey))
+            console.log("redisOTP --> ",redisOTP)
+            console.log("sentOTP --> ",sentOTP)
+
+            if(redisOTP===sentOTP){
+                await redisClient.del(hashKey)
+                const resetverificationKey=`user:verification:${userId}`
+                console.log("inside verify OTP --> ",resetverificationKey)
+                await redisClient.setEx(resetverificationKey,60*10,"Open")
+
+                return res.json({ message: "OTP is correct", bool: true })
+            }
+            else return res.status(400).json({ message: "either OTP or mail is not correct", bool: false })
+        }
 
         let OTPData = await ForgotPassword.findOne({ userId: userId }).select("otp expiryDate")
         if (!OTPData) {
@@ -521,11 +500,12 @@ export async function verifyOTP(req, res) {
 
         const now = new Date();
         const expiry = new Date(OTPData.expiryDate);
-        if ((now - expiry) / (1000 * 60) > 10) return res.status(400).json({ message: "either OTP or mail is not correct", bool: false })
+        if ((now - expiry) / (1000 * 60) > 5) return res.status(400).json({ message: "either OTP or mail is not correct", bool: false })
 
-        const sentOTP = Number(OTPArray.join(""))
-
-        if (OTP === sentOTP) return res.json({ message: "OTP is correct", bool: true })
+        if (OTP === sentOTP){
+            await ForgotPassword.findOneAndDelete({userId:userId})
+            return res.json({ message: "OTP is correct", bool: true })
+        }
         return res.json({ message: "OTP is not correct", bool: false })
 
     } catch (error) {
@@ -537,13 +517,25 @@ export async function verifyOTP(req, res) {
 /// working
 export async function resetPassword(req, res) {
     try {
+
         const { password, email } = req?.body;
+
+        let userId=await User.findOne({email:email}).select("_id")
+        if(!userId) return res.status(404).json({ message: "Either OTP or email is not correct", bool: false })
+        userId = userId._id
+        const resetverificationKey=`user:verification:${userId}`
+        console.log(resetverificationKey)
+        const redisVerificationResult=await redisClient.exists(resetverificationKey)
+        if(!redisVerificationResult) return res.status(400).json({message:"Need to verify OTP again"})
         const oldPasswordObj = await User.findOne({ email: email }).select("password");
 
         if (!oldPasswordObj) return res.status(404).json({ message: "User not found", bool: false });
         const oldPassword = oldPasswordObj["password"];
         const isSamePassword = await bcrypt.compare(password, oldPassword);
         if (isSamePassword) return res.status(400).json({ message: "You cant have the same password as of your old one", bool: false })
+
+        /// deleing the key of wondow opened for reset password
+        await redisClient.del(resetverificationKey)
 
 
         const newHashedPassword = await bcrypt.hash(password, 10);
@@ -554,6 +546,7 @@ export async function resetPassword(req, res) {
 
 
     } catch (error) {
+        console.log("Server fucked up at reset password",error)
         return res.status(500).json({ message: "Server fucked up at reset password" });
     }
 }
