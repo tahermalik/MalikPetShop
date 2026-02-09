@@ -5,6 +5,7 @@ import filterReducer from "./slices/filterSlice.js"
 import activeReducer from "./slices/activeSlice.js"
 import productReducer from "./slices/productSlice.js"
 import cartReducer from "./slices/cartSlice.js"
+import chatReducer from "./slices/chatSlice.js"
 
 const store=configureStore({
     reducer:{
@@ -13,7 +14,8 @@ const store=configureStore({
         filter:filterReducer,
         active:activeReducer,
         product:productReducer,
-        cart:cartReducer
+        cart:cartReducer,
+        chat:chatReducer
     }
 })
 

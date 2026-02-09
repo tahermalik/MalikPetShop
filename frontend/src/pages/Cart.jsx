@@ -309,7 +309,7 @@ export default function CartPage() {
               </div>
             </div>
 
-            <div onClick={(e) => { placeOrder(e, total - couponAmount) }} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center">
+            <div onClick={(e) => { placeOrder(e, total - couponAmount) }} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition text-center">
               Proceed to Checkout
             </div>
 
