@@ -12,6 +12,7 @@ import Address from "../schema/addressSchema.js";
 import Cart from "../schema/cartSchema.js";
 import { v4 as uuidv4 } from "uuid";
 import redisClient from "../config/redis.js";
+import axios from "axios";
 
 /// working
 export async function login(req, res) {
@@ -635,6 +636,42 @@ export async function getGuestId(req,res){
         res.status(200).json({ message: "Guest ID set" });
     }catch(error){
         console.log("error while generating guest id")
+    }
+}
+
+/// working
+export async function ingest_products(req,res){
+    try{
+        const products=await Product.find().select("_id description usp").lean()
+        for(let i=0;i<products.length;i++) products[i]["_id"]=products[i]["_id"].toString()
+        
+        const result=await axios.post("http://127.0.0.1:8001/ingest",{products},{withCredentials:true})
+        return res.status(200).json({message:result["data"]})
+
+    }catch(error){
+        console.log(error)
+        return res.status(500).json({message:"something went wrong while creating embeddings"})
+    }
+}
+
+
+export async function recommendProducts(req,res){
+    try{
+        console.log("inside recommend Products")
+        const userQuery=req?.body["userQuery"]
+        let result = await axios.post("http://127.0.0.1:8001/recommend",{userQuery},{withCredentials:true})
+        result=result["data"]  // list of recommended objects
+        const recommendedProductIds=[]
+
+        for(let i=0;i<result.length;i++) recommendedProductIds.push(new mongoose.Types.ObjectId(result[i]["product_id"]))
+        
+        /// productData is an array of object where each object is an product
+        const productData=await Product.find({"_id":{$in:recommendedProductIds}}).select("-wishList -cart -productString")
+        // console.log(productData)
+        return res.status(200).json({result:productData})
+
+    }catch{
+        return res.status(500).json({message:"Some problem occured while processing your request"})
     }
 }
 

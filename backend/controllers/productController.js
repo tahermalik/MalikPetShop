@@ -11,6 +11,8 @@ export async function addProduct(req, res) {
         console.log("inside add Product")
         const productData = req.body
         const imagePath = req.file ? req.file.path : null;
+        // console.log("image Path --> ",imagePath,typeof(imagePath))
+        
         let productString = ""
 
         let {
@@ -39,7 +41,7 @@ export async function addProduct(req, res) {
         } = productData;
 
         /// just to avoid bugs in future
-        brand=brand.toLowerCase()
+        brand = brand.toLowerCase()
 
         const number_regex = /^\d+(\.\d+)?$/
 
@@ -66,7 +68,7 @@ export async function addProduct(req, res) {
 
 
         //// identifying the product uniquely on the basis of followong field so that variations can be indentified like if the product is an variation or not
-        const product_db = await Product.findOne({ pet: pet, brand: brand ,category:category, type:type, flavor:flavor, breed:breed, diet:diet})
+        const product_db = await Product.findOne({ pet: pet, brand: brand, category: category, type: type, flavor: flavor, breed: breed, diet: diet })
         // console.log(product_db)
         if (product_db) {
 
@@ -94,7 +96,7 @@ export async function addProduct(req, res) {
             productString = productString.trim().replace(/\s+/g, " ").toLowerCase();
             await Product.updateOne(
                 { _id: product_db._id },
-                { $push: { netWeight: Number(netWeight), discountType: discountType, discountValue: Number(discountValue), expiryDate: expiryDate, manufactureDate: manufactureDate, stock: Number(stock),reservedStock:0, originalPrice: Number(originalPrice), image: imagePath ? imagePath : null, productString: productString } }
+                { $push: { netWeight: Number(netWeight), discountType: discountType, discountValue: Number(discountValue), expiryDate: expiryDate, manufactureDate: manufactureDate, stock: Number(stock), reservedStock: 0, originalPrice: Number(originalPrice), image: imagePath ? imagePath : null, productString: productString } }
             );
 
             return res.status(200).json({ message: "Variation of existing item added" })
@@ -117,7 +119,7 @@ export async function addProduct(req, res) {
             netWeight: [Number(netWeight)],
             pet: pet,
             stock: [Number(stock)],
-            reservedStock:[0],
+            reservedStock: [0],
             height: Number(height),
             width: Number(width),
             length: Number(length),
@@ -170,7 +172,7 @@ export async function displayProduct(req, res) {
         }
 
 
-        const products = await Product.find()
+        const products = await Product.find().select("-wishList -cart")
 
         // Filter and calculate match percentage
         const matchedProducts = products.map((product) => {
@@ -230,7 +232,7 @@ export async function displayProduct(req, res) {
 
 /// working
 export async function deleteProduct(req, res) {
-    const session=await mongoose.startSession()
+    const session = await mongoose.startSession()
     try {
         const productId = req?.params?.id;
         let { imgCounter } = req.body;
@@ -260,14 +262,14 @@ export async function deleteProduct(req, res) {
         await session.startTransaction()
 
         /// so that both can execute in parallel
-        try{
+        try {
             await Promise.all([
-                cartCleanUp(productId, imgCounter,session), /// productId,productVariation
-                wishListCleanUp(productId, imgCounter,session)
+                cartCleanUp(productId, imgCounter, session), /// productId,productVariation
+                wishListCleanUp(productId, imgCounter, session)
             ])
-        }catch(error){
+        } catch (error) {
             await session.abortTransaction()
-            return res.status(500).json({message:"Wrong in cart or wishlist cleanup"})
+            return res.status(500).json({ message: "Wrong in cart or wishlist cleanup" })
         }
 
         for (let i = 0; i < keyArray.length; i++) {
@@ -291,7 +293,7 @@ export async function deleteProduct(req, res) {
 
         /// exceuted when the product variation is deleted
         if (hasUpdated) {
-            await product.save({session})
+            await product.save({ session })
         }
 
         await session.commitTransaction()
@@ -301,7 +303,7 @@ export async function deleteProduct(req, res) {
         console.log("wrong in deleteProduct", error);
         await session.abortTransaction()
         return res.status(500).json({ message: "Something went wrong at server side in deleteProduct" })
-    }finally{
+    } finally {
         await session.endSession()
     }
 }
@@ -321,5 +323,150 @@ export async function getProductsViaIds(req, res) {
     }
 }
 
+export async function bulkProductAddition(req, res) {
+  try {
+    console.log("Inside bulk product addition");
 
+    const productsData = req.body?.["sampleProducts"]; // Expecting an array of product objects
+    if (!Array.isArray(productsData) || productsData.length === 0) {
+      return res.status(400).json({ message: "Please provide a list of products" });
+    }
 
+    const results = [];
+
+    for (let productData of productsData) {
+      const imagePath = productData.imagePath || "uploads\\smart_heart_smart_heart,_demo_product_200.jpg";
+
+      let {
+        pet,
+        category,
+        type,
+        flavor,
+        breed,
+        diet,
+        brand,
+        productName,
+        originalPrice,
+        netWeight,
+        discountValue,
+        discountType,
+        stock,
+        color,
+        material,
+        size,
+        height,
+        length,
+        width,
+        expiryDate,
+        manufactureDate,
+        description,
+        usp
+      } = productData;
+
+      brand = brand.toLowerCase();
+      const number_regex = /^\d+(\.\d+)?$/;
+      const cleanProductName = productName.replace(/[^a-zA-Z\s]/g, "").replace(/\s+/g, " ").trim();
+
+      description=description.trim()
+      usp=usp.trim()
+      // Validate numeric fields
+      if (!number_regex.test(Number(originalPrice)) ||
+          !number_regex.test(Number(discountValue)) ||
+          !number_regex.test(Number(netWeight))) {
+        results.push({ productName, status: "failed", reason: "Numeric validation failed" });
+        continue;
+      }
+
+      // Build product string
+      const textFields = [pet, category, type, flavor, breed, diet, brand, productName, color, material];
+      let productString = textFields.filter(Boolean).join(" ") + " " + netWeight + " ";
+      productString = productString.trim().replace(/\s+/g, " ").toLowerCase();
+
+      // Check if product exists
+      const product_db = await Product.findOne({ pet, brand, category, type, flavor, breed, diet });
+
+      if (product_db) {
+        // Check for similarity using Jaro-Winkler
+        let name2 = cleanProductName.split(" ");
+        let name1 = product_db.cleanProductName.split(" ");
+        let matches = 0;
+        for (let p = 0; p < name1.length; p++) {
+          for (let j = 0; j < name2.length; j++) {
+            const similarity = natural.JaroWinklerDistance(name1[p], name2[j]);
+            if (similarity >= 0.8) {
+              matches += 1;
+              break;
+            }
+          }
+        }
+        const percentage = (matches / name1.length) * 100;
+
+        // If variation exists
+        if (product_db.netWeight.includes(Number(netWeight)) && percentage >= 90) {
+          results.push({ productName, status: "skipped", reason: "Product already exists" });
+          continue;
+        }
+
+        // Update existing product variation
+        await Product.updateOne(
+          { _id: product_db._id },
+          {
+            $push: {
+              netWeight: Number(netWeight),
+              discountType: discountType,
+              discountValue: Number(discountValue),
+              expiryDate: expiryDate,
+              manufactureDate: manufactureDate,
+              stock: Number(stock),
+              reservedStock: 0,
+              originalPrice: Number(originalPrice),
+              image: imagePath ? imagePath : null,
+              productString: productString
+            },
+          }
+        );
+
+        results.push({ productName, status: "updated", reason: "Variation added" });
+        continue;
+      }
+
+      // Create new product
+      await Product.create({
+        productName,
+        originalPrice: [Number(originalPrice)],
+        brand,
+        category,
+        type,
+        flavor,
+        discountType: [discountType],
+        breed,
+        diet,
+        discountValue: [Number(discountValue)],
+        expiryDate: [expiryDate],
+        manufactureDate: [manufactureDate],
+        netWeight: [Number(netWeight)],
+        pet,
+        stock: [Number(stock)],
+        reservedStock: [0],
+        height: Number(height),
+        width: Number(width),
+        length: Number(length),
+        color,
+        size: Number(size),
+        material,
+        productString: [productString],
+        image: imagePath ? [imagePath] : [],
+        cleanProductName,
+        description:description,
+        usp:usp
+      });
+
+      results.push({ productName, status: "created", reason: "New product added" });
+    }
+
+    return res.status(201).json({ message: "Bulk product addition completed", results });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Problem with bulk addition", error: error.message });
+  }
+}

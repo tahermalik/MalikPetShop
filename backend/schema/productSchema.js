@@ -116,6 +116,14 @@ const productSchema = new mongoose.Schema({
     height: {
         type: Number,
         min: 0
+    },
+    description:{
+        type:String,
+        required:true
+    },
+    usp:{
+        type:String,
+        required:true
     }
 
 }, { timestamps: true })
