@@ -213,11 +213,13 @@ export async function getCartItems(req, res) {
             if(isPresent){
                 let products=await redisClient.hGetAll(hashKey)
                 products=Object.values(products)
+                // console.log(`hash key --> ${hashKey} and ${products}`)
 
                 const productsArray=[]
                 for(let i=0;i<products.length;i++){
                     productsArray.push(JSON.parse(products[i]));
                 }
+                // console.log("Product Array --> ",productsArray)
                 console.log("redis is returning")
                 return res.status(200).json({ cartData:  productsArray})
             }else{
@@ -494,6 +496,8 @@ export async function updateCart(req, res) {
 
         if (!isUser && !isGuest) throw new Error("user should be either logged in or guest")
 
+        const hashKey=isUser ? `user:${userId}`:`guest:${guestId}`
+
         let cart, cartProducts;
         if (isUser) {
             cart = await Cart.findOne({ userId: userId }).session(session)
@@ -530,6 +534,7 @@ export async function updateCart(req, res) {
             const key = `${item?.productId.toString()}_${item?.productVariation}`
             console.log(key)
             let diff = item?.productQuantity - productMap.get(key).productQuantity
+            const redisKey=`${item?.productId?.toString()}_${item?.productVariation}`
             /// do some reservation
             if (diff > 0) {
                 const res = await Product.updateOne(
@@ -571,6 +576,10 @@ export async function updateCart(req, res) {
                     throw new Error("Invalid reserved stock release");
                 }
             } else continue;
+
+            /// much needed stuff as for all debounce db is updated so redis also need to get updated if there change in product quantity
+            const productKey=`${item?.productId.toString()}_${item?.productVariation}`
+            await redisClient.hSet(hashKey,productKey,JSON.stringify(item))
 
             const productId = new mongoose.Types.ObjectId(item.productId);
             const res = await Cart.updateOne(
