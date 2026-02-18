@@ -150,7 +150,7 @@ function Filter() {
 
     return (
         <>
-            <div className="flex flex-col p-3 h-full gap-3 bg-white shadow-lg border-r border-black">
+            <div className="flex flex-col p-3 h-full w-full gap-3 bg-white shadow-lg border-r border-black">
                 <div className="sm:text-lg lg:text-xl font-semibold underline text-gray-800">
                     Filter
                 </div>
@@ -869,7 +869,7 @@ export default function Product() {
 
                 {/* Filter Display for Desktop */}
                 <div className="hidden sm:block
-                bg-blue-100  sm:w-[300px] md:w-[350px] h-[100%] overflow-auto scrollbar-hide"><Filter productHeight={productHeight} /></div>
+                bg-blue-500 sm:w-1/5 h-[100%] overflow-auto scrollbar-hide"><Filter productHeight={productHeight} /></div>
 
                 {/* Filter Display for Mobile */}
                 <div
@@ -896,7 +896,7 @@ export default function Product() {
 
 
 
-                <div className="h-auto p-2 flex flex-row flex-wrap justify-evenly items-center sm:items-start gap-x-2 gap-y-10 overflow-auto" data-lenis-prevent>
+                <div className="h-auto sm:w-4/5 p-2 flex flex-row flex-wrap justify-center sm:justify-between items-center sm:items-start gap-x-2 gap-y-10 overflow-auto" data-lenis-prevent>
                     <DisplayProducts refresh={refresh} setRefresh={setRefresh} query={query} data={data} loaderRef={loaderRef} setHasMore={setHasMore} hasMore={hasMore} />
                 </div>
                 {/* Loader trigger */}
