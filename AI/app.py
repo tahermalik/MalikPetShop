@@ -20,8 +20,11 @@ def ingest_endpoint(payload: dict):
 
 @app.post("/recommend")
 def recommendProducts(query: dict):
-    userQuery=query["userQuery"]
-    return recommender.recommend_products(userQuery)
+    try:
+        userQuery=query["userQuery"]
+        return recommender.recommend_products(userQuery)
+    except Exception as e:
+        print(e)
     
 @app.post("/rebuild_faiss")
 def rebuild_faiss(productIdDict:dict):
