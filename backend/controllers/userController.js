@@ -682,6 +682,7 @@ export async function recommendProducts(req,res){
         return res.status(200).json({result:productData})
 
     }catch{
+        console.log(error)
         return res.status(500).json({message:"Some problem occured while processing your request"})
     }
 }
