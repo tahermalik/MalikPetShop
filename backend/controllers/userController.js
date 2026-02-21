@@ -645,7 +645,13 @@ export async function ingest_products(req,res){
         const products=await Product.find().select("_id description usp").lean()
         for(let i=0;i<products.length;i++) products[i]["_id"]=products[i]["_id"].toString()
         
-        const result=await axios.post("http://127.0.0.1:8001/ingest",{products},{withCredentials:true})
+        // for localhost
+        // const result=await axios.post("http://127.0.0.1:8001/ingest",{products},{withCredentials:true})
+        
+        // for render
+        const result=await axios.post("https://malikpetshop-1.onrender.com/ingest",{products},{withCredentials:true})
+        
+        
         return res.status(200).json({message:result["data"]})
 
     }catch(error){
@@ -654,12 +660,17 @@ export async function ingest_products(req,res){
     }
 }
 
-
+// working
 export async function recommendProducts(req,res){
     try{
         console.log("inside recommend Products")
         const userQuery=req?.body["userQuery"]
-        let result = await axios.post("http://127.0.0.1:8001/recommend",{userQuery},{withCredentials:true})
+        // for localhost
+        // let result = await axios.post("http://127.0.0.1:8001/recommend",{userQuery},{withCredentials:true})
+        
+        // for render
+        let result = await axios.post("https://malikpetshop-1.onrender.com/recommend",{userQuery},{withCredentials:true})
+        
         result=result["data"]  // list of recommended objects
         const recommendedProductIds=[]
 
