@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios"
-import { BASE_URL, CART_ENDPOINTS, COUPON_ENDPOINT } from "./endpoints";
+import { BASE_URL, CART_ENDPOINTS, COUPON_ENDPOINT, USER_ENDPOINTS } from "./endpoints";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetAllCartItems } from "../hooks/useGetAllCartItems";
 import { useMemo } from "react";
@@ -137,11 +137,14 @@ export default function CartPage() {
         toast.error("Login need to be done first")
       }
       else {
-        await axios.post(`${CART_ENDPOINTS}/mergeCartItemsAppCall`, { userId: userId, reduxCartData: reduxCartData })
+        const result=await axios.post(`${USER_ENDPOINTS}/checkout`, { userId: userId },{withCredentials:true})
+
+        // console.log(result)
+        toast.success(`${result?.data?.message}\nYour total amount in ${result?.data?.totalAmount}`)
         navigate("/addressForm")
       }
     } catch (error) {
-      console.log("Somwthing went wrong in place order in the front end");
+      console.log("Something went wrong in place order in the front end",error);
     }
   }
 
@@ -309,7 +312,7 @@ export default function CartPage() {
               </div>
             </div>
 
-            <div onClick={(e) => { placeOrder(e, total - couponAmount) }} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition text-center">
+            <div onClick={(e) => { placeOrder(e, total - couponAmount) }} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition text-center cursor-pointer">
               Proceed to Checkout
             </div>
 
