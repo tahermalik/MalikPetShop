@@ -482,6 +482,7 @@ export async function cartCleanUp(productId, productVariation,session) {
     }
 }
 
+// working
 export async function updateCart(req, res) {
     let userId, guestId;
     const session = await mongoose.startSession();

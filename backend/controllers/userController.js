@@ -13,13 +13,14 @@ import Cart from "../schema/cartSchema.js";
 import { v4 as uuidv4 } from "uuid";
 import redisClient from "../config/redis.js";
 import axios from "axios";
+import { LOC_ENDPOINT } from "../config/endpoints.js";
 
 /// working
 export async function login(req, res) {
     try {
         console.log("in this login component")
         const { email, password, reduxWishListData } = req.body;
-        const guestId=req?.cookies?.guestId
+        const guestId = req?.cookies?.guestId
         const role = req.params?.role || "user";
 
         // const isGuest=!!guestId
@@ -46,19 +47,19 @@ export async function login(req, res) {
 
         //// if the code is reached till here that user is genuine
         const token = jwt.sign(
-            { id: user._id, email: user.email, username: user.username, role: role },
+            { id: user._id, username: user.username, role: role },
             process.env.JWT_SECRET,
             { expiresIn: "1h" } // token valid for 1 hour
         );
         await mergeWishList(user._id, reduxWishListData)
-        await mergeCartItems(user._id,guestId)
+        await mergeCartItems(user._id, guestId)
 
         const updatedUser = await User.findById(user._id).select("-email")
         // console.log("toeken",token)
         res.cookie("token", token, {
             httpOnly: true,
             sameSite: "none",
-            secure:true,
+            secure: true,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
         return res.status(200).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser })
@@ -110,8 +111,8 @@ export async function register(req, res) {
 export async function logout(req, res) {
     try {
         console.log("inside the logout function")
-        const token=req?.cookies?.token
-        if(!token) return res.status(400).json({message:"user is not logged in"})
+        const token = req?.cookies?.token
+        if (!token) return res.status(400).json({ message: "user is not logged in" })
         res.clearCookie("token", {
             httpOnly: true,
             secure: true,     // same as when you set it
@@ -166,20 +167,20 @@ export async function viewFood(req, res) {
 
 /// This 3 features are working but here the data of the user who is not logged in is on the redux
 export async function favourite(req, res) {
-    const session=await mongoose.startSession()
+    const session = await mongoose.startSession()
     try {
         console.log("inside favourite")
         await session.startTransaction()
         let { userId, productId, toAdd, productVariation } = req?.body
 
         let result = await Product.findById(productId)
-        if (!result){
+        if (!result) {
             await session.abortTransaction()
             return res.status(404).json({ message: "Product not found", bool: false })
         }
 
         result = await User.findById(userId)
-        if (!result){
+        if (!result) {
             await session.abortTransaction()
             return res.status(404).json({ message: "User not found", bool: false })
         }
@@ -187,19 +188,19 @@ export async function favourite(req, res) {
         if (toAdd) {
             console.log("Adding Product to wishList")
             await Promise.all([
-                User.findByIdAndUpdate(userId, { $addToSet: { wishList: { productId: productId, productVariation: productVariation } } },{session}),
-                Product.findByIdAndUpdate(productId, { $addToSet: { wishList: userId } },{session})
+                User.findByIdAndUpdate(userId, { $addToSet: { wishList: { productId: productId, productVariation: productVariation } } }, { session }),
+                Product.findByIdAndUpdate(productId, { $addToSet: { wishList: userId } }, { session })
             ]);
         } else {
             console.log("removing product from wishList")
             /// we dont need to remove it from the wishlist
 
-            await User.findByIdAndUpdate(userId, { $pull: { wishList: { productId: productId, productVariation: productVariation } } },{session})
+            await User.findByIdAndUpdate(userId, { $pull: { wishList: { productId: productId, productVariation: productVariation } } }, { session })
 
             result = await User.findById(userId).select("wishList").session(session)
             const exists = result.wishList.some((item) => item["productId"].toString() === productId)
 
-            if (!exists) await Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } },{session})
+            if (!exists) await Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } }, { session })
 
             ///// this is done in order to delete the userId from product on cart removal
             await session.commitTransaction()
@@ -213,7 +214,7 @@ export async function favourite(req, res) {
         console.log("Something wrong at server side in addWhishList", error)
         session.abortTransaction()
         return res.status(500).json("something wrong at server end")
-    }finally{
+    } finally {
         await session.endSession()
     }
 }
@@ -364,20 +365,20 @@ export async function displayFeedBack(req, res) {
         // console.log(allFeedBack)
         return res.status(200).json({ feedBackData: allFeedBack?.allFeedBack })
     } catch (error) {
-        console.log("wrong in display FeedBack",error)
+        console.log("wrong in display FeedBack", error)
         return res.status(500).json({ message: "Server fucked up in display feedback" })
     }
 }
 
 // working and is session aware
-export async function wishListCleanUp(productId, productVariation,session) {
+export async function wishListCleanUp(productId, productVariation, session) {
     try {
         let wishListUserIds = await Product.findById(productId).select("wishList").session(session)
         wishListUserIds = wishListUserIds["wishList"] /// it will be array of ids
 
         await Promise.all(
             wishListUserIds.map(async id => {
-                await User.findByIdAndUpdate(id, { $pull: { wishList: { productId: productId, productVariation: productVariation } } },{session})
+                await User.findByIdAndUpdate(id, { $pull: { wishList: { productId: productId, productVariation: productVariation } } }, { session })
             })
         )
 
@@ -421,15 +422,15 @@ export async function forgotPassword(req, res) {
 
 
         let userId = await User.findOne({ email: userEmail }).select("_id");
-        if (!userId){
+        if (!userId) {
             return res.status(404).json({ message: "User is not registered", bool: false })
         }
-        userId=userId?._id;
+        userId = userId?._id;
         const OTP = Math.floor(100000 + Math.random() * 900000); // 6-digit number
 
         //// seeting the OTP key ; for faster access
-        const hashKey=`user:OTP:${userId}`
-        await redisClient.setEx(hashKey,60*5,String(OTP))
+        const hashKey = `user:OTP:${userId}`
+        await redisClient.setEx(hashKey, 60 * 5, String(OTP))
 
         await ForgotPassword.findOneAndUpdate({ userId: userId._id }, { otp: OTP, expiryDate: new Date(Date.now() + 5 * 60 * 1000) }, { upsert: true })
 
@@ -475,18 +476,18 @@ export async function verifyOTP(req, res) {
 
         /// this contains the OTP sent by the user
         const sentOTP = Number(OTPArray.join(""))
-        const hashKey=`user:OTP:${userId}`
-        const isPresent= await redisClient.exists(hashKey)
-        if(isPresent){
-            const redisOTP=Number(await redisClient.get(hashKey))
-            console.log("redisOTP --> ",redisOTP)
-            console.log("sentOTP --> ",sentOTP)
+        const hashKey = `user:OTP:${userId}`
+        const isPresent = await redisClient.exists(hashKey)
+        if (isPresent) {
+            const redisOTP = Number(await redisClient.get(hashKey))
+            console.log("redisOTP --> ", redisOTP)
+            console.log("sentOTP --> ", sentOTP)
 
-            if(redisOTP===sentOTP){
+            if (redisOTP === sentOTP) {
                 await redisClient.del(hashKey)
-                const resetverificationKey=`user:verification:${userId}`
-                console.log("inside verify OTP --> ",resetverificationKey)
-                await redisClient.setEx(resetverificationKey,60*10,"Open")
+                const resetverificationKey = `user:verification:${userId}`
+                console.log("inside verify OTP --> ", resetverificationKey)
+                await redisClient.setEx(resetverificationKey, 60 * 10, "Open")
 
                 return res.json({ message: "OTP is correct", bool: true })
             }
@@ -503,8 +504,8 @@ export async function verifyOTP(req, res) {
         const expiry = new Date(OTPData.expiryDate);
         if ((now - expiry) / (1000 * 60) > 5) return res.status(400).json({ message: "either OTP or mail is not correct", bool: false })
 
-        if (OTP === sentOTP){
-            await ForgotPassword.findOneAndDelete({userId:userId})
+        if (OTP === sentOTP) {
+            await ForgotPassword.findOneAndDelete({ userId: userId })
             return res.json({ message: "OTP is correct", bool: true })
         }
         return res.json({ message: "OTP is not correct", bool: false })
@@ -521,13 +522,13 @@ export async function resetPassword(req, res) {
 
         const { password, email } = req?.body;
 
-        let userId=await User.findOne({email:email}).select("_id")
-        if(!userId) return res.status(404).json({ message: "Either OTP or email is not correct", bool: false })
+        let userId = await User.findOne({ email: email }).select("_id")
+        if (!userId) return res.status(404).json({ message: "Either OTP or email is not correct", bool: false })
         userId = userId._id
-        const resetverificationKey=`user:verification:${userId}`
+        const resetverificationKey = `user:verification:${userId}`
         console.log(resetverificationKey)
-        const redisVerificationResult=await redisClient.exists(resetverificationKey)
-        if(!redisVerificationResult) return res.status(400).json({message:"Need to verify OTP again"})
+        const redisVerificationResult = await redisClient.exists(resetverificationKey)
+        if (!redisVerificationResult) return res.status(400).json({ message: "Need to verify OTP again" })
         const oldPasswordObj = await User.findOne({ email: email }).select("password");
 
         if (!oldPasswordObj) return res.status(404).json({ message: "User not found", bool: false });
@@ -547,14 +548,14 @@ export async function resetPassword(req, res) {
 
 
     } catch (error) {
-        console.log("Server fucked up at reset password",error)
+        console.log("Server fucked up at reset password", error)
         return res.status(500).json({ message: "Server fucked up at reset password" });
     }
 }
 
 export async function setAddress(req, res) {
     try {
-        const deliverableBlocks=["400062","400104","400063","400064","400058", "400053", "400061"]
+        const deliverableBlocks = ["400062", "400104", "400063", "400064", "400058", "400053", "400061"]
         let { userAddress, userName, userPhoneNumber, userId } = req?.body;
         userName = userName.trim();
         userPhoneNumber = userPhoneNumber.trim();
@@ -564,36 +565,38 @@ export async function setAddress(req, res) {
 
         //// verifying whether user do exists or not
         let result = await User.findById(userId);
-        if (!result) return res.status(404).json({ message: "User not found" ,bool:false})
-        
-        if(!deliverableBlocks.includes(pincode)){
-            return res.status(400).json({message:"Sorry product cant be delivered in your locality",bool:false})
+        if (!result) return res.status(404).json({ message: "User not found", bool: false })
+
+        if (!deliverableBlocks.includes(pincode)) {
+            return res.status(400).json({ message: "Sorry product cant be delivered in your locality", bool: false })
         }
 
-        result=await Address.findOne({userId:userId});
+        result = await Address.findOne({ userId: userId });
         /// create one
-        if(!result){
+        if (!result) {
             await Address.create({
-                userId:userId,
-                userAddress:address,
-                userName:userName,
-                userPinCode:pincode,
-                userCity:city,
-                userPhoneNumber:userPhoneNumber  
+                userId: userId,
+                userAddress: address,
+                userName: userName,
+                userPinCode: pincode,
+                userCity: city,
+                userPhoneNumber: userPhoneNumber
             })
 
-            return res.status(200).json({message:"Address saved successfully",bool:true})
+            return res.status(200).json({ message: "Address saved successfully", bool: true })
 
-        }else{  //// update one
-            await Address.updateOne({userId:userId},{$set:{
-                userAddress:address,
-                userName:userName,
-                userPinCode:pincode,
-                userCity:city,
-                userPhoneNumber:userPhoneNumber  
-            }})
+        } else {  //// update one
+            await Address.updateOne({ userId: userId }, {
+                $set: {
+                    userAddress: address,
+                    userName: userName,
+                    userPinCode: pincode,
+                    userCity: city,
+                    userPhoneNumber: userPhoneNumber
+                }
+            })
 
-            return res.status(200).json({message:"Address updated successfully",bool:true})
+            return res.status(200).json({ message: "Address updated successfully", bool: true })
 
         }
     } catch (error) {
@@ -601,89 +604,180 @@ export async function setAddress(req, res) {
     }
 }
 
-export async function demo(req,res){
-    try{
+export async function demo(req, res) {
+    try {
         const now = new Date();
         const RESERVATION_PERIOD = 30 * 60 * 1000; // 30 min
         const carts = await Cart.find({
             "products.reservedAt": { $lt: new Date(now - RESERVATION_PERIOD) }
         });
 
-        const carts2=await Cart.find({
-            "products.reservedAt":{$lt:new Date(now - (15 * 60 * 1000))}
+        const carts2 = await Cart.find({
+            "products.reservedAt": { $lt: new Date(now - (15 * 60 * 1000)) }
         })
 
-        console.log("Hola",carts2)
+        console.log("Hola", carts2)
 
-    }catch(error){
+    } catch (error) {
         console.log(error)
-        return res.status(500).json({message:"Server went wrong in demo"})
+        return res.status(500).json({ message: "Server went wrong in demo" })
     }
 }
 
 /// working
-export async function getGuestId(req,res){
-    try{
+export async function getGuestId(req, res) {
+    try {
         if (!req.cookies?.guestId) {
             const guestId = uuidv4();
             res.cookie("guestId", guestId, {
-            httpOnly: true,
-            sameSite: "none",
-            secure:true,
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                httpOnly: true,
+                sameSite: "none",
+                secure: true,
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
             });
         }
         res.status(200).json({ message: "Guest ID set" });
-    }catch(error){
+    } catch (error) {
         console.log("error while generating guest id")
     }
 }
 
 /// working
-export async function ingest_products(req,res){
-    try{
-        const products=await Product.find().select("_id description usp").lean()
-        for(let i=0;i<products.length;i++) products[i]["_id"]=products[i]["_id"].toString()
-        
+export async function ingest_products(req, res) {
+    try {
+        const products = await Product.find().select("_id description usp").lean()
+        for (let i = 0; i < products.length; i++) products[i]["_id"] = products[i]["_id"].toString()
+
         // for localhost
         // const result=await axios.post("http://127.0.0.1:8001/ingest",{products},{withCredentials:true})
-        
-        // for render
-        const result=await axios.post("https://malikpetshop-1.onrender.com/ingest",{products},{withCredentials:true})
-        
-        
-        return res.status(200).json({message:result["data"]})
 
-    }catch(error){
+        // for render
+        const result = await axios.post(`${LOC_ENDPOINT}/ingest`, { products }, { withCredentials: true })
+
+
+        return res.status(200).json({ message: result["data"] })
+
+    } catch (error) {
         console.log(error)
-        return res.status(500).json({message:"something went wrong while creating embeddings"})
+        return res.status(500).json({ message: "something went wrong while creating embeddings" })
     }
 }
 
 // working
-export async function recommendProducts(req,res){
-    try{
+export async function recommendProducts(req, res) {
+    try {
         console.log("inside recommend Products")
-        const userQuery=req?.body["userQuery"]
+        const userQuery = req?.body["userQuery"]
         // for localhost
         // let result = await axios.post("http://127.0.0.1:8001/recommend",{userQuery},{withCredentials:true})
-        
+
         // for render
-        let result = await axios.post("https://malikpetshop-1.onrender.com/recommend",{userQuery},{withCredentials:true})
-        
-        result=result["data"]  // list of recommended objects
-        const recommendedProductIds=[]
+        let result = await axios.post(`${LOC_ENDPOINT}/recommend`, { userQuery }, { withCredentials: true })
 
-        for(let i=0;i<result.length;i++) recommendedProductIds.push(new mongoose.Types.ObjectId(result[i]["product_id"]))
-        
+        result = result["data"]  // list of recommended objects
+        const recommendedProductIds = []
+
+        for (let i = 0; i < result.length; i++) recommendedProductIds.push(new mongoose.Types.ObjectId(result[i]["product_id"]))
+
         /// productData is an array of object where each object is an product
-        const productData=await Product.find({"_id":{$in:recommendedProductIds}}).select("-wishList -cart -productString")
+        const productData = await Product.find({ "_id": { $in: recommendedProductIds } }).select("-wishList -cart -productString")
         // console.log(productData)
-        return res.status(200).json({result:productData})
+        return res.status(200).json({ result: productData })
 
-    }catch(error){
+    } catch (error) {
         console.log(error)
-        return res.status(500).json({message:"Some problem occured while processing your request"})
+        return res.status(500).json({ message: "Some problem occured while processing your request" })
     }
 }
 
+
+export async function proceed_checkout(req, res) {
+    try {
+        const userInfo = req?.userInfo;   // all thanks to middleware
+        const userId = userInfo?.id;
+
+        let cartItems = await Cart.findOne({ userId: userId }).select("products")
+        if (!cartItems) return res.status(404).json({ message: "Cart not found" })
+
+        // if cart is present then products array would be there
+        cartItems = cartItems.products
+
+        if (cartItems.length === 0) return res.status(400).json({ message: "Cart cant be empty" })
+
+        /// cart items contains cart data
+        /// fetching all the product that are present in the cart
+        let productsIdArray = cartItems.map((item) => {
+            return item["productId"].toString()
+        })
+
+        // productData is an array of object where each object is an product 
+        let productData = await Product.find({ "_id": { $in: productsIdArray } })
+        // console.log(productData)
+
+        const productMap = new Map();
+        for (let i = 0; i < productData.length; i++) {
+            productMap.set(productData[i]["_id"].toString(), productData[i]);
+        }
+
+        // creating the map for cart data just for faster lookup
+        const cartDataMap = new Map();
+        for (let i = 0; i < cartItems.length; i++) {
+            cartDataMap.set(cartItems[i]["productId"].toString(), [cartItems[i]["productVariation"], cartItems[i]["productQuantity"]])
+        }
+
+        // product exists
+        for (let i = 0; i < productsIdArray.length; i++) {
+            const data = productMap.get(productsIdArray[i])
+            if (data === undefined) return res.status(404).json({ message: "Product Not Found" })
+        }
+
+        // product active and stock availaibility
+        for (let i = 0; i < productsIdArray.length; i++) {
+            const data = productMap.get(productsIdArray[i])
+            const rem = data["stock"] - data["reservedStock"]
+
+            if (rem >= cartDataMap.get(productsIdArray[i])[1]) {
+                continue;
+            } else return res.status(400).json({ message: "Product is out of stock" })
+        }
+
+        // use latest price
+        let total = 0;
+        for (let i = 0; i < productsIdArray.length; i++) {
+            let finalPrice = 0;
+            let productId = productsIdArray[i];
+
+            let product = productMap.get(productId);
+            const [variation, quantity] = cartDataMap.get(productId);
+
+            if (
+                variation < 0 ||
+                !product.discountType ||
+                !product.originalPrice ||
+                !product.discountValue ||
+                variation >= product.discountType.length
+            ) {
+                return res.status(400).json({
+                    message: "Invalid product variation"
+                });
+            }
+
+            let discountType = product["discountType"][variation]
+            let ogPrice = product["originalPrice"][variation]
+            let discountValue = product["discountValue"][variation]
+            if (discountType === "flat") finalPrice += (ogPrice - discountValue);
+            else if (discountType === "percent") finalPrice += (ogPrice - Math.ceil(ogPrice * discountValue / 100))
+            else return res.status(404).json({ message: "Discount Type is undefined" })
+
+            total += (finalPrice * quantity)
+        }
+
+        return res.status(200).json({
+            message: "Checkout validated successfully",
+            totalAmount: total
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Some problem occured while procedding to checkout" })
+    }
+}

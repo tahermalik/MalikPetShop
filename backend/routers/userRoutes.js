@@ -1,6 +1,7 @@
 import express from "express"
-import { login, register ,logout, viewCompanyFood, viewFood,createFeedBack,displayFeedBack, favourite, viewWishList, forgotPassword, verifyOTP, resetPassword,setAddress, demo, getGuestId, recommendProducts, ingest_products} from "../controllers/userController.js";
+import { login, register ,logout, viewCompanyFood, viewFood,createFeedBack,displayFeedBack, favourite, viewWishList, forgotPassword, verifyOTP, resetPassword,setAddress, demo, getGuestId, recommendProducts, ingest_products, proceed_checkout} from "../controllers/userController.js";
 import { authenticate } from "../controllers/middleware.js";
+import {checkout_middleware } from "../middleware/checkout.js";
 
 const uRouter=express.Router();
 console.log("in this userRouters")
@@ -35,4 +36,7 @@ uRouter.post("/ingest_products",(req,res)=>ingest_products(req,res))
 
 /// demo
 uRouter.get("/demo",(req,res)=>demo(req,res))
+
+// checkout routes
+uRouter.post("/checkout",(req,res,next)=>checkout_middleware(req,res,next),(req,res)=>proceed_checkout(req,res))
 export default uRouter
