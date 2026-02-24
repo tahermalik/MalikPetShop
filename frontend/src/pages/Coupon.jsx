@@ -89,11 +89,12 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
         }
     }, []);
 
+    
     async function coponClicked(e, couponSelected) {
         try {
             e.stopPropagation();
             console.log(couponSelected)
-            const res = await axios.post(`${COUPON_ENDPOINT}/selectCoupon`, { couponSelected: couponSelected, total: total }, { withCredentials: true })
+            const res = await axios.post(`${COUPON_ENDPOINT}/selectCoupon`, { couponSelected: couponSelected, total: total ,userId:userId}, { withCredentials: true })
             toast.success(res?.data?.message)
         } catch (error) {
             console.log(error)
