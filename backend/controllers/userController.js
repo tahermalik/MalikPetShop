@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import Product from "../schema/productSchema.js";
 import Order from "../schema/orderSchema.js";
 import FeedBack from "../schema/feedBackSchema.js";
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import { mergeCartItems } from "./cartController.js";
 import ForgotPassword from "../schema/forgotPassword.js";
 import nodemailer from "nodemailer";
@@ -14,6 +14,8 @@ import { v4 as uuidv4 } from "uuid";
 import redisClient from "../config/redis.js";
 import axios from "axios";
 import { LOC_ENDPOINT } from "../config/endpoints.js";
+import { validate_coupon } from "./couponController.js";
+import Counter from "../schema/counterSchema.js";
 
 /// working
 export async function login(req, res) {
@@ -690,16 +692,58 @@ export async function recommendProducts(req, res) {
     }
 }
 
+async function generateOrderId() {
+
+    const counter = await Counter.findOneAndUpdate(
+        { name: "orderId" },
+        { $inc: { value: 1 } },
+        { new: true, upsert: true }
+    );
+
+    const number = counter.value.toString().padStart(6, '0');
+
+    return `ORD-${Date.now()}-${number}`;
+}
+
+function calcDsicountAmount(productId, productMap, cartDataMap) {
+    const [variation, quantity] = cartDataMap.get(productId);
+    let discountType = productMap.get(productId)["discountType"][variation]
+    let ogPrice = productMap.get(productId)["originalPrice"][variation]
+    let discountValue = productMap.get(productId)["discountValue"][variation]
+    let finalPrice = 0;
+    if (discountType === "flat") finalPrice += discountValue;
+    else if (discountType === "percent") finalPrice += Math.ceil(ogPrice * discountValue / 100)
+    return finalPrice * quantity
+}
+
+function calcFinalPrice(productId, productMap, cartDataMap) {
+    let finalUnitPrice = 0
+    const [variation, quantity] = cartDataMap.get(productId);
+    let discountType = productMap.get(productId)["discountType"][variation]
+    let ogPrice = productMap.get(productId)["originalPrice"][variation]
+    let discountValue = productMap.get(productId)["discountValue"][variation]
+    if (discountType === "flat") finalUnitPrice += (ogPrice - discountValue);
+    else if (discountType === "percent") finalUnitPrice += (ogPrice - Math.ceil(ogPrice * discountValue / 100))
+
+    return finalUnitPrice * quantity
+
+}
 
 export async function proceed_checkout(req, res) {
+    const session = await mongoose.startSession();
     try {
         const userInfo = req?.userInfo;   // all thanks to middleware
         const userId = userInfo?.id;
 
-        let cartItems = await Cart.findOne({ userId: userId }).select("products")
-        if (!cartItems) return res.status(404).json({ message: "Cart not found" })
+        if (!userId) return res.status(500).json({ message: "Something wrong with middleware" })
 
+        await session.startTransaction();
+        /// below things are done for cart validation
+        let cartItems = await Cart.findOne({ userId: userId }).select("products").session(session)
+        if (!cartItems) return res.status(404).json({ message: "Cart not found" })
+        const cartId = cartItems._id.toString()
         // if cart is present then products array would be there
+        // console.log(cartItems)
         cartItems = cartItems.products
 
         if (cartItems.length === 0) return res.status(400).json({ message: "Cart cant be empty" })
@@ -711,7 +755,7 @@ export async function proceed_checkout(req, res) {
         })
 
         // productData is an array of object where each object is an product 
-        let productData = await Product.find({ "_id": { $in: productsIdArray } })
+        let productData = await Product.find({ "_id": { $in: productsIdArray } }).session(session)
         // console.log(productData)
 
         const productMap = new Map();
@@ -744,7 +788,6 @@ export async function proceed_checkout(req, res) {
         // use latest price
         let total = 0;
         for (let i = 0; i < productsIdArray.length; i++) {
-            let finalPrice = 0;
             let productId = productsIdArray[i];
 
             let product = productMap.get(productId);
@@ -762,21 +805,53 @@ export async function proceed_checkout(req, res) {
                 });
             }
 
-            let discountType = product["discountType"][variation]
-            let ogPrice = product["originalPrice"][variation]
-            let discountValue = product["discountValue"][variation]
-            if (discountType === "flat") finalPrice += (ogPrice - discountValue);
-            else if (discountType === "percent") finalPrice += (ogPrice - Math.ceil(ogPrice * discountValue / 100))
-            else return res.status(404).json({ message: "Discount Type is undefined" })
-
-            total += (finalPrice * quantity)
+            total += calcFinalPrice(productId, productMap, cartDataMap)
         }
+
+        /// this done to ensure coupon validation
+        const { flag, discountValue, couponId } = await validate_coupon(total, cartId, session)
+        if (!flag) return res.status(400).json({ message: "Coupon applied is not valid" })
+
+        /// creation of order will take place now
+        const order = await Order.create([{
+            orderId: await generateOrderId(session),
+            user: userId,
+            products: cartItems.map(item => ({
+                product_id: item?.productId,
+                quantity: cartDataMap.get(item?.productId?.toString())[1],
+                productOGPrice: productMap.get(item?.productId?.toString()).originalPrice[
+                    cartDataMap.get(item?.productId?.toString())[0]
+                ],
+                productDiscount: calcDsicountAmount(
+                    item?.productId.toString(),
+                    productMap,
+                    cartDataMap
+                ),
+                priceAtPurchase: calcFinalPrice(
+                    item?.productId.toString(),
+                    productMap,
+                    cartDataMap
+                ),
+                variation: cartDataMap.get(item?.productId?.toString())[0]
+            })),
+            subTotal: total,
+            couponId: couponId === undefined ? null : couponId,
+            discountAmount: discountValue,
+            finalAmount: total - discountValue,
+            paymentStatus: "Processing"
+        }], { session });
+
+        const createdOrder = order[0];
+
+        await session.commitTransaction()
+
 
         return res.status(200).json({
             message: "Checkout validated successfully",
-            totalAmount: total
+            totalAmount: total - discountValue
         });
     } catch (error) {
+        await session.abortTransaction();
         console.log(error);
         return res.status(500).json({ message: "Some problem occured while procedding to checkout" })
     }

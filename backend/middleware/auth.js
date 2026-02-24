@@ -1,7 +1,7 @@
 import User from "../schema/userSchema.js";
 import jwt from "jsonwebtoken";
 
-export async function checkout_middleware(req,res,next){
+export async function auth(req,res,next){
     try{
         const token=req?.cookies?.token
         const secret_key=process.env.JWT_SECRET

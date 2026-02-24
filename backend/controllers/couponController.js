@@ -136,6 +136,13 @@ export async function selectCoupon(req,res){
         /// as i want the automic property to take place
         await session.startTransaction()
 
+        const userId=req?.body?.userId;
+        const guestId=req?.cookies?.guestId;
+
+        const isUser=userId===undefined ? false:true;
+
+        console.log(userId,guestId);
+
         const currentDate=new Date()
         const couponSelected=req?.body?.couponSelected
         const total=req?.body?.total
@@ -147,6 +154,8 @@ export async function selectCoupon(req,res){
         if(result["couponMinOrderAmount"]>total) throw new Error("Coupon cant be applied")
         
         if(currentDate>result["couponEndDate"]) throw new Error("Coupon is expired")
+        
+        if(currentDate < result["couponStartDate"]) throw new Error("Coupon not started yet")
 
         if(result["couponTotalUsage"]>=result["couponMaxUses"]) throw new Error("last coupon got redemmed by another user , you were late")
         
@@ -164,11 +173,67 @@ export async function selectCoupon(req,res){
             if(discountValue>result["couponMaxDiscount"]) discountValue=result["couponMaxDiscount"]
         }
         else discountValue=result["couponDiscountValue"]
+
+        // just want to attach cart with the applied coupon
+        if(isUser) await Cart.findOneAndUpdate({userId:userId},{$set:{couponId:couponSelected?._id}},{session})
+        else await Cart.findOneAndUpdate({guestId:guestId},{$set:{couponId:couponSelected?._id}},{session})
+
         await session.commitTransaction();
         return res.status(200).json({message:"Coupon Applied",finalAmount:total-discountValue})
     }catch(error){
         await session.abortTransaction();
         console.log("Server gone wrong while selecting the coupon",error)
-        return res.status(500).json({message:"Server gone wrong while selecting the coupon"})
+        return res.status(500).json({message:`${error}`})
     }
+}
+
+
+/// when the function is called user is verified and its cart too
+export async function validate_coupon(total,cartId,session){
+    try{
+        let couponId=await Cart.findById(cartId).select("couponId").session(session);
+        couponId=couponId?.couponId
+    
+        // as none of the coupon is applied
+        let discountValue=0;
+        if(couponId===undefined) return {flag:true,discountValue:discountValue,couponId:couponId}
+    
+        // now as the copon is applied so its verification need to be done
+        const currentDate=new Date()
+        if(total<=0) throw new Error("Invalid total amount")
+        // console.log("Selected coupon",couponSelected)
+        const result=await Coupon.findById(couponId).session(session)
+        if(!result) throw new Error("Coupon is invalid")
+
+        if(result["couponMinOrderAmount"]>total) throw new Error("Coupon cant be applied")
+        
+        if(currentDate>result["couponEndDate"]) throw new Error("Coupon is expired")
+        
+        if(currentDate < result["couponStartDate"]) throw new Error("Coupon not started yet")
+
+        if(result["couponTotalUsage"]>=result["couponMaxUses"]) throw new Error("last coupon got redemmed by another user , you were late")
+        
+        const valid=await Coupon.findOne({
+            _id: couponId,
+            couponTotalUsage: { $lt: result["couponMaxUses"] }
+        }).session(session)
+
+        if (!valid) throw new Error("Coupon exhausted");
+            
+        
+        
+        if(result["couponDiscountType"]==="percentage"){
+            discountValue=total*(result["couponDiscountValue"]/100)
+            if(discountValue>result["couponMaxDiscount"]) discountValue=result["couponMaxDiscount"]
+        }
+        else discountValue=result["couponDiscountValue"]
+
+        return {flag:true,discountValue:discountValue,couponId:couponId}
+   
+    }catch(error){
+        console.log("problem occured while coupon validation")
+        return {flag:false,discountValue:0,couponId:undefined};
+    }
+    
+
 }

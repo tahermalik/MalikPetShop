@@ -1,6 +1,5 @@
 import express from "express"
 import { selectCoupon, setCoupons, viewCoupons } from "../controllers/couponController.js";
-import { authenticateAdmin } from "../controllers/middleware.js";
 
 const cRouter=express.Router();
 console.log("in this CoupanRouters")

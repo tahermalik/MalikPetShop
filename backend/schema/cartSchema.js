@@ -13,6 +13,11 @@ const cartSchema = new mongoose.Schema({
         required: false, // only guests
         index: true,
     },
+    couponId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Coupon",
+        required:false
+    },
     products: [
         {
             _id:false,
