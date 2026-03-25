@@ -17,11 +17,12 @@ import Offer from "./schema/offerSchema.js";
 import ForgotPassword from "./schema/forgotPassword.js";
 import Product from "./schema/productSchema.js";
 import Cart from "./schema/cartSchema.js";
+import mongoose from "mongoose";
 
 
-const app=express();
+const app = express();
 app.use(cors({
-  origin:[ "http://localhost:5173","https://malikpetshop.onrender.com","https://malik-pet-shop-git-main-taher-maliks-projects.vercel.app","https://malik-pet-shop-iu40gnfxf-taher-maliks-projects.vercel.app"],  // your React frontend URL
+  origin: ["http://localhost:5173", "https://malikpetshop.onrender.com", "https://malik-pet-shop-git-main-taher-maliks-projects.vercel.app", "https://malik-pet-shop-iu40gnfxf-taher-maliks-projects.vercel.app"],  // your React frontend URL
 
   credentials: true,                 // if you use cookies or auth
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], // allowed methods
@@ -36,7 +37,7 @@ const __dirname = path.dirname(__filename);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 dotenv.config({
-    path:"../.env"
+  path: "../.env"
 })
 
 //// establishing the connection to the DB
@@ -51,12 +52,12 @@ cron.schedule("0 * * * *", async () => {
       couponEndDate: { $lt: now } // expired coupons
     });
 
-    const resultOffer=await Offer.deleteMany({
-      offerEndDate:{$lt:now} // expired offer
+    const resultOffer = await Offer.deleteMany({
+      offerEndDate: { $lt: now } // expired offer
     })
 
-    const resultOTP=await ForgotPassword.deleteMany({
-      expiryDate:{$lt:now} /// expired OTP
+    const resultOTP = await ForgotPassword.deleteMany({
+      expiryDate: { $lt: now } /// expired OTP
     })
 
     if (resultCoupon.deletedCount > 0) {
@@ -76,80 +77,90 @@ cron.schedule("0 * * * *", async () => {
 });
 
 //// cron for the product's presence expiry
-// cron.schedule("*/5 * * * *", async () => {
-//   try {
-//     const now = new Date();
-//     const RESERVATION_PERIOD = 30 * 60 * 1000; // 30 min
+cron.schedule("*/30 * * * *", async () => {
+  try {
+    const now = new Date();
+    const RESERVATION_PERIOD = 60 * 60 * 1000; // 1 hour
 
-//     const carts = await Cart.find({
-//       "products.reservedAt": { $lt: new Date(now - RESERVATION_PERIOD) }
-//     });
 
-//     for (const cart of carts) {
-//       let updated = false;
+    const carts = await Cart.find({
+      "products.reservedAt": { $lt: new Date(now.getTime() - RESERVATION_PERIOD) }
+    });
 
-//       for (let i = cart.products.length - 1; i >= 0; i--) {
-//         const item = cart.products[i];
-//         if (now - item.reservedAt > RESERVATION_PERIOD) {
-//           await Product.updateOne(
-//             { _id: item.productId },
-//             { $inc: { [`reservedStock.${item.productVariation}`]: -item.productQuantity } }
-//           );
+    for (const cart of carts) {
+      let session;
+      try {
+        let updated = false;
+        session = await mongoose.startSession();
+        await session.startTransaction();
+        for (let i = cart.products.length - 1; i >= 0; i--) {
+          const item = cart.products[i];
+          if (now - item.reservedAt > RESERVATION_PERIOD) {
+            await Product.updateOne(
+              { _id: item.productId },
+              { $inc: { [`reservedStock.${item.productVariation}`]: -item.productQuantity } }
+            ).session(session);
 
-//           cart.products.splice(i, 1);
-//           updated = true;
-//         }
-//       }
 
-//       if (updated) await cart.save();
-//     }
+            cart.products.splice(i, 1);
+            console.log(`✅ ${item.productId} released from ${cart?._id} `);
+            updated = true;
+          }
+        }
 
-//     console.log("✅ Released expired cart reservations");
-//   } catch (error) {
-//     console.error("Error releasing expired reservations:", error);
-//   }
-// });
 
-//// cron for the cart that has no products in it
+        if (updated) await cart.save({ session });
+        await session.commitTransaction();
+      } catch (error) {
+        if (session) await session.abortTransaction();
+
+      } finally {
+        if (session) await session.endSession();
+      }
+    }
+  } catch (error) {
+    console.error("Error releasing expired reservations:", error);
+  }
+});
+
+//// cron for the cart that has no products in it; runs in every 30 minute
 cron.schedule("*/30 * * * *", async () => {
   try {
     const THRESHOLD = new Date(Date.now() - 15 * 60 * 1000);
 
+    /// deletes only the guest cart with zero products and is not updated past 15 min
     await Cart.deleteMany({
       guestId: { $exists: true },
       products: { $size: 0 },
       updatedAt: { $lt: THRESHOLD }
     });
-    
-    console.log("✅ Released empty carts");
+
+    console.log("✅ Released empty guest carts");
   } catch (error) {
     console.error("Error releasing empty carts:", error);
   }
 });
 
 /// to parse the HTTP request
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 
 //// if the data is sent in json format
 app.use(express.json());
 app.use(cookieParser())
 
-
-
-
-
-
-app.get("/",(req,res)=>{
+/// just to check the health
+app.get("/", (req, res) => {
   res.status(200).json({ message: "Backend is working 🚀" });
 })
-app.use("/user",uRouter)
-app.use("/product",pRouter)
-app.use("/feedback",feedbackRouter)
-app.use("/coupon",cRouter)
-app.use("/cart",cartRouter)
-app.use("/offer",offerRouter)
-app.use("/demo",uRouter)
 
-app.listen(process.env.PORT_NUM,()=>console.log(`${process.env.PORT_NUM}`))
+app.use("/user", uRouter)
+app.use("/product", pRouter)
+app.use("/feedback", feedbackRouter)
+app.use("/coupon", cRouter)
+app.use("/cart", cartRouter)
+app.use("/offer", offerRouter)
+app.use("/demo", uRouter)
+
+app.listen(process.env.PORT_NUM, () => console.log(`${process.env.PORT_NUM}`))
 
 

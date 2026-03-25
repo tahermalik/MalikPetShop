@@ -231,7 +231,7 @@ export async function getCartItems(req, res) {
         let result;
         if (isUser && userId !== "undefined") result = await Cart.findOne({ userId: userId })
         else {
-            result = await Cart.findOne({ guestId: guestId })
+            result = await Cart.findOne({ guestId: guestId }).lean()
             // console.log("Tahah",result)
         }
 
@@ -243,6 +243,9 @@ export async function getCartItems(req, res) {
             const productMap={}
             for(let i=0;i<result?.products?.length;i++){
                 const productKey=`${result?.products[i].productId}_${result?.products[i].productVariation}`
+                let brand=await Product.findById(result?.products[i].productId).select("brand")
+                result.products[i]["brand"]=brand["brand"]
+                // console.log("printing brands" ,result?.products[i]["brand"])
                 productMap[productKey]=JSON.stringify(result?.products[i]);
             }
             if (Object.keys(productMap).length > 0) {
@@ -252,6 +255,8 @@ export async function getCartItems(req, res) {
         }catch(error){
             console.log("redis failed",error)
         }
+
+        // console.log("data to sent ",result?.products)
         return res.status(200).json({ cartData: result?.products })
     } catch (error) {
         console.log("server fucked up at getCartItems", error)
@@ -511,6 +516,7 @@ export async function updateCart(req, res) {
 
         // console.log("hola",cartProducts)
 
+        /// getting cart items from the frontend; here the brand fiels is present in every product obj
         let updatedCartProducts = req?.body?.cartItems
         // console.log("Updated Cart",updatedCartProducts)
 
@@ -555,7 +561,7 @@ export async function updateCart(req, res) {
                     {
                         $inc: {
                             [`reservedStock.${item?.productVariation}`]: diff
-                        }
+                        },
                     },
                     { session }
                 )
@@ -588,7 +594,8 @@ export async function updateCart(req, res) {
                 {
                     $inc: {
                         "products.$[elem].productQuantity": diff
-                    }
+                    },
+                    $set:{"products.$[elem].reservedAt":Date.now()}
                 },
                 {
                     session,

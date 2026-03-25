@@ -179,7 +179,7 @@ export async function selectCoupon(req,res){
         else await Cart.findOneAndUpdate({guestId:guestId},{$set:{couponId:couponSelected?._id}},{session})
 
         await session.commitTransaction();
-        return res.status(200).json({message:"Coupon Applied",finalAmount:total-discountValue})
+        return res.status(200).json({message:"Coupon Applied",finalAmount:total-discountValue,discountValue:discountValue})
     }catch(error){
         await session.abortTransaction();
         console.log("Server gone wrong while selecting the coupon",error)
@@ -235,5 +235,16 @@ export async function validate_coupon(total,cartId,session){
         return {flag:false,discountValue:0,couponId:undefined};
     }
     
+
+}
+
+export async function getCouponId(req,res){
+    try{
+
+    }catch(error){
+        console.log("Some problem occured while fetching the coupon id --> ",error)
+        return res.status(500).json({message:"Some problem occured while fetching the coupon id"})
+
+    }
 
 }

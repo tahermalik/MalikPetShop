@@ -13,9 +13,10 @@ import Cart from "../schema/cartSchema.js";
 import { v4 as uuidv4 } from "uuid";
 import redisClient from "../config/redis.js";
 import axios from "axios";
-import { LOC_ENDPOINT } from "../config/endpoints.js";
+import { REC_ENDPOINT } from "../config/endpoints.js";
 import { validate_coupon } from "./couponController.js";
 import Counter from "../schema/counterSchema.js";
+import Coupon from "../schema/couponSchema.js";
 
 /// working
 export async function login(req, res) {
@@ -654,7 +655,7 @@ export async function ingest_products(req, res) {
         // const result=await axios.post("http://127.0.0.1:8001/ingest",{products},{withCredentials:true})
 
         // for render
-        const result = await axios.post(`${LOC_ENDPOINT}/ingest`, { products }, { withCredentials: true })
+        const result = await axios.post(`${REC_ENDPOINT}/ingest`, { products }, { withCredentials: true })
 
 
         return res.status(200).json({ message: result["data"] })
@@ -674,12 +675,12 @@ export async function recommendProducts(req, res) {
         // let result = await axios.post("http://127.0.0.1:8001/recommend",{userQuery},{withCredentials:true})
 
         // for render
-        let result = await axios.post(`${LOC_ENDPOINT}/recommend`, { userQuery }, { withCredentials: true })
-
+        let result = await axios.post(`${REC_ENDPOINT}/recommend`, { userQuery }, { withCredentials: true })
         result = result["data"]  // list of recommended objects
         const recommendedProductIds = []
-
+        
         for (let i = 0; i < result.length; i++) recommendedProductIds.push(new mongoose.Types.ObjectId(result[i]["product_id"]))
+        // console.log(recommendedProductIds)
 
         /// productData is an array of object where each object is an product
         const productData = await Product.find({ "_id": { $in: recommendedProductIds } }).select("-wishList -cart -productString")
@@ -732,8 +733,11 @@ function calcFinalPrice(productId, productMap, cartDataMap) {
 export async function proceed_checkout(req, res) {
     const session = await mongoose.startSession();
     try {
+        
         const userInfo = req?.userInfo;   // all thanks to middleware
         const userId = userInfo?.id;
+
+        // console.log(userId,"userId")
 
         if (!userId) return res.status(500).json({ message: "Something wrong with middleware" })
 
@@ -758,6 +762,8 @@ export async function proceed_checkout(req, res) {
         let productData = await Product.find({ "_id": { $in: productsIdArray } }).session(session)
         // console.log(productData)
 
+        console.log("inside proceed_checkout")
+
         const productMap = new Map();
         for (let i = 0; i < productData.length; i++) {
             productMap.set(productData[i]["_id"].toString(), productData[i]);
@@ -775,6 +781,8 @@ export async function proceed_checkout(req, res) {
             if (data === undefined) return res.status(404).json({ message: "Product Not Found" })
         }
 
+        console.log("Taha")
+
         // product active and stock availaibility
         for (let i = 0; i < productsIdArray.length; i++) {
             const data = productMap.get(productsIdArray[i])
@@ -782,8 +790,14 @@ export async function proceed_checkout(req, res) {
 
             if (rem >= cartDataMap.get(productsIdArray[i])[1]) {
                 continue;
-            } else return res.status(400).json({ message: "Product is out of stock" })
+            } else{
+                return res.status(400).json({ message: "Product is out of stock" })
+            }
         }
+
+        
+
+        
 
         // use latest price
         let total = 0;
@@ -812,9 +826,15 @@ export async function proceed_checkout(req, res) {
         const { flag, discountValue, couponId } = await validate_coupon(total, cartId, session)
         if (!flag) return res.status(400).json({ message: "Coupon applied is not valid" })
 
+
+        ///////////////////////// for now lets assume that the payment is successful ///////////////////
+        let payment=true
+        if(!payment) return res.status(400).json({message:"Payment was not successfull"})
+        
         /// creation of order will take place now
+        const orderId=await generateOrderId(session)
         const order = await Order.create([{
-            orderId: await generateOrderId(session),
+            orderId: orderId,
             user: userId,
             products: cartItems.map(item => ({
                 product_id: item?.productId,
@@ -840,8 +860,49 @@ export async function proceed_checkout(req, res) {
             finalAmount: total - discountValue,
             paymentStatus: "Processing"
         }], { session });
-
         const createdOrder = order[0];
+
+        ////// decrementing the stock and reserved stock
+        for(let i=0;i<productsIdArray.length;i++){
+            const productId=productsIdArray[i]
+            const [variation,quantity]=cartDataMap.get(productId)
+            const orderResult = await Product.updateOne(
+                {
+                    _id:productId,
+                },
+                {
+                    $inc: {
+                        [`reservedStock.${variation}`]: quantity*-1,
+                        [`stock.${variation}`]:quantity*-1
+                    }
+                },
+                {session}
+            )
+
+            // if this process fails then refunc should be initiated
+            
+        }
+
+        /// cart cleanup should be done here
+
+        /// marking the coupon usage
+        await Coupon.findByIdAndUpdate(
+            couponId,
+            {$inc:{couponTotalUsage:1}},
+            {session}
+        )
+
+        /// marking the status of payment as done
+        await Order.findOneAndUpdate(
+            {orderId:orderId},
+            {
+                $set:{
+                    paymentStatus:"Successfull",
+                    status:"Processing"
+                }
+            },
+            {session}
+        )
 
         await session.commitTransaction()
 

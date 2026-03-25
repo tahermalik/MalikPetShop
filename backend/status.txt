@@ -2,3 +2,7 @@ working on backend for the user
 
 backend of coupon ✅
 backend of Cart 
+
+
+to remove the data from the redis --> docker exec -it redis redis-cli FLUSHALL
+to start the AI part --> uvicorn app:app --reload --port 8001
