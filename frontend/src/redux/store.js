@@ -6,7 +6,9 @@ import activeReducer from "./slices/activeSlice.js"
 import productReducer from "./slices/productSlice.js"
 import cartReducer from "./slices/cartSlice.js"
 import chatReducer from "./slices/chatSlice.js"
+import { enableMapSet } from "immer";
 
+enableMapSet();
 const store=configureStore({
     reducer:{
         user:userReducer,

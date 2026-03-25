@@ -5,16 +5,15 @@ import { COUPON_ENDPOINT } from "./endpoints";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
-export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total, shipping, setCouponAmount }) {
 
-    const [couponIndex, setCouponIndex] = useState(-1) /// none of the coupans are applied initially
+export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total, shipping, couponAmountFunction ,couponId}) {
+
     const [coupons, setCoupons] = useState([]);
     const [nextCursor, setNextCursor] = useState(null);
     const [loading, setLoading] = useState(false);
     const hadfetched = useRef(false);
     const [checkTime, setCheckTime] = useState(0)
 
-    // console.log(couponIndex, "CouponIndex")
     /// just to force re rendering of the components in every second
     useEffect(() => {
         const a = setInterval(() => {
@@ -55,18 +54,30 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
     }
 
     //// function to check whether the coupon can be applied or not
-    function checkCoupon(start, end, validity) {
+    const selectedBrandMap=useSelector((state)=>state?.cart?.addedBrands)
+    function checkCoupon(start, end,total,couponBrands,couponMinOrderAmount) {
         const now = new Date();
         start = new Date(start);
 
+        // coupon is expired
         if (typeof end !== "undefined") {
             end = new Date(end);
             if (now >= end) return false;
         }
 
+        // coupon is not started yet
         if (start >= now) return false;
 
-        return validity;
+        // checking for the presence of brand
+        for(let i=0;i<couponBrands.length;i++){
+            let present=selectedBrandMap.get(couponBrands[i]);
+            if(present===undefined) return false;
+        }
+
+        // checking for min order amount
+        if(couponMinOrderAmount>total) return false;
+        return true;
+
     }
 
     //// dealing with Pagination
@@ -78,6 +89,8 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
         const res = await axios.post(`${COUPON_ENDPOINT}/viewCoupons`, { limit: 10, lastId: nextCursor, userId: userId }, { withCredentials: true });
         // console.log("Taher Malik", res.data.coupons.length)
         setCoupons(prev => [...prev, ...res.data.coupons]);
+
+        // console.log(res.data.coupons,"Taha")
         setNextCursor(res.data.nextCursor);
         setLoading(false);
     };
@@ -95,6 +108,7 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
             e.stopPropagation();
             console.log(couponSelected)
             const res = await axios.post(`${COUPON_ENDPOINT}/selectCoupon`, { couponSelected: couponSelected, total: total ,userId:userId}, { withCredentials: true })
+            couponAmountFunction(res?.data?.discountValue)
             toast.success(res?.data?.message)
         } catch (error) {
             console.log(error)
@@ -154,11 +168,12 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
                                 {coupons[index]["couponCode"]}
                             </div>
 
-                            {(couponIndex !== index) && (
+                            {(couponId !== coupons[index]["_id"].toString()) && (
                                 <div
                                     className={`px-4 py-1.5 rounded-full text-sm font-medium text-white transition-all duration-300 ${checkCoupon(
                                         coupons[index]["couponStartDate"],
-                                        coupons[index]["couponEndDate"], coupons[index]["isValid"]
+                                        coupons[index]["couponEndDate"],total,
+                                        coupons[index]["brands"],coupons[index]["couponMinOrderAmount"]
                                     )
                                         ? "bg-blue-500 hover:bg-blue-600 active:scale-95"
                                         : "bg-blue-400 opacity-50 pointer-events-none"}
@@ -169,7 +184,7 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
                                 </div>
                             )}
 
-                            {couponIndex === index && (
+                            {couponId === coupons[index]["_id"].toString() && (
                                 <div className="flex items-center gap-1 text-emerald-500 font-medium text-sm">
                                     <IoCheckmarkDoneOutline size={16} />
                                     Applied

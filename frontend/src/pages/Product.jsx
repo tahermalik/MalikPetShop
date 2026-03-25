@@ -19,6 +19,7 @@ import { FaArrowLeftLong } from "react-icons/fa6";
 import { SideBar, SubMenu } from "./LandingPage"
 import { Breadcrumbs } from "./Breadcrumbs"
 import { setCompleteProductInfo } from "../redux/slices/productSlice"
+import { addBrand } from "../redux/slices/cartSlice"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -384,7 +385,7 @@ function MobileFilter({ mobFilterVisible, setMobFilterVisible }) {
 }
 
 
-/// function written for both loggedIn user & user who is not loggedIn
+/// function written for both loggedIn user & guest user
 export async function addToCart(e, qty, userId, productId, productVariation, logInFlag, dispatch) {
     try {
         e.stopPropagation();
@@ -399,6 +400,7 @@ export async function addToCart(e, qty, userId, productId, productVariation, log
             result =await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: null, productId: productId, productVariation: productVariation, quantity: qty }, { withCredentials: true })
             if (result?.data?.bool === false) toast.error("Some problem in product addition to cart")
         }
+
         toast.success(result?.data?.message)
     } catch (error) {
         console.log(error);
@@ -823,7 +825,7 @@ function DisplayProducts(props) {
                 {productData.map((product) => {
                     return (
                         <div onClick={() => productClicked(product)} className="h-fit w-[90%] sm:w-[250px] gap-2">
-                            <ProductCard imagesArray={product.image} netWeightArray={product.netWeight} originalPriceArray={product.originalPrice} discountArray={product.discountValue} productName={product.productName} productId={product._id} stock={product.stock} reservedStock={product.reservedStock} refresh={props.refresh} setRefresh={props.setRefresh} />
+                            <ProductCard imagesArray={product.image} netWeightArray={product.netWeight} originalPriceArray={product.originalPrice} discountArray={product.discountValue} productName={product.productName} productId={product._id} stock={product.stock} reservedStock={product.reservedStock} refresh={props.refresh} setRefresh={props.setRefresh} brand={product.brand}/>
                         </div>
                     )
                 })}

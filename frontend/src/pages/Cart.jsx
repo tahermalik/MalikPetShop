@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Coupon } from "./Coupon.jsx";
 import { Breadcrumbs } from "./Breadcrumbs.jsx";
+import { removeBrand } from "../redux/slices/cartSlice.js";
 
 function CartCardSkeleton() {
   return (
@@ -59,8 +60,14 @@ export default function CartPage() {
   const [refresh, setRefresh] = useState(0) /// specially when item is removed from the cart
   const [cartData, setCartData] = useState([])
   const [couponAmount, setCouponAmount] = useState(0);
-  const { productData, productVariationData, productQuantityData, realCartData } = useGetAllCartItems(userData?._id, refresh, shouldCallDB)
+  const dispatch=useDispatch();
+  const { productData, productVariationData, productQuantityData, realCartData ,brandData} = useGetAllCartItems(userData?._id, refresh, shouldCallDB)
   // realCartData is an array of objects
+
+  // to set the coupon amount when a coupon is selected
+  function couponAmountFunction(couponAmount){
+    setCouponAmount(couponAmount)
+  }
 
   useEffect(() => {
     setCartData(realCartData)
@@ -82,7 +89,8 @@ export default function CartPage() {
 
 
   /// when the user is loggedIn and when the user is not loggedIn
-  async function removeItem(e, productId, userId, productVariation) {
+
+  async function removeItem(e, productId, userId, productVariation,brand) {
     try {
       e.preventDefault()
       e.stopPropagation()
@@ -94,6 +102,8 @@ export default function CartPage() {
       }
       setShouldCallDB(false);
       setRefresh(prev => prev + 1)
+
+      dispatch(removeBrand(brand))
       toast.success(result?.data?.message)
     } catch (error) {
       toast.error(error?.response?.data?.message)
@@ -120,30 +130,27 @@ export default function CartPage() {
     return acc + price * Number(item.productQuantity);
   }, 0);
 
-  const shipping = subtotal > 5000 ? 0 : 99;
+  const shipping = subtotal > 1000 ? 0 : 99;
   const total = subtotal + shipping;
 
   const user = useSelector((state) => state?.user?.userData)
-  const reduxCartData = useSelector((state) => state?.cart?.products)
   const userId = user?._id;
   
   async function placeOrder(e, totalAmount) {
+    let result;
     try {
       e.preventDefault();
       e.stopPropagation();
       if (totalAmount <= 1000 && user != null) toast.error("Order cant be placed for amount less then 1000")
-      else if (user === null) {
-        navigate("/Login", { state: { user: "user" } })
-        toast.error("Login need to be done first")
-      }
       else {
-        const result=await axios.post(`${USER_ENDPOINTS}/checkout`, { userId: userId },{withCredentials:true})
+        result=await axios.post(`${USER_ENDPOINTS}/checkout`,{},{withCredentials:true})
 
         // console.log(result)
         toast.success(`${result?.data?.message}\nYour total amount in ${result?.data?.totalAmount}`)
         navigate("/addressForm")
       }
     } catch (error) {
+      toast.error(`${result?.response?.data?.message}`)
       console.log("Something went wrong in place order in the front end",error);
     }
   }
@@ -270,7 +277,7 @@ export default function CartPage() {
                         ₹{(product.originalPrice[item.productVariation] - discountAmount(product.originalPrice[item.productVariation], product.discountValue[item.productVariation])) * Number(item.productQuantity)}
                       </p>
                       <button
-                        onClick={(e) => removeItem(e, item.productId.toString(), userData?._id, item.productVariation)}
+                        onClick={(e) => removeItem(e, item.productId.toString(), userData?._id, item.productVariation,brandData[index])}
                         className="text-sm text-red-500 hover:underline"
                       >
                         Remove
@@ -317,7 +324,7 @@ export default function CartPage() {
             </div>
 
             <p className="text-sm text-center text-gray-500 mt-3 font-sans">
-              You’re ₹{5000 - subtotal > 0 ? 5000 - subtotal : 0} away from free
+              You’re ₹{1000 - subtotal > 0 ? 1000 - subtotal : 0} away from free
               shipping!
             </p>
           </div>
@@ -327,7 +334,7 @@ export default function CartPage() {
 
         {/* Coupan Window */}
         {coupanVisible && (
-          <Coupon setCoupanVisible={setCoupanVisible} coupanVisible={coupanVisible} discountAmount={discountAmount} total={total} shipping={shipping} setCouponAmount={setCouponAmount}/>
+          <Coupon setCoupanVisible={setCoupanVisible} coupanVisible={coupanVisible} discountAmount={discountAmount} total={total} shipping={shipping} couponAmountFunction={couponAmountFunction}/>
         )}
 
       </div>

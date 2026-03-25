@@ -2,13 +2,15 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { CART_ENDPOINTS, PRODUCT_ENDPOINTS } from "../pages/endpoints";
 import { useDispatch, useSelector } from "react-redux";
-import { setProducts } from "../redux/slices/cartSlice";
+import { addBrand, setProducts } from "../redux/slices/cartSlice";
 
 export function useGetAllCartItems(userId,refresh,shouldCallDB){
     const [productData,setProductData]=useState([])
     const [productVariationData,setProductVariationData]=useState([])
     const [productQuantityData,setProductQuantityData]=useState([])
     const [realCartData,setRealCartData]=useState([])
+    const [brandData,setBrandData]=useState([])
+    const dispatch=useDispatch();
 
     useEffect(()=>{
         async function getAllCartItems(){
@@ -27,14 +29,21 @@ export function useGetAllCartItems(userId,refresh,shouldCallDB){
 
                 console.log("hola",cartData)
 
+                /// addition of the brand for the coupon UI 
+                for(let i=0;i<cartData.length;i++){
+                    dispatch(addBrand(cartData[i]["brand"]))
+                }
+
                 const productIds=cartData.map((obj)=>{return obj["productId"]})
                 const productVariationData=cartData.map((obj)=>{return obj["productVariation"]})
                 const productQuantityData=cartData.map((obj)=>{return obj["productQuantity"]})
+                const brands=cartData.map((obj)=>{return obj["brand"]})
                 const secondsCallResult=await axios.post(`${PRODUCT_ENDPOINTS}/getProductsViaId`,{productIds:productIds},{withCredentials:true})
                 
                 setProductData(secondsCallResult?.data?.productData)
                 setProductVariationData(productVariationData)
                 setProductQuantityData(productQuantityData)
+                setBrandData(brands)
                 setRealCartData(cartData)
 
             }catch(error){
@@ -45,5 +54,5 @@ export function useGetAllCartItems(userId,refresh,shouldCallDB){
         getAllCartItems()
     },[refresh])
 
-    return {productData,productVariationData,productQuantityData,realCartData}
+    return {productData,productVariationData,productQuantityData,realCartData,brandData}
 }

@@ -371,6 +371,7 @@ export default function SingleProductDisplay() {
                         originalPriceArray={productData.originalPrice}
                         discountValueArray={productData.discountValue}
                         productId={productData._id}
+                        brand={productData.brand}
                     />
                 </div>
             </div>
