@@ -95,11 +95,9 @@ export default function CartPage() {
       e.preventDefault()
       e.stopPropagation()
       let result;
-      if (userData) {
-        result = await axios.post(`${CART_ENDPOINTS}/removeCartItem`, { userId, productId, productVariation }, { withCredentials: true })
-      } else {
-        result = result = await axios.post(`${CART_ENDPOINTS}/removeCartItem`, { userId: null, productId, productVariation }, { withCredentials: true })
-      }
+      
+      result = result = await axios.post(`${CART_ENDPOINTS}/removeCartItem`, {productId, productVariation }, { withCredentials: true })
+      
       setShouldCallDB(false);
       setRefresh(prev => prev + 1)
 
@@ -168,7 +166,6 @@ export default function CartPage() {
       await axios.post(
         `${CART_ENDPOINTS}/updateCart`,
         {
-          userId: user?._id || null,
           cartItems: cartData
         },
         { withCredentials: true }

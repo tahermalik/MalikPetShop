@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import axios from "axios";
-import { COUPON_ENDPOINT } from "./endpoints";
+import { CART_ENDPOINTS, COUPON_ENDPOINT, USER_ENDPOINTS } from "./endpoints";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
@@ -13,6 +13,7 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
     const [loading, setLoading] = useState(false);
     const hadfetched = useRef(false);
     const [checkTime, setCheckTime] = useState(0)
+    const [validCoupons,setValidCoupons]=useState({})
 
     /// just to force re rendering of the components in every second
     useEffect(() => {
@@ -53,26 +54,53 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
         else return `${minutes} Minute : ${seconds} Seconds`
     }
 
+    async function getBrandMap(){
+        const brandMap=new Map();
+        try{
+            const result=await axios.get(`${CART_ENDPOINTS}/getCartItems`,{withCredentials:true});
+    
+            const cartData=result?.data?.cartData;
+            for(let i=0;i<cartData.length;i++){
+                const brand=cartData[i]["brand"]
+                const qty=brandMap.get(brand)
+                if(qty===undefined) brandMap.set(brand,1);
+                else brandMap.set(brand,qty+1);
+            }
+        }catch(error){
+            console.log(error);
+        }
+
+        return brandMap;
+
+    }
+
     //// function to check whether the coupon can be applied or not
-    const selectedBrandMap=useSelector((state)=>state?.cart?.addedBrands)
-    function checkCoupon(start, end,total,couponBrands,couponMinOrderAmount) {
+    async function checkCoupon(start, end,total,couponBrands,couponMinOrderAmount) {
         const now = new Date();
         start = new Date(start);
-
+        
         // coupon is expired
         if (typeof end !== "undefined") {
             end = new Date(end);
             if (now >= end) return false;
         }
 
+        
+        
         // coupon is not started yet
-        if (start >= now) return false;
+        if (start >= now){
+            return false;
+        }
 
+        let brandMap=await getBrandMap();
+        
         // checking for the presence of brand
         for(let i=0;i<couponBrands.length;i++){
-            let present=selectedBrandMap.get(couponBrands[i]);
+            let present=brandMap.get(couponBrands[i]);
             if(present===undefined) return false;
         }
+       
+
 
         // checking for min order amount
         if(couponMinOrderAmount>total) return false;
@@ -86,7 +114,7 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
         if (loading) return;
         setLoading(true);
 
-        const res = await axios.post(`${COUPON_ENDPOINT}/viewCoupons`, { limit: 10, lastId: nextCursor, userId: userId }, { withCredentials: true });
+        const res = await axios.post(`${COUPON_ENDPOINT}/viewCoupons`, { limit: 10, lastId: nextCursor }, { withCredentials: true });
         // console.log("Taher Malik", res.data.coupons.length)
         setCoupons(prev => [...prev, ...res.data.coupons]);
 
@@ -94,6 +122,33 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
         setNextCursor(res.data.nextCursor);
         setLoading(false);
     };
+
+    useEffect(()=>{
+        async function validateCoupons(){
+            let obj={};
+            for(let i=0;i<coupons.length;i++){
+                const c=coupons[i];
+
+                const isValid=await checkCoupon(
+                    c["couponStartDate"],
+                    c["couponEndDate"],
+                    total,
+                    c["brands"],
+                    c["couponMinOrderAmount"]
+                )
+
+                obj[`${c["_id"]}`]=isValid;
+            }
+
+            setValidCoupons(obj)
+        }
+
+        if (coupons.length > 0) {
+            validateCoupons();
+        }
+
+
+    },[coupons,total])
 
     useEffect(() => {
         if (!hadfetched.current) {
@@ -107,7 +162,7 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
         try {
             e.stopPropagation();
             console.log(couponSelected)
-            const res = await axios.post(`${COUPON_ENDPOINT}/selectCoupon`, { couponSelected: couponSelected, total: total ,userId:userId}, { withCredentials: true })
+            const res = await axios.post(`${COUPON_ENDPOINT}/selectCoupon`, { couponSelected: couponSelected, total: total}, { withCredentials: true })
             couponAmountFunction(res?.data?.discountValue)
             toast.success(res?.data?.message)
         } catch (error) {
@@ -137,7 +192,7 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
             <div
                 className="relative w-full h-full sm:top-0 sm:w-[420px] sm:h-[620px] bg-white/80 backdrop-blur-xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] flex flex-col
                 overflow-auto scrollbar-hide p-4 gap-4 animate-slideUp sm:animate-scaleIn"
-                onScroll={(e) => scrollHandle(e)}
+                onScroll={(e) => scrollHandle(e)} data-lenis-prevent
             >
 
                 {/* Header */}
@@ -170,11 +225,8 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
 
                             {(couponId !== coupons[index]["_id"].toString()) && (
                                 <div
-                                    className={`px-4 py-1.5 rounded-full text-sm font-medium text-white transition-all duration-300 ${checkCoupon(
-                                        coupons[index]["couponStartDate"],
-                                        coupons[index]["couponEndDate"],total,
-                                        coupons[index]["brands"],coupons[index]["couponMinOrderAmount"]
-                                    )
+                                    className={`px-4 py-1.5 rounded-full text-sm font-medium text-white transition-all duration-300 ${
+                                    validCoupons[coupons[index]["_id"]]
                                         ? "bg-blue-500 hover:bg-blue-600 active:scale-95"
                                         : "bg-blue-400 opacity-50 pointer-events-none"}
                                     `}

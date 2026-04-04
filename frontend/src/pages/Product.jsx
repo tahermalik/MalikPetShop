@@ -393,11 +393,11 @@ export async function addToCart(e, qty, userId, productId, productVariation, log
         // user is logged in so backend stuff will be called
         if (logInFlag) {      
             console.log("Endpoint called",qty)
-            result = await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: userId, productId: productId, productVariation: productVariation, quantity: qty }, { withCredentials: true })
+            result = await axios.post(`${CART_ENDPOINTS}/addToCart`, { productId: productId, productVariation: productVariation, quantity: qty }, { withCredentials: true })
             if (result?.data?.bool === false) toast.error("Some problem in product addition to cart")
         }else{      /// when the user is not logged in
             console.log("User not loggedin endpoint called")
-            result =await axios.post(`${CART_ENDPOINTS}/addToCart`, { userId: null, productId: productId, productVariation: productVariation, quantity: qty }, { withCredentials: true })
+            result =await axios.post(`${CART_ENDPOINTS}/addToCart`, { productId: productId, productVariation: productVariation, quantity: qty }, { withCredentials: true })
             if (result?.data?.bool === false) toast.error("Some problem in product addition to cart")
         }
 
