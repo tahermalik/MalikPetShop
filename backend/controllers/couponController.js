@@ -9,8 +9,20 @@ export async function viewCoupons(req,res){
         console.log("inside view Coupons")
         const limit = parseInt(req.body.limit) || 20;
         const lastId = req.body.lastId;
-        const userId=req?.body?.userId;
-        const guestId=req?.cookies?.guestId;
+        
+        const userInfo=req?.userInfo;
+        let guestId = req?.cookies?.guestId;
+
+        /// we are dealing with the guest
+        // console.log(req?.userInfo)
+        if(userInfo===undefined){
+            const result=await Cart.findOne({guestId:guestId});
+            console.log(result)
+            if(result===null) return res.status(200).json({ cartData: [] })
+            
+            console.log(result);
+        }
+        let userId=userInfo?.id
 
         const isUser=!!userId
         const isGuest=!!guestId
@@ -132,14 +144,25 @@ export async function setCoupons(req,res){
 // this endpoint is invoked when the user clicks on the apply button
 export async function selectCoupon(req,res){
     const session=await mongoose.startSession();
+    let userId,guestId;
     try{
         /// as i want the automic property to take place
+        const userInfo=req?.userInfo;
+        guestId = req?.cookies?.guestId;
+
+        /// we are dealing with the guest
+        console.log(req?.userInfo)
+        if(userInfo===undefined){
+            const result=await Cart.findOne({guestId:guestId});
+            console.log(result)
+            if(result===null) return res.status(200).json({ cartData: [] })
+            
+            console.log(result);
+        }
+        userId=userInfo?.id
         await session.startTransaction()
 
-        const userId=req?.body?.userId;
-        const guestId=req?.cookies?.guestId;
-
-        const isUser=userId===undefined ? false:true;
+        const isUser= userId===undefined ? false:true;
 
         console.log(userId,guestId);
 

@@ -52,7 +52,7 @@ export async function login(req, res) {
         const token = jwt.sign(
             { id: user._id, username: user.username, role: role },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" } // token valid for 1 hour
+            { expiresIn: "7d" } // token valid for 7 days
         );
         await mergeWishList(user._id, reduxWishListData)
         await mergeCartItems(user._id, guestId)
@@ -63,7 +63,7 @@ export async function login(req, res) {
             httpOnly: true,
             sameSite: "none",
             secure: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            maxAge: 7 * 24 * 60 * 60 * 1000 // cookie is the container so both the container and its data is valid for 7 days
         });
         return res.status(200).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser })
     } catch (error) {
