@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { CART_ENDPOINTS, PRODUCT_ENDPOINTS } from "../pages/endpoints";
+import { CART_ENDPOINTS, COUPON_ENDPOINT, PRODUCT_ENDPOINTS } from "../pages/endpoints";
 import { useDispatch, useSelector } from "react-redux";
 import { addBrand, setProducts } from "../redux/slices/cartSlice";
 
@@ -10,6 +10,7 @@ export function useGetAllCartItems(userId,refresh,shouldCallDB){
     const [productQuantityData,setProductQuantityData]=useState([])
     const [realCartData,setRealCartData]=useState([])
     const [brandData,setBrandData]=useState([])
+    const [getCouponId,setCouponId]=useState("")
     const dispatch=useDispatch();
 
     useEffect(()=>{
@@ -27,7 +28,12 @@ export function useGetAllCartItems(userId,refresh,shouldCallDB){
                     cartData=result?.data?.cartData
                 }
 
+
                 console.log("hola",cartData)
+
+                /// in order to know which coupon was selected by the user
+                let couponIdResult=await axios.get(`${COUPON_ENDPOINT}/getCouponId`,{withCredentials:true})
+                setCouponId(couponIdResult?.data?.couponId)
 
                 /// addition of the brand for the coupon UI 
                 for(let i=0;i<cartData.length;i++){
@@ -54,5 +60,5 @@ export function useGetAllCartItems(userId,refresh,shouldCallDB){
         getAllCartItems()
     },[refresh])
 
-    return {productData,productVariationData,productQuantityData,realCartData,brandData}
+    return {productData,productVariationData,productQuantityData,realCartData,brandData,getCouponId}
 }

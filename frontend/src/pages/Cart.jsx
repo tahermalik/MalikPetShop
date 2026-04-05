@@ -59,15 +59,21 @@ export default function CartPage() {
   const [shouldCallDB, setShouldCallDB] = useState(true)
   const [refresh, setRefresh] = useState(0) /// specially when item is removed from the cart
   const [cartData, setCartData] = useState([])
+  const [couponId,setCouponId]=useState("")
   const [couponAmount, setCouponAmount] = useState(0);
   const dispatch=useDispatch();
-  const { productData, productVariationData, productQuantityData, realCartData ,brandData} = useGetAllCartItems(userData?._id, refresh, shouldCallDB)
+  const { productData, productVariationData, productQuantityData, realCartData ,brandData,getCouponId} = useGetAllCartItems(userData?._id, refresh, shouldCallDB)
   // realCartData is an array of objects
 
   // to set the coupon amount when a coupon is selected
   function couponAmountFunction(couponAmount){
     setCouponAmount(couponAmount)
   }
+
+
+  useEffect(()=>{
+    setCouponId(getCouponId)
+  },[getCouponId])
 
   useEffect(() => {
     setCartData(realCartData)
@@ -331,7 +337,7 @@ export default function CartPage() {
 
         {/* Coupan Window */}
         {coupanVisible && (
-          <Coupon setCoupanVisible={setCoupanVisible} coupanVisible={coupanVisible} discountAmount={discountAmount} total={total} shipping={shipping} couponAmountFunction={couponAmountFunction}/>
+          <Coupon setCoupanVisible={setCoupanVisible} coupanVisible={coupanVisible} discountAmount={discountAmount} total={total} shipping={shipping} couponAmountFunction={couponAmountFunction} couponId={couponId} setCouponId={setCouponId}/>
         )}
 
       </div>

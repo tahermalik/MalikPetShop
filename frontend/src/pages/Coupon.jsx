@@ -6,7 +6,7 @@ import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
-export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total, shipping, couponAmountFunction ,couponId}) {
+export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total, shipping, couponAmountFunction ,couponId,setCouponId}) {
 
     const [coupons, setCoupons] = useState([]);
     const [nextCursor, setNextCursor] = useState(null);
@@ -165,6 +165,10 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
             const res = await axios.post(`${COUPON_ENDPOINT}/selectCoupon`, { couponSelected: couponSelected, total: total}, { withCredentials: true })
             couponAmountFunction(res?.data?.discountValue)
             toast.success(res?.data?.message)
+            if(res?.data?.comment==="Success"){
+                let couponIdResult=await axios.get(`${COUPON_ENDPOINT}/getCouponId`,{withCredentials:true})
+                setCouponId(couponIdResult?.data?.couponId)
+            }
         } catch (error) {
             console.log(error)
             toast.error(error?.response?.data?.message)
