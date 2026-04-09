@@ -7,7 +7,6 @@ import FeedBack from "../schema/feedBackSchema.js";
 import mongoose, { mongo } from "mongoose";
 import { mergeCartItems } from "./cartController.js";
 import ForgotPassword from "../schema/forgotPassword.js";
-import nodemailer from "nodemailer";
 import Address from "../schema/addressSchema.js";
 import Cart from "../schema/cartSchema.js";
 import { v4 as uuidv4 } from "uuid";
@@ -17,6 +16,11 @@ import { REC_ENDPOINT } from "../config/endpoints.js";
 import { validate_coupon } from "./couponController.js";
 import Counter from "../schema/counterSchema.js";
 import Coupon from "../schema/couponSchema.js";
+import nodemailer from "nodemailer";
+import toast from "react-hot-toast";
+import emailQueue from "../queues/emailQueue.js";
+import generalQueue from "../queues/generalQeue.js";
+import { getIO } from "../socket.js";
 
 /// working
 export async function login(req, res) {
@@ -391,27 +395,33 @@ export async function wishListCleanUp(productId, productVariation, session) {
 }
 
 /// working
-export async function sendOTPEmail(transporter, toEmail, otp) {
+export async function sendEmail(toEmail, subject, template, comment) {
     try {
         const mailOptions = {
             from: `"MalikPetShop" <${process.env.COMPANY_MAIL_ID}>`,
             to: toEmail,
-            subject: "Your OTP for Password Reset",
-            html: `
-                <div style="font-family: Arial; color: #333;">
-                    <h2 style="color: #0d6efd;">Your OTP Code</h2>
-                    <p>Use the following OTP to reset your password. It is valid for <strong>10 minutes</strong>.</p>
-                    <h3 style="background: #f0f0f0; padding: 10px; display: inline-block;">${otp}</h3>
-                </div>
-            `
+            subject: subject,
+            html: template
         };
 
+        const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",      // or your SMTP host
+            port: 465,                   // 465 for SSL, 587 for TLS
+            secure: true,                // true for port 465
+            auth: {
+                user: process.env.COMPANY_MAIL_ID,   // your email
+                pass: process.env.EMAIL_PASSWD    // app password or SMTP password
+            }
+        });
+
         const info = await transporter.sendMail(mailOptions);
-        console.log("OTP email sent:", info.messageId);
+        console.log("Mail sent:", info.messageId);
         return true;
     } catch (error) {
-        console.error("Error sending OTP email:", error);
+        console.error("Error sending Mail:", error);
         throw error;
+    } finally {
+        console.log(comment)
     }
 }
 
@@ -438,16 +448,6 @@ export async function forgotPassword(req, res) {
         await ForgotPassword.findOneAndUpdate({ userId: userId._id }, { otp: OTP, expiryDate: new Date(Date.now() + 5 * 60 * 1000) }, { upsert: true })
 
 
-        const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",      // or your SMTP host
-            port: 465,                   // 465 for SSL, 587 for TLS
-            secure: true,                // true for port 465
-            auth: {
-                user: process.env.COMPANY_MAIL_ID,   // your email
-                pass: process.env.EMAIL_PASSWD    // app password or SMTP password
-            }
-        });
-
         // //// just to check whther SMTP is running fine or not
         // transporter.verify((error, success) => {
         //     if (error) {
@@ -457,9 +457,18 @@ export async function forgotPassword(req, res) {
         //     }
         // });
 
-        await sendOTPEmail(transporter, userEmail, OTP)
+        console.log("Inside forgot password")
+        const template = `
+                <div style="font-family: Arial; color: #333;">
+                    <h2 style="color: #0d6efd;">Your OTP Code</h2>
+                    <p>Use the following OTP to reset your password. It is valid for <strong>10 minutes</strong>.</p>
+                    <h3 style="background: #f0f0f0; padding: 10px; display: inline-block;">${OTP}</h3>
+                </div>
+            `
+        const subject = "Your OTP for Password Reset"
+        const result = await sendEmail(userEmail, subject, template, "OTP MAIL")
+        if (result) toast.success("OTP sent")
         return res.status(200).json({ message: "OTP sent to you mail" })
-
 
     } catch (error) {
         console.log("Server fucked up at forgotPasswd", error)
@@ -470,15 +479,15 @@ export async function forgotPassword(req, res) {
 /// working
 export async function verifyOTP(req, res) {
     try {
-        console.log("inside verify OTP")
-        const { OTPArray, userEmail } = req?.body;
-        if (!OTPArray || !userEmail) return res.status(400).json({ message: "Both the fields are mandatory", bool: false })
+        // console.log("inside verify OTP")
+        const { OTPStr, userEmail } = req?.body;
+        if (!OTPStr || !userEmail) return res.status(400).json({ message: "Both the fields are mandatory", bool: false })
         let userId = await User.findOne({ email: userEmail }).select("_id")
         if (!userId) return res.status(404).json({ message: "Either OTP or email is not correct", bool: false })
         userId = userId._id
 
         /// this contains the OTP sent by the user
-        const sentOTP = Number(OTPArray.join(""))
+        const sentOTP = Number(OTPStr)
         const hashKey = `user:OTP:${userId}`
         const isPresent = await redisClient.exists(hashKey)
         if (isPresent) {
@@ -492,7 +501,7 @@ export async function verifyOTP(req, res) {
                 console.log("inside verify OTP --> ", resetverificationKey)
                 await redisClient.setEx(resetverificationKey, 60 * 10, "Open")
 
-                return res.json({ message: "OTP is correct", bool: true })
+                return res.status(200).json({ message: "OTP is correct", bool: true })
             }
             else return res.status(400).json({ message: "either OTP or mail is not correct", bool: false })
         }
@@ -609,17 +618,9 @@ export async function setAddress(req, res) {
 
 export async function demo(req, res) {
     try {
-        const now = new Date();
-        const RESERVATION_PERIOD = 30 * 60 * 1000; // 30 min
-        const carts = await Cart.find({
-            "products.reservedAt": { $lt: new Date(now - RESERVATION_PERIOD) }
-        });
-
-        const carts2 = await Cart.find({
-            "products.reservedAt": { $lt: new Date(now - (15 * 60 * 1000)) }
-        })
-
-        console.log("Hola", carts2)
+        const userId = req?.body?.userId;
+        const email = await User.findById(userId).select("email").lean()
+        console.log(email["email"])
 
     } catch (error) {
         console.log(error)
@@ -678,7 +679,7 @@ export async function recommendProducts(req, res) {
         let result = await axios.post(`${REC_ENDPOINT}/recommend`, { userQuery }, { withCredentials: true })
         result = result["data"]  // list of recommended objects
         const recommendedProductIds = []
-        
+
         for (let i = 0; i < result.length; i++) recommendedProductIds.push(new mongoose.Types.ObjectId(result[i]["product_id"]))
         // console.log(recommendedProductIds)
 
@@ -713,7 +714,7 @@ function calcDsicountAmount(productId, productMap, cartDataMap) {
     let discountValue = productMap.get(productId)["discountValue"][variation]
     let finalPrice = 0;
     if (discountType === "flat") finalPrice += discountValue;
-    else if (discountType === "percent") finalPrice += Math.ceil(ogPrice * discountValue / 100)
+    else if (discountType === "percent") finalPrice += Math.floor(ogPrice * discountValue / 100)    // trying to maximize the profit
     return finalPrice * quantity
 }
 
@@ -724,7 +725,7 @@ function calcFinalPrice(productId, productMap, cartDataMap) {
     let ogPrice = productMap.get(productId)["originalPrice"][variation]
     let discountValue = productMap.get(productId)["discountValue"][variation]
     if (discountType === "flat") finalUnitPrice += (ogPrice - discountValue);
-    else if (discountType === "percent") finalUnitPrice += (ogPrice - Math.ceil(ogPrice * discountValue / 100))
+    else if (discountType === "percent") finalUnitPrice += (ogPrice - Math.floor(ogPrice * discountValue / 100))
 
     return finalUnitPrice * quantity
 
@@ -733,7 +734,7 @@ function calcFinalPrice(productId, productMap, cartDataMap) {
 export async function proceed_checkout(req, res) {
     const session = await mongoose.startSession();
     try {
-        
+
         const userInfo = req?.userInfo;   // all thanks to middleware
         const userId = userInfo?.id;
 
@@ -781,23 +782,26 @@ export async function proceed_checkout(req, res) {
             if (data === undefined) return res.status(404).json({ message: "Product Not Found" })
         }
 
-        console.log("Taha")
 
         // product active and stock availaibility
         for (let i = 0; i < productsIdArray.length; i++) {
             const data = productMap.get(productsIdArray[i])
-            const rem = data["stock"] - data["reservedStock"]
+            const [productVariation,productQuantity]=cartDataMap.get(productsIdArray[i])
+            
+            const rem = data["stock"][productVariation] - data["reservedStock"][productVariation]
 
-            if (rem >= cartDataMap.get(productsIdArray[i])[1]) {
+            // console.log(rem, cartDataMap.get(productsIdArray[i])[1], productsIdArray[i])
+
+            if (rem >= productQuantity) {
                 continue;
-            } else{
+            } else {
                 return res.status(400).json({ message: "Product is out of stock" })
             }
         }
 
-        
 
-        
+
+
 
         // use latest price
         let total = 0;
@@ -819,8 +823,12 @@ export async function proceed_checkout(req, res) {
                 });
             }
 
-            total += calcFinalPrice(productId, productMap, cartDataMap)
+            const price=calcFinalPrice(productId, productMap, cartDataMap)
+            // console.log(price,"Hola",i)
+            total += price
         }
+
+
 
         /// this done to ensure coupon validation
         const { flag, discountValue, couponId } = await validate_coupon(total, cartId, session)
@@ -828,11 +836,11 @@ export async function proceed_checkout(req, res) {
 
 
         ///////////////////////// for now lets assume that the payment is successful ///////////////////
-        let payment=true
-        if(!payment) return res.status(400).json({message:"Payment was not successfull"})
-        
+        let payment = true
+        if (!payment) return res.status(400).json({ message: "Payment was not successfull" })
+
         /// creation of order will take place now
-        const orderId=await generateOrderId(session)
+        const orderId = await generateOrderId(session)
         const order = await Order.create([{
             orderId: orderId,
             user: userId,
@@ -863,57 +871,99 @@ export async function proceed_checkout(req, res) {
         const createdOrder = order[0];
 
         ////// decrementing the stock and reserved stock
-        for(let i=0;i<productsIdArray.length;i++){
-            const productId=productsIdArray[i]
-            const [variation,quantity]=cartDataMap.get(productId)
+        for (let i = 0; i < productsIdArray.length; i++) {
+            const productId = productsIdArray[i]
+            const [variation, quantity] = cartDataMap.get(productId)
             const orderResult = await Product.updateOne(
                 {
-                    _id:productId,
+                    _id: productId,
                 },
                 {
                     $inc: {
-                        [`reservedStock.${variation}`]: quantity*-1,
-                        [`stock.${variation}`]:quantity*-1
+                        [`reservedStock.${variation}`]: quantity * -1,
+                        [`stock.${variation}`]: quantity * -1
                     }
                 },
-                {session}
+                { session }
             )
 
             // if this process fails then refunc should be initiated
-            
+
         }
 
         /// cart cleanup should be done here
 
+
         /// marking the coupon usage
         await Coupon.findByIdAndUpdate(
             couponId,
-            {$inc:{couponTotalUsage:1}},
-            {session}
+            { $inc: { couponTotalUsage: 1 } },
+            { session }
         )
 
         /// marking the status of payment as done
         await Order.findOneAndUpdate(
-            {orderId:orderId},
+            { orderId: orderId },
             {
-                $set:{
-                    paymentStatus:"Successfull",
-                    status:"Processing"
+                $set: {
+                    paymentStatus: "Successfull",
+                    status: "Processing"
                 }
             },
-            {session}
+            { session }
         )
 
         await session.commitTransaction()
 
+        console.log("Taha")
+        // each element of the queue is the job
+        let userEmail = await User.findById(userId).select("email").lean()
+        userEmail = userEmail["email"]
 
-        return res.status(200).json({
-            message: "Checkout validated successfully",
-            totalAmount: total - discountValue
+
+        // adding job to the emailQueue
+        await emailQueue.add('sendOrderConfirmation', {
+            orderId: orderId,
+            userEmail: userEmail,
+            amount: total - discountValue
         });
+
+        // to associate order id with the user for future processing
+        await generalQueue.add("addOrderId",{
+            userId:userId,
+            orderId:orderId
+        })
+
+        // 🔥 Emit event
+        let orderData={
+            "couponId":createdOrder["couponId"],
+            "createdAt":createdOrder["createdAt"],
+            "finalAmount":createdOrder["finalAmount"],
+            "orderId":createdOrder["orderId"],
+            "products":createdOrder["products"],
+            "status":createdOrder["status"]
+        }
+        const io = getIO();
+        io.to(userId).emit("order_update", orderData);
+
+        // await adminQueue.add('notifyAdmin', {
+        //     orderId: orderId,
+        //     amount: total - discountValue
+        // });
+
+        return res.status(200).json({ message: "Checkout successful" });
+
+
+        // return res.status(200).json({
+        //     message: "Checkout validated successfully",
+        //     totalAmount: total - discountValue
+        // });
     } catch (error) {
-        await session.abortTransaction();
         console.log(error);
+        await session.abortTransaction();
         return res.status(500).json({ message: "Some problem occured while procedding to checkout" })
     }
 }
+
+
+

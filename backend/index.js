@@ -18,9 +18,53 @@ import ForgotPassword from "./schema/forgotPassword.js";
 import Product from "./schema/productSchema.js";
 import Cart from "./schema/cartSchema.js";
 import mongoose from "mongoose";
+import http from "http";
+import cookie from "cookie";
+import jwt from "jsonwebtoken";
+import { initSocket } from "./socket.js";
+
+// importing the worker so that they can listen for the job in the respective queue
+import emailWorker from "./workers/emailWorker.js";
+import generalWorker from "./workers/generalWorker.js";
+import orderWorker from "./workers/orderWorker.js";
+import orderRouter from "./routers/orderRoutes.js";
 
 
 const app = express();
+
+/// now the server can handle http + WebSocket
+const server = http.createServer(app);
+const io = initSocket(server);
+
+io.use((socket, next) => {
+    try {
+        const rawCookie = socket.handshake.headers.cookie;
+
+        if (!rawCookie) {
+            return next(new Error("No cookies found"));
+        }
+
+        // 🔥 Parse cookies
+        const parsedCookies = cookie.parse(rawCookie);
+
+        const token = parsedCookies.token;
+
+        if (!token) {
+            return next(new Error("No token found"));
+        }
+
+        // 🔥 Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        socket.userId = decoded.id;
+
+        next();
+    } catch (err) {
+        console.log("Socket auth error:", err);
+        next(new Error("Authentication failed"));
+    }
+});
+
 app.use(cors({
   origin: ["http://localhost:5173", "https://malikpetshop.onrender.com", "https://malik-pet-shop-git-main-taher-maliks-projects.vercel.app", "https://malik-pet-shop-iu40gnfxf-taher-maliks-projects.vercel.app"],  // your React frontend URL
 
@@ -159,8 +203,23 @@ app.use("/feedback", feedbackRouter)
 app.use("/coupon", cRouter)
 app.use("/cart", cartRouter)
 app.use("/offer", offerRouter)
+app.use("/order", orderRouter)
 app.use("/demo", uRouter)
 
-app.listen(process.env.PORT_NUM, () => console.log(`${process.env.PORT_NUM}`))
+server.listen(process.env.PORT_NUM, () => 
+  console.log(`Server running on port ${process.env.PORT_NUM}`)
+);
 
+io.on("connection", (socket) => {
+  console.log("🔥 User connected:", socket.id);
 
+  // ✅ Join user-specific room
+  if (socket.userId) {
+    socket.join(socket.userId); // depending upon the userId for each connection a room is created and if room already exists then device is connected to that room
+    console.log(`✅ User ${socket.userId} joined room`);
+  }
+
+  socket.on("disconnect", () => {
+    console.log("❌ User disconnected:", socket.id);
+  });
+});

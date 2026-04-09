@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Coupon from "../schema/couponSchema.js";
 import Cart from "../schema/cartSchema.js";
 import Product from "../schema/productSchema.js";
+import redisClient from "../config/redis.js";
 
 /// working on the basis of pagination
 export async function viewCoupons(req,res){
@@ -54,7 +55,7 @@ export async function viewCoupons(req,res){
         const query = lastId ? { _id: { $gt: lastId } } : {};
 
         //// only sending the required things to the frontend ; it is also an array of objects
-        const coupons = await Coupon.find(query).sort({ _id: 1 }).limit(limit).select("_id couponCode couponDesc couponDiscountType couponDiscountValue couponEndDate couponMinOrderAmount couponStartDate brands").lean();
+        const coupons = await Coupon.find(query).sort({ _id: 1 }).limit(limit).select("-couponMaxUses -couponTotalUsage").lean();
 
         for(let i=0;i<coupons.length;i++){
             let coupon=coupons[i]
@@ -198,11 +199,17 @@ export async function selectCoupon(req,res){
         else discountValue=result["couponDiscountValue"]
 
         // just want to attach cart with the applied coupon
-        if(isUser) await Cart.findOneAndUpdate({userId:userId},{$set:{couponId:couponSelected?._id}},{session})
-        else await Cart.findOneAndUpdate({guestId:guestId},{$set:{couponId:couponSelected?._id}},{session})
+        if(isUser){
+            await Cart.findOneAndUpdate({userId:userId},{$set:{couponId:couponSelected?._id}},{session})
+            await redisClient.set(`${userId.toString()}_couponId`,JSON.stringify(couponSelected),{ EX: 60*60 }); //expiry is set for one hour
+        }
+        else{
+            await Cart.findOneAndUpdate({guestId:guestId},{$set:{couponId:couponSelected?._id}},{session})
+            await redisClient.set(`${guestId.toString()}_couponId`,JSON.stringify(couponSelected),{ EX: 60*60 }); //expiry is set for one hour
+        }
 
         await session.commitTransaction();
-        return res.status(200).json({message:"Coupon Applied",finalAmount:total-discountValue,discountValue:discountValue})
+        return res.status(200).json({message:"Coupon Applied",finalAmount:total-discountValue,discountValue:discountValue,comment:"Success"})
     }catch(error){
         await session.abortTransaction();
         console.log("Server gone wrong while selecting the coupon",error)
@@ -210,6 +217,70 @@ export async function selectCoupon(req,res){
     }
 }
 
+// wokring
+export async function getCoupon(req,res){
+    let userId,guestId;
+    try{
+
+        console.log("inside get coupon")
+        const userInfo=req?.userInfo;
+        guestId = req?.cookies?.guestId;
+
+        /// we are dealing with the guest
+        // console.log(req?.userInfo)
+        if(userInfo===undefined){
+            const result=await Cart.findOne({guestId:guestId});
+            console.log(result)
+            if(result===null) return res.status(200).json({ cartData: [] })
+            
+            console.log(result);
+        }
+        userId=userInfo?.id
+
+
+        // userId=req?.body?.userId;
+        const isUser=!!userId;
+        const isGuest=!!guestId;
+
+        let redisResult;
+
+        if(isUser){
+            redisResult=await redisClient.get(`${userId.toString()}_couponId`)
+            redisResult=JSON.parse(redisResult)
+            
+        }else{
+            redisResult=await redisClient.get(`${guestId.toString()}_couponId`)
+            redisResult=JSON.parse(redisResult)
+            
+        }
+
+        // console.log("redisResult",redisResult)
+        // so in this manner db call is prevented
+        if(redisResult!==null){
+            console.log("redis returning")
+            return res.status(200).json({coupon:redisResult})
+        }
+
+        const result=await Cart.findOne({userId:userId}).lean()
+        let couponId=result["couponId"]
+
+        if(couponId===undefined) return res.status(200).json({coupon:{}});
+
+        /// fetching of coupon is done just for the redis
+        const coupon=await Coupon.findById(couponId).select("-couponTotalUsage -couponMaxUses").lean();
+
+        if(isUser){
+            await redisClient.set(`${userId.toString()}_couponId`,JSON.stringify(coupon),{EX:60*60})
+        }else{
+            await redisClient.set(`${guestId.toString()}_couponId`,JSON.stringify(coupon),{EX:60*60})
+        }
+        return res.status(200).json({coupon:coupon})
+
+    }catch(error){
+        console.log("Server went wrong while fetching the coupon id",error);
+        return res.status(500).json({message:"Server went wrong while fetching the coupon id"})
+    }
+}
 
 /// when the function is called user is verified and its cart too
 export async function validate_coupon(total,cartId,session){
@@ -258,16 +329,5 @@ export async function validate_coupon(total,cartId,session){
         return {flag:false,discountValue:0,couponId:undefined};
     }
     
-
-}
-
-export async function getCouponId(req,res){
-    try{
-
-    }catch(error){
-        console.log("Some problem occured while fetching the coupon id --> ",error)
-        return res.status(500).json({message:"Some problem occured while fetching the coupon id"})
-
-    }
 
 }

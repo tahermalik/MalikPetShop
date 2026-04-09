@@ -34,7 +34,7 @@ uRouter.post("/recommendProducts",(req,res)=>recommendProducts(req,res))
 uRouter.post("/ingest_products",(req,res)=>ingest_products(req,res))
 
 /// demo
-uRouter.get("/demo",(req,res)=>demo(req,res))
+uRouter.post("/demo",(req,res)=>demo(req,res))
 
 // checkout routes
 uRouter.post("/checkout",(req,res,next)=>auth(req,res,next),(req,res)=>proceed_checkout(req,res))

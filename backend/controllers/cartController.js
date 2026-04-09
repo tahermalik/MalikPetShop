@@ -13,22 +13,16 @@ import redisClient from "../config/redis.js";
 export async function addToCart(req, res) {
     let productId, productVariation, quantity;
     const session=await mongoose.startSession()
+    let userId,guestId;
     try {
         console.log("adding the product into cart")
 
         const userInfo=req?.userInfo;
-        let guestId = req?.cookies?.guestId;
+        guestId = req?.cookies?.guestId;
 
-        /// we are dealing with the guest
-        console.log(req?.userInfo)
-        if(userInfo===undefined){
-            const result=await Cart.findOne({guestId:guestId});
-            console.log(result)
-            if(result===null) return res.status(200).json({ cartData: [] })
-            
-            console.log(result);
-        }
-        let userId=userInfo?.id
+       
+       
+        userId=userInfo?.id
 
         productId = req?.body?.productId
         productVariation = req?.body?.productVariation
@@ -300,15 +294,6 @@ export async function removerCartItem(req, res) {
         const userInfo=req?.userInfo;
         guestId = req?.cookies?.guestId;
 
-        /// we are dealing with the guest
-        console.log(req?.userInfo)
-        if(userInfo===undefined){
-            const result=await Cart.findOne({guestId:guestId});
-            console.log(result)
-            if(result===null) return res.status(200).json({ cartData: [] })
-            
-            console.log(result);
-        }
         userId=userInfo?.id
         
         productId = req?.body?.productId
@@ -351,10 +336,10 @@ export async function removerCartItem(req, res) {
         )
 
 
-        if (productResult.modifiedCount === 0){
-            await session.abortTransaction()
-            return res.status(400).json({ message: "failed to release reservation" })
-        }
+        // if (productResult.modifiedCount === 0){
+        //     await session.abortTransaction()
+        //     return res.status(400).json({ message: "failed to release reservation" })
+        // }
         
         let result
         if (isUser) {
@@ -535,16 +520,7 @@ export async function updateCart(req, res) {
         
         const userInfo=req?.userInfo;
         guestId = req?.cookies?.guestId;
-
-        /// we are dealing with the guest
-        console.log(req?.userInfo)
-        if(userInfo===undefined){
-            const result=await Cart.findOne({guestId:guestId});
-            console.log(result)
-            if(result===null) return res.status(200).json({ cartData: [] })
-            
-            console.log(result);
-        }
+        
         userId=userInfo?.id
 
         const isUser = !!userId

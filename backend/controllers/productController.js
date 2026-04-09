@@ -312,9 +312,11 @@ export async function deleteProduct(req, res) {
 export async function getProductsViaIds(req, res) {
     try {
         const { productIds } = req?.body
+        console.log("Inside backend",productIds)
         const productData = await Product.find({ _id: { $in: productIds } })
         const productMap = new Map(productData.map(p => [p._id.toString(), p]));
         const orderedProducts = productIds.map(id => productMap.get(id));
+
         return res.status(200).json({ productData: orderedProducts })
 
     } catch (error) {
