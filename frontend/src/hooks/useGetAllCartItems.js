@@ -10,7 +10,9 @@ export function useGetAllCartItems(userId,refresh,shouldCallDB){
     const [productQuantityData,setProductQuantityData]=useState([])
     const [realCartData,setRealCartData]=useState([])
     const [brandData,setBrandData]=useState([])
-    const [getCouponId,setCouponId]=useState("")
+    const [getCouponId,setCouponId]=useState()
+    const [coupon,setCoupon]=useState({});
+
     const dispatch=useDispatch();
 
     useEffect(()=>{
@@ -32,14 +34,20 @@ export function useGetAllCartItems(userId,refresh,shouldCallDB){
                 console.log("hola",cartData)
 
                 /// in order to know which coupon was selected by the user
-                let couponIdResult=await axios.get(`${COUPON_ENDPOINT}/getCouponId`,{withCredentials:true})
-                setCouponId(couponIdResult?.data?.couponId)
+                let couponResult=await axios.get(`${COUPON_ENDPOINT}/getCoupon`,{withCredentials:true})
+                // console.log(couponResult)
+                setCouponId(couponResult?.data?.coupon?._id)
+                setCoupon(couponResult?.data?.coupon)
+
 
                 /// addition of the brand for the coupon UI 
                 for(let i=0;i<cartData.length;i++){
                     dispatch(addBrand(cartData[i]["brand"]))
                 }
 
+
+
+                console.log("frontend --> ",cartData)
                 const productIds=cartData.map((obj)=>{return obj["productId"]})
                 const productVariationData=cartData.map((obj)=>{return obj["productVariation"]})
                 const productQuantityData=cartData.map((obj)=>{return obj["productQuantity"]})
@@ -60,5 +68,8 @@ export function useGetAllCartItems(userId,refresh,shouldCallDB){
         getAllCartItems()
     },[refresh])
 
-    return {productData,productVariationData,productQuantityData,realCartData,brandData,getCouponId}
+    console.log("Hola --> ",productData)
+
+    // if the coupon is selected then that coupon OBJ other {} // coupon useState contains this
+    return {productData,productVariationData,productQuantityData,realCartData,brandData,getCouponId,coupon}
 }

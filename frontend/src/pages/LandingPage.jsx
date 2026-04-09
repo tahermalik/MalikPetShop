@@ -21,7 +21,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import { PawPrint, Tag, Package } from "lucide-react";
 import toast from "react-hot-toast";
 import { useIsDesktop } from "../hooks/useIsDesktop.js";
-
+import { TbTruckDelivery } from "react-icons/tb";
 
 function Brands(props) {
     const colorClasses = {
@@ -514,8 +514,9 @@ export function SideBar({ open, setOpen, setAnimal }) {
             <div className="flex items-center justify-between px-4 py-4 border-b border-white/20">
                 <div className="flex items-center gap-2">
                     <img
-                        src="/header_logo.svg"
-                        alt="logo"
+                        // src="/header_logo.svg"
+                        src="/mobile_logo_rbg.png"
+                        alt="mobile_logo"
                         className="w-10 h-10 drop-shadow-md"
                     />
                     <div className="leading-tight">
@@ -683,7 +684,7 @@ export function Header({ open, setOpen, approachedFrom }) {
 
     useLayoutEffect(() => {
         if (headerRef.current) {
-            console.log(headerRef.current.offsetHeight)
+            console.log("header height",headerRef.current.offsetHeight)
             dispatch(setHeaderHight(headerRef.current.offsetHeight))
         }
     }, [])
@@ -784,6 +785,19 @@ export function Header({ open, setOpen, approachedFrom }) {
         }
     }
 
+    async function viewOrderPlaced(e){
+        try{
+            e.stopPropagation();
+            if (approachedFrom === "Home") navigate("/viewOrderPlaced")
+            else if (approachedFrom === "Product_Page") navigate("/Product_Page/viewOrderPlaced")
+            else if (approachedFrom === "SingleProductDisplay") navigate("/Product_Page/SingleProductDisplay/viewOrderPlaced")
+
+        }catch(error){
+            console.log("some error occured while clicking the viewOrderPlaced",error)
+            toast.error("some error occured while clicking the viewOrderPlaced")
+        }
+    }
+
     return (
         <>
             <div
@@ -793,16 +807,12 @@ export function Header({ open, setOpen, approachedFrom }) {
                 {/* Upper Header */}
                 <div className="upper_header grid grid-cols-[0.2fr_1.8fr] grid-rows-2 sm:flex sm:flex-row justify-center sm:justify-evenly items-center gap-3 py-3 w-[100vw] text-[#0A3D62]">
                     <div className="l-upper-header flex flex-row gap-2 items-center justify-center">
-                        <div onClick={(e)=>{e.stopPropagation(); navigate("/")}} className="hidden sm:flex justify-center items-center">
+                        <div onClick={(e)=>{e.stopPropagation(); navigate("/")}} className="hidden sm:flex justify-center items-center cursor-pointer">
                             <img
-                                src="/header_logo.svg"
-                                alt="paws_img"
-                                className="w-10 h-10 sm:w-auto sm:h-auto drop-shadow-md"
+                                src="/logo_img_2_rbg.png"
+                                alt="logo_img"
+                                className="w-10 h-10 sm:w-40 sm:h-20 drop-shadow-md object-fit"
                             />
-                        </div>
-                        <div onClick={(e)=>{e.stopPropagation(); navigate("/")}} className="hidden sm:flex flex-col text-[#0A3D62] leading-3 p-1">
-                            <span className="font-bold text-xl">Malik</span>
-                            <span className="text-sm opacity-80">Pet Shop</span>
                         </div>
 
                         <div className="sm:hidden" onClick={() => setOpen(true)}>
@@ -882,6 +892,12 @@ export function Header({ open, setOpen, approachedFrom }) {
                             <div className="cursor-pointer hover:bg-[#7DC6FF]/50 p-2 flex flex-row justify-center items-center rounded-full transition-all duration-200" onClick={(e) => viewCart(e)}>
                                 <MdOutlineShoppingCart color="#4AA9F7" className="text-2xl md:text-3xl" />
                             </div>
+
+                            {/* Delivery */}
+                            <div className="cursor-pointer hover:bg-[#7DC6FF]/50 p-2 flex flex-row justify-center items-center rounded-full transition-all duration-200" onClick={(e) => viewOrderPlaced(e)}>
+                                <TbTruckDelivery color="#4AA9F7" className="text-2xl md:text-3xl" />
+                            </div>
+
 
                         </div>
                     </div>

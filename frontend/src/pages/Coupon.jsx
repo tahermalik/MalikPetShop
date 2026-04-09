@@ -6,7 +6,7 @@ import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
-export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total, shipping, couponAmountFunction ,couponId,setCouponId}) {
+export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total, shipping, couponAmountFunction ,couponId,setCouponId,setSelectedCoupon}) {
 
     const [coupons, setCoupons] = useState([]);
     const [nextCursor, setNextCursor] = useState(null);
@@ -14,6 +14,7 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
     const hadfetched = useRef(false);
     const [checkTime, setCheckTime] = useState(0)
     const [validCoupons,setValidCoupons]=useState({})
+    
 
     /// just to force re rendering of the components in every second
     useEffect(() => {
@@ -166,8 +167,10 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
             couponAmountFunction(res?.data?.discountValue)
             toast.success(res?.data?.message)
             if(res?.data?.comment==="Success"){
-                let couponIdResult=await axios.get(`${COUPON_ENDPOINT}/getCouponId`,{withCredentials:true})
-                setCouponId(couponIdResult?.data?.couponId)
+                let couponResult=await axios.get(`${COUPON_ENDPOINT}/getCoupon`,{withCredentials:true})
+                // coupon will be an object
+                setCouponId(couponResult?.data?.coupon?._id)
+                setSelectedCoupon(couponSelected)
             }
         } catch (error) {
             console.log(error)
@@ -251,11 +254,12 @@ export function Coupon({ setCoupanVisible, couponVisible, discountAmount, total,
                         <div className="text-emerald-600 text-sm sm:text-base font-medium">
                             Save upto ₹
                             <span className="font-semibold">
-                                {discountAmount(
-                                    total - shipping,
-                                    Number(coupons[index]["couponDiscountValue"])
-                                )}{" "}
-                                ; {coupons[index]["couponDiscountValue"]}%
+                                {coupons[index]["couponDiscountType"]==="flat" ? `${coupons[index]["couponDiscountValue"]}`:
+                                `${
+                                    coupons[index]["couponMaxDiscount"]<discountAmount(total-shipping,coupons[index]["couponDiscountValue"]) ?
+                                    coupons[index]["couponMaxDiscount"] : discountAmount(total-shipping,coupons[index]["couponDiscountValue"])
+                                }`}
+            
                             </span>
                         </div>
 

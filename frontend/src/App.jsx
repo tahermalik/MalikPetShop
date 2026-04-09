@@ -21,6 +21,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import ChatUI from "./pages/ChatUI";
 import AIChatDrawer from "./pages/AIChatDrawer";
+import { OrderPlaced } from "./pages/orderPlaced";
 
 function App() {
   useLenis();
@@ -51,6 +52,13 @@ function App() {
           <Route path="/Offer" element={<OfferSection />}></Route>
           <Route path="/Product_Page/Offer" element={<OfferSection />}></Route>
           <Route path="/Product_Page/SingleProductDisplay/Offer" element={<OfferSection />}></Route>
+
+          {/* All viewPlacedOrder routes */}
+          <Route path="/viewOrderPlaced" element={<OrderPlaced />}></Route>
+          <Route path="/Product_Page/viewOrderPlaced" element={<OrderPlaced />}></Route>
+          <Route path="/Product_Page/SingleProductDisplay/viewOrderPlaced" element={<OrderPlaced />}></Route>
+
+
 
           {/* All cart routes */}
           <Route path="/Cart" element={<Cart />}></Route>

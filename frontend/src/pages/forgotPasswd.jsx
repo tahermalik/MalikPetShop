@@ -28,7 +28,7 @@ export default function PasswordRecovery() {
   const [showOTP,setShowOTP]=useState(false)
   const [passwordLengthWarning,setPasswordLengthWarning]=useState(false);
 
-  const [OTP, setOTP] = useState(["", "", "", "", "", ""]);
+  const [OTP, setOTP] = useState("");
 
   // Forgot-password specific
   const [email, setEmail] = useState('');
@@ -62,19 +62,27 @@ export default function PasswordRecovery() {
   }
 
   async function submitOTP(e){
+    let result
     try{
       e.preventDefault();
       e.stopPropagation();
       setOtpLoading(true)
-      const result = await axios.post(`${USER_ENDPOINTS}/verifyOTP`, { OTPArray: OTP,userEmail:email },{withCredentials:true})
+      console.log("OTP is :- ",OTP)
+      result = await axios.post(`${USER_ENDPOINTS}/verifyOTP`, { OTPStr: OTP,userEmail:email },{withCredentials:true})
+      console.log(result)
       setOtpLoading(false)
       if(result?.data?.bool){
         setFlow(true)
-        setOTP(["", "", "", "", "", ""])
+        setOTP(0)
+        toast.success(result?.data?.message)
       }else{
-
+        toast.error(result?.data?.message)
       }
     }catch(error){
+      const message =error?.response?.data?.message || "Something went wrong";
+
+      toast.error(message);
+      setOtpLoading(false)
       console.log("wrong in OTP submission",error)
     }
   }
@@ -166,13 +174,7 @@ export default function PasswordRecovery() {
 
                 { showOTP && <div className='flex flex-col gap-2 items-center bg-blue-100 p-2 rounded-2xl'>
                   <div className="flex gap-2 justify-center">
-                    {
-                      Array.from({ length: 6 }).map((_, index) => {
-                        return (
-                          <div className='border border-blue-400 rounded-xl w-[40px] h-[40px]'><input type="text" inputMode='numeric' value={OTP[index]} maxLength={1} onChange={(e) => handleChange(e, index)} disabled={index !== 0 && OTP[index - 1] === ""} className={`h-[100%] w-[100%] text-center focus:outline-blue-500 rounded-xl`} /></div>
-                        )
-                      })
-                    }
+                    <input type="text" onChange={(e)=>setOTP(e.target.value)} maxLength={6} inputmode="numeric" pattern="[0-9]*" className="w-40 text-center text-lg tracking-widest px-4 py-2 rounded-xl bg-white text-blue-700 border border-blue-200 shadow-sm outline-none transition-all duration-300 ease-in-out focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:shadow-lg focus:scale-105 hover:shadow-md placeholder-blue-300" placeholder="Enter OTP"/>
                   </div>
                   <div onClick={(e)=>submitOTP(e)} className='inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-60'>{loading ? 'Sending OTP...' : 'Submit OTP'}</div>
                 </div>}

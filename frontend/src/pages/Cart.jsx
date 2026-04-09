@@ -59,25 +59,82 @@ export default function CartPage() {
   const [shouldCallDB, setShouldCallDB] = useState(true)
   const [refresh, setRefresh] = useState(0) /// specially when item is removed from the cart
   const [cartData, setCartData] = useState([])
-  const [couponId,setCouponId]=useState("")
+  const [couponId, setCouponId] = useState("")
   const [couponAmount, setCouponAmount] = useState(0);
-  const dispatch=useDispatch();
-  const { productData, productVariationData, productQuantityData, realCartData ,brandData,getCouponId} = useGetAllCartItems(userData?._id, refresh, shouldCallDB)
+  const [selectedCoupon, setSelectedCoupon] = useState({})
+
+  const dispatch = useDispatch();
+  const { productData, productVariationData, productQuantityData, realCartData, brandData, getCouponId ,coupon} = useGetAllCartItems(userData?._id, refresh, shouldCallDB)
   // realCartData is an array of objects
 
   // to set the coupon amount when a coupon is selected
-  function couponAmountFunction(couponAmount){
+  function couponAmountFunction(couponAmount) {
     setCouponAmount(couponAmount)
   }
 
 
-  useEffect(()=>{
+  useEffect(() => {
     setCouponId(getCouponId)
-  },[getCouponId])
+    setSelectedCoupon(coupon)
+  }, [getCouponId,coupon])
 
   useEffect(() => {
     setCartData(realCartData)
   }, [realCartData])
+
+  useEffect(() => {
+    async function calculateCouponDiscountValue() {
+      const currentDate = new Date()
+
+      // ADD THIS CHECK FIRST
+      if (!selectedCoupon || Object.keys(selectedCoupon).length === 0) {
+        setCouponAmount(0);
+        return;
+      }
+
+      console.log(selectedCoupon,"hola")
+
+      if (total <= 0) {
+        setCouponAmount(0)
+        return;
+      }
+
+
+      if (selectedCoupon["couponMinOrderAmount"] > total) {
+        setCouponAmount(0);
+        return;
+      }
+
+      if (currentDate > selectedCoupon["couponEndDate"]) {
+        setCouponAmount(0);
+        return;
+      }
+
+      if (currentDate < selectedCoupon["couponStartDate"]) {
+        setCouponAmount(0);
+        return;
+      }
+
+      if (selectedCoupon["couponTotalUsage"] >= selectedCoupon["couponMaxUses"]) {
+        setCouponAmount(0);
+        return;
+      }
+
+      let discountValue = 0;
+      if (selectedCoupon["couponDiscountType"] === "percentage") {
+        discountValue = total * (selectedCoupon["couponDiscountValue"] / 100)
+        // console.log("calculating the value inside the useEffect",selectedCoupon["couponMaxDiscount"])
+        if (discountValue > selectedCoupon["couponMaxDiscount"]) discountValue = selectedCoupon["couponMaxDiscount"]
+      }
+      else discountValue = selectedCoupon["couponDiscountValue"]
+
+      setCouponAmount(discountValue);
+
+    }
+
+    calculateCouponDiscountValue()
+
+  }, [selectedCoupon, cartData])
 
   //// creating an object for faster lookup
   const productObj = useMemo(() => {
@@ -96,14 +153,14 @@ export default function CartPage() {
 
   /// when the user is loggedIn and when the user is not loggedIn
 
-  async function removeItem(e, productId, userId, productVariation,brand) {
+  async function removeItem(e, productId, userId, productVariation, brand) {
     try {
       e.preventDefault()
       e.stopPropagation()
       let result;
-      
-      result = result = await axios.post(`${CART_ENDPOINTS}/removeCartItem`, {productId, productVariation }, { withCredentials: true })
-      
+
+      result = result = await axios.post(`${CART_ENDPOINTS}/removeCartItem`, { productId, productVariation }, { withCredentials: true })
+
       setShouldCallDB(false);
       setRefresh(prev => prev + 1)
 
@@ -139,7 +196,7 @@ export default function CartPage() {
 
   const user = useSelector((state) => state?.user?.userData)
   const userId = user?._id;
-  
+
   async function placeOrder(e, totalAmount) {
     let result;
     try {
@@ -147,15 +204,15 @@ export default function CartPage() {
       e.stopPropagation();
       if (totalAmount <= 1000 && user != null) toast.error("Order cant be placed for amount less then 1000")
       else {
-        result=await axios.post(`${USER_ENDPOINTS}/checkout`,{},{withCredentials:true})
+        result = await axios.post(`${USER_ENDPOINTS}/checkout`, {}, { withCredentials: true })
 
         // console.log(result)
         toast.success(`${result?.data?.message}\nYour total amount in ${result?.data?.totalAmount}`)
         navigate("/addressForm")
       }
     } catch (error) {
-      toast.error(`${result?.response?.data?.message}`)
-      console.log("Something went wrong in place order in the front end",error);
+      toast.error(`${error?.response?.data?.message}`)
+      console.log("Something went wrong in place order in the front end", error);
     }
   }
 
@@ -225,7 +282,7 @@ export default function CartPage() {
 
   return (
     <>
-      <Breadcrumbs/>
+      <Breadcrumbs />
       <div className=" relative min-h-screen bg-blue-50 py-10 px-4 flex flex-col items-center md:items-start md:flex-row justify-center gap-10">
         {/* Left - Cart Items */}
         <div className="bg-white w-[90%] md:w-[70%] md:max-w-3xl rounded-2xl shadow-md p-6">
@@ -280,7 +337,7 @@ export default function CartPage() {
                         ₹{(product.originalPrice[item.productVariation] - discountAmount(product.originalPrice[item.productVariation], product.discountValue[item.productVariation])) * Number(item.productQuantity)}
                       </p>
                       <button
-                        onClick={(e) => removeItem(e, item.productId.toString(), userData?._id, item.productVariation,brandData[index])}
+                        onClick={(e) => removeItem(e, item.productId.toString(), userData?._id, item.productVariation, brandData[index])}
                         className="text-sm text-red-500 hover:underline"
                       >
                         Remove
@@ -337,7 +394,7 @@ export default function CartPage() {
 
         {/* Coupan Window */}
         {coupanVisible && (
-          <Coupon setCoupanVisible={setCoupanVisible} coupanVisible={coupanVisible} discountAmount={discountAmount} total={total} shipping={shipping} couponAmountFunction={couponAmountFunction} couponId={couponId} setCouponId={setCouponId}/>
+          <Coupon setCoupanVisible={setCoupanVisible} coupanVisible={coupanVisible} discountAmount={discountAmount} total={total} shipping={shipping} couponAmountFunction={couponAmountFunction} couponId={couponId} setCouponId={setCouponId} setSelectedCoupon={setSelectedCoupon} />
         )}
 
       </div>
