@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema({
             productVariation:{
                 type:Number,
                 default:0
-            }
+            },
+            _id:false
         }
     ],
     orders: [

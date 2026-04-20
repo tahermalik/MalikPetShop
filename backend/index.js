@@ -66,7 +66,7 @@ io.use((socket, next) => {
 });
 
 app.use(cors({
-  origin: ["http://localhost:5173", "https://malikpetshop.onrender.com", "https://malik-pet-shop-git-main-taher-maliks-projects.vercel.app", "https://malik-pet-shop-iu40gnfxf-taher-maliks-projects.vercel.app"],  // your React frontend URL
+  origin: ["http://localhost:5173","http://localhost:5174", "https://malikpetshop.onrender.com", "https://malik-pet-shop-git-main-taher-maliks-projects.vercel.app", "https://malik-pet-shop-iu40gnfxf-taher-maliks-projects.vercel.app"],  // your React frontend URL
 
   credentials: true,                 // if you use cookies or auth
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], // allowed methods

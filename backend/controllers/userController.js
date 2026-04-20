@@ -58,7 +58,7 @@ export async function login(req, res) {
             process.env.JWT_SECRET,
             { expiresIn: "7d" } // token valid for 7 days
         );
-        await mergeWishList(user._id, reduxWishListData)
+        const updatedWishListData=await mergeWishList(user._id, reduxWishListData)
         await mergeCartItems(user._id, guestId)
 
         const updatedUser = await User.findById(user._id).select("-email")
@@ -69,7 +69,7 @@ export async function login(req, res) {
             secure: true,
             maxAge: 7 * 24 * 60 * 60 * 1000 // cookie is the container so both the container and its data is valid for 7 days
         });
-        return res.status(200).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser })
+        return res.status(200).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser,updatedWishListData:updatedWishListData })
     } catch (error) {
         console.log("wrong in login", error)
         return res.status(500).json({ message: "something wrong at the server side", bool: false })
@@ -173,94 +173,254 @@ export async function viewFood(req, res) {
 }
 
 /// This 3 features are working but here the data of the user who is not logged in is on the redux
+// export async function favourite(req, res) {
+//     try {
+//         console.log("inside favourite")
+//         // if the user is guest
+//         if(req?.userInfo===undefined) return res.status(200).json({message:"As the user is guest"})
+
+//         const wishList=req?.body?.wishList
+//         const userId=req?.userInfo?.id
+
+//         const hashKey=`${userId}_WishList`
+
+//         const productIds=wishList.map((obj)=>obj["productId"])
+//         const result=await Product.find({_id:{$in:productIds}}).select("_id netWeight")
+
+//         const DBProductMap=new Map();
+//         for(let i=0;i<result.length;i++){
+//             DBProductMap.set(result[i]["_id"].toString(),result[i]["netWeight"])
+//         }
+
+
+//         const realProductIds=[]
+
+//         for(let i=0;i<productIds.length;i++){
+//             const result=DBProductMap.get(productIds[i].toString())
+//             if(result===undefined) return res.status(400).json({message:"There is some problem with the productIds"})
+//             const netWeightLength=result.length
+//             const productVariation=wishList[i]["productVariation"]
+//             if(productVariation>=netWeightLength || productVariation<0) return res.status(400).json({message:"There is some problem with the product Variation"})
+//             realProductIds.push(productIds[i])
+//         }
+
+
+
+//         // console.log(wishList,"Hola")
+//         let wishListDB=await User.findById(userId).select("wishList").lean()
+//         wishListDB=wishListDB["wishList"]   // this will be the array of objects
+
+//         // will be an array id_var
+//         const wishList_str=wishList.map((obj)=>`${obj["productId"]}_${obj["productVariation"]}`)
+//         const wishListDB_str=wishListDB.map((obj)=>`${obj["productId"]}_${obj["productVariation"]}`)
+
+//         // this will be the array of new id_var which were not there in the db
+//         const newProducts=[]
+//         for(let i=0;i<wishList_str.length;i++){
+//             const str=wishList_str[i];
+//             if(!wishListDB_str.includes(str)){
+//                 const obj={}
+//                 const split_list=str.split("_")
+//                 obj["productId"]=split_list[0];
+//                 obj["productVariation"]=split_list[1];
+//                 newProducts.push(obj)
+//             }
+//         }
+
+//         // console.log(wishList_str,wishListDB_str,newProducts,"newProducts")
+
+//         // console.log("Adding Product to wishList",newProducts)
+
+//         if(newProducts.length === 0){
+//             return res.status(200).json({ message: "Wishlist already up to date" })
+//         }
+
+//         await Promise.all([
+//             User.findByIdAndUpdate(userId, { $addToSet: { wishList: {$each:newProducts} } }),
+//             Product.updateMany({_id:{$in:realProductIds}}, { $addToSet: { wishList: userId } })
+//         ]);
+
+//         let wishListData=[...wishListDB,...newProducts]
+
+//         await redisClient.set(hashKey,JSON.stringify(wishListData))
+//         await redisClient.expire(hashKey, 60*60); // expiry of 1 hour
+
+//         return res.status(200).json({ message: "Item added succesfully to wishlist" })
+
+//     } catch (error) {
+//         console.log("Something wrong at server side in addWhishList", error)
+//         return res.status(500).json("something wrong at server end")
+//     }
+// }
+
 export async function favourite(req, res) {
-    const session = await mongoose.startSession()
     try {
         console.log("inside favourite")
-        await session.startTransaction()
-        let { userId, productId, toAdd, productVariation } = req?.body
+        // if the user is guest
+        if (req?.userInfo === undefined) return res.status(200).json({ message: "As the user is guest", comment: "GUEST" })
 
-        let result = await Product.findById(productId)
-        if (!result) {
-            await session.abortTransaction()
-            return res.status(404).json({ message: "Product not found", bool: false })
+
+        const { productId, productVariation } = req.body;
+        const userId = req?.userInfo?.id;
+
+        const rateLimitKey = `fav_rate:${userId}`
+
+        try {
+            const requestCount = await redisClient.incr(rateLimitKey);
+
+            if (requestCount === 1) {
+                await redisClient.expire(rateLimitKey, 1);
+            }
+
+            if (requestCount > 5) {
+                return res.status(429).json({
+                    message: "Too many requests, please slow down"
+                });
+            }
+        } catch (err) {
+            console.log("Redis rate limit failed, allowing request");
         }
 
-        result = await User.findById(userId)
-        if (!result) {
-            await session.abortTransaction()
-            return res.status(404).json({ message: "User not found", bool: false })
+        if (!productId || productVariation === undefined) {
+            return res.status(400).json({ message: "Invalid request data" });
         }
-        // console.log(userId,productId)
-        if (toAdd) {
-            console.log("Adding Product to wishList")
+
+        const hashKey = `WishList:${userId}`
+
+
+        // console.log(wishList,"Hola")
+        let wishListDB = await User.findById(userId).select("wishList").lean()
+        wishListDB = wishListDB["wishList"]   // this will be the array of objects
+
+        const exists = wishListDB.some(
+            (item) =>
+                item.productId.toString() === productId.toString() &&
+                item.productVariation == productVariation
+        );
+
+        // remove
+        if (exists) {
+            await User.findByIdAndUpdate(userId, { $pull: { wishList: { productId, productVariation } } })
+            let updatedWishListDB = await User.findById(userId).select("wishList").lean()
+            updatedWishListDB = updatedWishListDB["wishList"]   // this will be the array of objects
+
+            const stillExists = updatedWishListDB.some(
+                (item) =>
+                    item.productId.toString() === productId.toString()
+            );
+
+            if (!stillExists) await Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } })
+
+            // invalidating the cache
+            await redisClient.del(`WishList:${userId}`)
+
+            return res.status(200).json({ message: "Removed from wishlist", comment: "NOT GUEST" });
+
+        } else { // add
+            const productResult = await Product.findById(productId).select("netWeight")
+            if (!productResult) return res.status(400).json({ message: "Product not found", comment: "NOT GUEST" })
+
+            const length = productResult.netWeight?.length
+            if (productVariation < 0 || productVariation >= length) return res.status(400).json({ message: "Some problem with the product variation", comment: "NOT GUEST" })
+
             await Promise.all([
-                User.findByIdAndUpdate(userId, { $addToSet: { wishList: { productId: productId, productVariation: productVariation } } }, { session }),
-                Product.findByIdAndUpdate(productId, { $addToSet: { wishList: userId } }, { session })
-            ]);
-        } else {
-            console.log("removing product from wishList")
-            /// we dont need to remove it from the wishlist
+                User.findByIdAndUpdate(userId, { $addToSet: { wishList: { productId, productVariation } } }),
+                Product.findByIdAndUpdate(productId, { $addToSet: { wishList: userId } })
+            ])
 
-            await User.findByIdAndUpdate(userId, { $pull: { wishList: { productId: productId, productVariation: productVariation } } }, { session })
+            // invalidating the cache
+            await redisClient.del(`WishList:${userId}`)
 
-            result = await User.findById(userId).select("wishList").session(session)
-            const exists = result.wishList.some((item) => item["productId"].toString() === productId)
+            return res.status(200).json({ message: "Product added to wishlist", comment: "NOT GUEST" });
 
-            if (!exists) await Product.findByIdAndUpdate(productId, { $pull: { wishList: userId } }, { session })
-
-            ///// this is done in order to delete the userId from product on cart removal
-            await session.commitTransaction()
-            return res.status(200).json({ message: "Item removed from the wishlist" })
         }
 
-        await session.commitTransaction()
-        return res.status(200).json({ message: "Item added succesfully to wishlist" })
+
 
     } catch (error) {
         console.log("Something wrong at server side in addWhishList", error)
-        session.abortTransaction()
         return res.status(500).json("something wrong at server end")
-    } finally {
-        await session.endSession()
     }
 }
+
+export async function removeFavourite(req, res) {
+    try {
+        console.log("inside remove fav")
+        if (req?.userInfo === undefined) return res.status(200).json({ message: "User is the guest", comment: "GUEST" })
+
+        const productId = req?.body?.productId;
+        const productVariation = req?.body?.productVariation
+
+        const userId = req?.userInfo?.id;
+
+        let wishListData = await User.findById(userId).select("wishList")
+        if (!wishListData) return res.status(404).json({ message: "Wishlist not found" })
+
+        wishListData = wishListData?.wishList;
+
+        const initialLength = wishListData.length;
+
+        const deleteResult = await User.findByIdAndUpdate(userId, { $pull: { wishList: { productId, productVariation } } })
+
+
+        const wishListDataUpdated = await User.findById(userId).select("wishList");
+
+        if (wishListDataUpdated.wishList.length === initialLength) {
+            return res.status(404).json({ message: "Product is not in the wishlist", comment: "NOT GUEST" })
+        }
+
+        // productIds after deletion
+        const productIds = wishListDataUpdated.wishList.map((obj) => obj["productId"])
+
+        // only now need to delete userId from the product's wishlist
+        // if even one element satisfies the condition return true otherwise false
+        const stillExists = wishListDataUpdated.wishList.some(
+            (item) => item.productId.toString() === productId.toString()
+        );
+        if (!stillExists) {
+            await Product.findByIdAndUpdate(productId, {
+                $pull: { wishList: userId }
+            });
+        }
+
+        await redisClient.del(`WishList:${userId}`)
+
+        return res.status(200).json({ message: "Product removed from the wishlist", comment: "NOT GUEST" })
+    } catch (error) {
+        console.log("Problem while removing from favourite for the logged in user", error)
+        return res.status(500).json({ message: "Problem while removing from favourite for the logged in user" })
+    }
+}
+
+/// the task of this function is to just get id and variation of the product in the wishlist and nothing else for both guest and logged in user
 export async function viewWishList(req, res) {
     try {
-        const userId = req?.params?.id /// receiving the user id
+        console.log("inside view wishlist")
 
-        // Check if userId is valid ObjectId
-        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: "Invalid user ID", bool: false });
+        if (req?.userInfo === undefined) return res.status(200).json({ message: "User is a guest", comment: "GUEST" })
+
+        const userId = req?.userInfo?.id;
+
+        let wishListData = await redisClient.get(`WishList:${userId}`)
+
+        // there is a redis hit
+        if (wishListData) {
+            wishListData = JSON.parse(wishListData) //wishListData will be an array of obejct id_var
+            console.log("redis is returning")
+            return res.status(200).json({ wishListData: wishListData, comment: "NOT GUEST" })
         }
+        console.log("DB is returning")
+
 
         let userWishList = await User.findById(userId).select("wishList") /// just fetching out the wishList
-
         if (!userWishList) return res.status(404).json({ message: "User not found", bool: false })
-        const productIds = userWishList?.wishList
+        wishListData = userWishList?.wishList
 
-        // console.log([productIds])
-        const productVariationArray = productIds.map((obj) => {
-            return obj["productVariation"]
-        })
+        // as there was a redis miss so need to populate the redis
+        await redisClient.set(`WishList:${userId}`, JSON.stringify(wishListData))
+        await redisClient.expire(`WishList:${userId}`,60 * 60)
 
-        const ids = productIds.map((obj) => {
-            return obj["productId"]
-        })
-
-
-        let productData = await Product.find({ _id: { $in: ids } }).lean()
-
-        const productDataObj = {}
-        for (let i = 0; i < productData.length; i++) {
-            productDataObj[productData[i]._id] = productData[i]
-        }
-
-        productData = ids.map((id) => productDataObj[id])
-
-
-        // console.log("varaition",productData)
-        return res.status(200).json({ productData: productData, productVariationArray: productVariationArray, bool: true })
+        return res.status(200).json({ wishListData: wishListData, comment: "NOT GUEST", bool: true })
     } catch (error) {
         console.log("error in view wishList", error)
         return res.status(500).json({ message: "Server fucked up in view WishList" })
@@ -269,54 +429,70 @@ export async function viewWishList(req, res) {
 /// working
 export async function mergeWishList(userId, reduxWishListData) {
     try {
-        userId = userId.toString()
-        // console.log(userId,reduxCartData,"inside mergeCartItems")
-        let existingProducts = await User.findById(userId).select("wishList")
-
-        console.log("Prinitng this for debugging")
-
-        //// if existingProduct is found
-        if (existingProducts) {
-
-            existingProducts = existingProducts["wishList"]
-            //// both reduxCartData and existingProducts are the array of objects
-            // console.log(existingProducts)
-
-            ///// code is written so that product can have info about who has added it to the wishList
-            const newItemForProductsWishList = reduxWishListData.filter(
-                (r) => {
-                    if (!existingProducts.some((e) => e.productId.toString() === r.productId)) {
-                        return true
-                    }
-                }
-            ).map(r => r.productId.toString())
-
-            const newItems = reduxWishListData.filter(
-                (r) =>
-                    !existingProducts.some(
-                        (e) => e.productId.toString() === r.productId && e.productVariation === r.productVariation
-                    )
-            );
-            console.log(userId, reduxWishListData, newItems)
+        console.log("inside merging of wishlist")
+        
+        const wishList=reduxWishListData
 
 
-            //     console.log("new items",newItems)
+        const productIds=wishList.map((obj)=>obj["productId"])
+        const result=await Product.find({_id:{$in:productIds}}).select("_id netWeight")
 
-            if (newItems.length > 0) {
-                await User.findByIdAndUpdate(
-                    userId,
-                    { $addToSet: { wishList: { $each: newItems } } }
-                );
-            }
-
-            if (newItemForProductsWishList.length > 0) {
-                await Product.updateMany({ _id: { $in: newItemForProductsWishList } }, { $addToSet: { wishList: userId } })
-            }
+        const DBProductMap=new Map();
+        for(let i=0;i<result.length;i++){
+            DBProductMap.set(result[i]["_id"].toString(),result[i]["netWeight"])
         }
 
 
+        const realProductIds=[]
+
+        for(let i=0;i<productIds.length;i++){
+            const result=DBProductMap.get(productIds[i].toString())
+            if(result===undefined) return res.status(400).json({message:"There is some problem with the productIds"})
+            const netWeightLength=result.length
+            const productVariation=wishList[i]["productVariation"]
+            if(productVariation>=netWeightLength || productVariation<0) return res.status(400).json({message:"There is some problem with the product Variation"})
+            realProductIds.push(productIds[i])
+        }
+
+        // console.log(wishList,"Hola")
+        let wishListDB=await User.findById(userId).select("wishList").lean()
+        wishListDB=wishListDB["wishList"]   // this will be the array of objects
+
+        // will be an array id_var
+        const wishList_str=wishList.map((obj)=>`${obj["productId"]}_${obj["productVariation"]}`)
+        const wishListDB_str=wishListDB.map((obj)=>`${obj["productId"]}_${obj["productVariation"]}`)
+
+        // this will be the array of new id_var which were not there in the db
+        const newProducts=[]
+        for(let i=0;i<wishList_str.length;i++){
+            const str=wishList_str[i];
+            if(!wishListDB_str.includes(str)){
+                const obj={}
+                const split_list=str.split("_")
+                obj["productId"]=split_list[0];
+                obj["productVariation"]=split_list[1];
+                newProducts.push(obj)
+            }
+        }
+
+        // console.log(wishList_str,wishListDB_str,newProducts,"newProducts")
+
+        // console.log("Adding Product to wishList",newProducts)
+
+        if(newProducts.length === 0){
+            return wishListDB
+        }
+
+        await Promise.all([
+            User.findByIdAndUpdate(userId, { $addToSet: { wishList: {$each:newProducts} } }),
+            Product.updateMany({_id:{$in:realProductIds}}, { $addToSet: { wishList: userId } })
+        ]);
+
+        return wishListDB
+
     } catch (error) {
-        console.log("wrong in mergeWishList", error);
+        console.log("Something wrong at server side in addWhishList", error)
+        throw new Error
     }
 }
 
@@ -786,8 +962,8 @@ export async function proceed_checkout(req, res) {
         // product active and stock availaibility
         for (let i = 0; i < productsIdArray.length; i++) {
             const data = productMap.get(productsIdArray[i])
-            const [productVariation,productQuantity]=cartDataMap.get(productsIdArray[i])
-            
+            const [productVariation, productQuantity] = cartDataMap.get(productsIdArray[i])
+
             const rem = data["stock"][productVariation] - data["reservedStock"][productVariation]
 
             // console.log(rem, cartDataMap.get(productsIdArray[i])[1], productsIdArray[i])
@@ -823,7 +999,7 @@ export async function proceed_checkout(req, res) {
                 });
             }
 
-            const price=calcFinalPrice(productId, productMap, cartDataMap)
+            const price = calcFinalPrice(productId, productMap, cartDataMap)
             // console.log(price,"Hola",i)
             total += price
         }
@@ -929,19 +1105,19 @@ export async function proceed_checkout(req, res) {
         });
 
         // to associate order id with the user for future processing
-        await generalQueue.add("addOrderId",{
-            userId:userId,
-            orderId:orderId
+        await generalQueue.add("addOrderId", {
+            userId: userId,
+            orderId: orderId
         })
 
         // 🔥 Emit event
-        let orderData={
-            "couponId":createdOrder["couponId"],
-            "createdAt":createdOrder["createdAt"],
-            "finalAmount":createdOrder["finalAmount"],
-            "orderId":createdOrder["orderId"],
-            "products":createdOrder["products"],
-            "status":createdOrder["status"]
+        let orderData = {
+            "couponId": createdOrder["couponId"],
+            "createdAt": createdOrder["createdAt"],
+            "finalAmount": createdOrder["finalAmount"],
+            "orderId": createdOrder["orderId"],
+            "products": createdOrder["products"],
+            "status": createdOrder["status"]
         }
         const io = getIO();
         io.to(userId).emit("order_update", orderData);

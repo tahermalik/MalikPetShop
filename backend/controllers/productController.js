@@ -153,7 +153,8 @@ export async function displayProduct(req, res) {
         userQuery = userQuery.trim().replace(/\s+/g, " ").toLowerCase();
 
         /// this userQuery can have multiple common words possible due to same word in search bar and filter
-        console.log("User query at the server side is " + userQuery)
+        // console.log("User query at the server side is " + userQuery)
+        console.log("Loading data for the page ",page)
 
         let uniqueQueryArray = []
         let queryArray = userQuery.split(" ");  //// some pre processing need to be done on this in order to remove the duplicate words
@@ -217,6 +218,7 @@ export async function displayProduct(req, res) {
         );
 
         const hasMore = skip + limit < matchedProducts.length;
+        // console.log(hasMore,"more products are there or not")
 
         return res.status(200).json({
             products: paginatedProducts,
@@ -225,7 +227,7 @@ export async function displayProduct(req, res) {
         // console.log(queryArray,paginatedProducts)
 
     } catch (error) {
-        console.log("wrong in displayProduct")
+        console.log("wrong in displayProduct",error)
         return res.status(500).json({ message: "Wrong in displayProduct" })
     }
 }
@@ -311,13 +313,35 @@ export async function deleteProduct(req, res) {
 //// function specially created for cart as it stores product via their ID's ; ///working
 export async function getProductsViaIds(req, res) {
     try {
-        const { productIds } = req?.body
-        console.log("Inside backend",productIds)
-        const productData = await Product.find({ _id: { $in: productIds } })
-        const productMap = new Map(productData.map(p => [p._id.toString(), p]));
-        const orderedProducts = productIds.map(id => productMap.get(id));
+        const { productIds,productVariationArray } = req?.body
+        console.log("Inside backend",productIds,productVariationArray)
 
-        return res.status(200).json({ productData: orderedProducts })
+        const productData = await Product.find({ _id: { $in: productIds } }).select("-cleanProductName -category -expiryDate -manufactureDate -type -pet -stock -reservedStock -breed -diet -wishList -cart -productString -description -usp -createdAt -updatedAt") // will return the array of objects
+        // console.log(productData) it is an array of objects
+
+        // this is done in order to maintain the order in which frontend sends the id
+        const productMap = new Map(productData.map(p => [p._id.toString(), p]));
+
+        for(let i=0;i<productIds.length;i++){
+            let id=productIds[i]
+            let product=productMap.get(id);
+
+            if(product!==undefined){
+                let length=product["netWeight"].length;
+                let idx=productVariationArray[i]
+                if(length<=idx || idx<0) return res.status(400).json({message:`Not proper variation for the product ${product["productName"]}`})
+            }
+
+        }
+
+        const foundIds = productData.map(p => p._id.toString());
+        const missingIds= productIds.filter(id => !foundIds.includes(id))
+
+        const orderedProducts = foundIds.map(id => productMap.get(id));
+
+        // console.log("ordered",orderedProducts)
+
+        return res.status(200).json({ productData: orderedProducts ,missingIds:missingIds})
 
     } catch (error) {
         console.log("server fucked up at getProductViaIds", error)

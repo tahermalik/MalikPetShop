@@ -1,6 +1,8 @@
 import express from "express"
 import { login, register ,logout, viewCompanyFood, viewFood,createFeedBack,displayFeedBack, favourite, viewWishList, forgotPassword, verifyOTP, resetPassword,setAddress, demo, getGuestId, recommendProducts, ingest_products, proceed_checkout} from "../controllers/userController.js";
 import { auth } from "../middleware/auth.js";
+import { userGuest } from "../middleware/userGuest.js";
+import { removeFavourite } from "../controllers/userController.js";
 
 const uRouter=express.Router();
 console.log("in this userRouters")
@@ -16,8 +18,9 @@ uRouter.post("/verifyOTP",(req,res)=>verifyOTP(req,res))
 uRouter.post("/resetPassword",(req,res)=>resetPassword(req,res))
 
 /// wishList Routes
-uRouter.post("/favourite",(req,res)=>favourite(req,res))
-uRouter.get("/viewWishList/:id",(req,res)=>viewWishList(req,res))
+uRouter.post("/favourite",(req,res,next)=>userGuest(req,res,next),(req,res)=>favourite(req,res))
+uRouter.post("/removeFavourite",(req,res,next)=>userGuest(req,res,next),(req,res)=>removeFavourite(req,res))
+uRouter.post("/viewWishList",(req,res,next)=>userGuest(req,res,next),(req,res)=>viewWishList(req,res))
 
 /// feedback routes
 uRouter.post("/createFeedBack/:id",(req,res)=>createFeedBack(req,res))
