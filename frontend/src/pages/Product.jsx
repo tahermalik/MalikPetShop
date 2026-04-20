@@ -10,7 +10,7 @@ import { BASE_URL, CART_ENDPOINTS, PRODUCT_ENDPOINTS, USER_ENDPOINTS } from "./e
 import { useLocation, useNavigate } from "react-router-dom"
 import { useMemo } from "react"
 import { IoIosHeart } from "react-icons/io";
-import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/slices/userSlice"
+import { setFavourite } from "../redux/slices/wishListSlice"
 import { setImageCounter } from "../redux/slices/activeSlice"
 import toast from "react-hot-toast"
 import { FiFilter } from "react-icons/fi";
@@ -20,6 +20,7 @@ import { SideBar, SubMenu } from "./LandingPage"
 import { Breadcrumbs } from "./Breadcrumbs"
 import { setCompleteProductInfo } from "../redux/slices/productSlice"
 import { addBrand } from "../redux/slices/cartSlice"
+import store from "../redux/store.js"
 
 function CheckBoxes(props) {
     const dispatch = useDispatch();
@@ -466,25 +467,21 @@ function ProductCard(props) {
     const [isPresent, setIsPresent] = useState(false)
 
     const userData = useSelector((state) => state?.user?.userData)
-    const userDataNotLoggedIn = useSelector((state) => state?.user?.userDataNotLoggedIn)
+    const userWishListData = useSelector((state) => state?.wishList?.wishList)
     const userId = userData?._id; //// here i will get the user id
     // const imgCounter=useSelector((state)=>state?.active?.imgCounter)
     const [imgCounter, setImgCounter] = useState(0)
+    // const debounceRef=useRef(null)
+    const loadingRef = useRef({});
 
     useLayoutEffect(() => {
-        let userWishList
-
-        /// for the loggedIn user
-        if (userData) userWishList = userData?.wishList
-        else userWishList = userDataNotLoggedIn["wishList"]   /// for the user who is not loggedIn 
-
-        const userWishListIds = userWishList.map((obj) => { return obj["productId"] })
-        console.log("loading wishList", userWishList)
+        const userWishListIds = userWishListData.map((obj) => { return obj["productId"] })
+        console.log("loading wishList", userWishListData)
         //// product is there present in the wishList
         if (userWishListIds.includes(props?.productId)) {
 
             //// implementing this so that the user can add variation of prouct in the wishList
-            const productVariationData = userWishList.map((obj) => {
+            const productVariationData = userWishListData.map((obj) => {
                 if (obj["productId"] === props?.productId) return obj["productVariation"]
             })
 
@@ -550,42 +547,99 @@ function ProductCard(props) {
         fetchQuantity();
     }, []);
 
-    //// fetching the wishList for the user who is not logged in
-    const wishList = useSelector((state) => state?.user?.userDataNotLoggedIn?.wishList)
+    
+    const wishList=useSelector((state)=>state?.wishList?.wishList)
+
+    // async function favProduct(e) {
+    //     try {
+
+    //         // as ref return an object where current is the key and all the value stored by the ref is stored as the value of the current object
+    //         clearTimeout(debounceRef.current)
+
+    //         e.stopPropagation();
+    //         e.preventDefault()
+    //         const newIsPresent = !isPresent
+    //         setIsPresent(newIsPresent) /// toggling is done over here
+
+    //         const obj = {
+    //             productId: props?.productId,
+    //             productVariation: imgCounter
+    //         }
+
+            
+    //         //// this line is written at end as dispatch is asynchronous in nature
+    //         dispatch(setFavourite(obj))
+
+    //         // backend call will be done after 800 ms once the user stops clicking on the heart icon
+    //         debounceRef.current=setTimeout(async ()=>{
+    //             // read fresh state at the time timer fires
+    //             const latestWishList = store.getState()?.wishList?.wishList;
+
+    //             const result=await axios.post(`${USER_ENDPOINTS}/favourite`,{wishList:latestWishList},{withCredentials:true})
+    //         },800)
+            
+
+    //     } catch (error) {
+    //         console.log("wrong in favourite product", error)
+    //         toast.error(error?.response?.data?.message)
+    //     }
+    // }
+
     async function favProduct(e) {
         try {
+
+            const productId = props?.productId;
+            const productVariation=imgCounter
+           
+            // as the ref.current is an object of productId would be the key
+            if (loadingRef.current[`${productId}_${imgCounter}`]) {
+                return; // 🚫 block spam click
+            }
+
+            // adding the guad for the product on the click
+            // like as soon as the user clicks the heart icon redux will be updated , but the guard will be set so the button can be disable and after some time it will be enabled
+            loadingRef.current[`${productId}_${imgCounter}`] = true;
+
+
             e.stopPropagation();
             e.preventDefault()
             const newIsPresent = !isPresent
             setIsPresent(newIsPresent) /// toggling is done over here
 
-            if (userData) {
-                dispatch(setProductIdInUserWishList({ productId: props?.productId, productVariation: imgCounter }))
-                const res = axios.post(`${USER_ENDPOINTS}/favourite`, { userId: userId, productId: props.productId, toAdd: newIsPresent, productVariation: imgCounter }, { withCredentials: true })
+            const obj = {
+                productId: props?.productId,
+                productVariation: imgCounter
+            }
 
-                toast.success(res?.data?.message);
-            } else {
-                const obj = {
+            
+            //// this line is written at end as dispatch is asynchronous in nature
+            dispatch(setFavourite(obj))
+            
+            try{
+                await axios.post(
+                    `${USER_ENDPOINTS}/favourite`,
+                    {
+                        productId: props?.productId,
+                        productVariation: imgCounter
+                    },
+                    { withCredentials: true }
+                );
+            }catch(error){
+                setIsPresent(!newIsPresent);
+                dispatch(setFavourite({
                     productId: props?.productId,
                     productVariation: imgCounter
-                }
-                //// to get the proper toast message for the same
-                const exists = wishList.some(
-                    (obj) => obj.productId === props?.productId && obj.productVariation === imgCounter
-                );
-                if (!exists) {
-                    toast.success("Product added in the wish list")
-                } else {
-                    toast.success("Product removed from the wish list")
-                }
-
-                //// this line is written at end as dispatch is asynchronous in nature
-                dispatch(setFavouriteNotLoggedIn(obj))
+                }));
+                console.log("some problem with the API call while adding the favourite product")
+            }finally {
+                // unblocking the stuff
+                loadingRef.current[`${props?.productId}_${imgCounter}`] = false;
             }
+
 
         } catch (error) {
             console.log("wrong in favourite product", error)
-            toast.error(error?.response?.data?.message)
+            // toast.error(error?.response?.data?.message)
         }
     }
 

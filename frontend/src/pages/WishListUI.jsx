@@ -8,7 +8,7 @@ import axios from "axios";
 import { useState } from "react";
 import { USER_ENDPOINTS } from "./endpoints";
 import { useDispatch } from "react-redux";
-import { setFavouriteNotLoggedIn, setProductIdInUserWishList } from "../redux/slices/userSlice";
+import { setFavourite,removeFavourite } from "../redux/slices/wishListSlice";
 import toast from "react-hot-toast";
 import { Breadcrumbs } from "./Breadcrumbs";
 
@@ -74,26 +74,18 @@ export default function WishListUI() {
         )
     }
 
-    async function removeFavourite(e, productId, productVariation) {
+    async function removeFavouriteFromWishList(e, productId, productVariation) {
         try {
             e.stopPropagation();
             e.preventDefault();
 
-            console.log("inside remove btn", userId, productId)
+            console.log("inside remove fav btn", userId, productId)
 
-            /// if the user is logged in then directly remove the product from the wishlist from the backend itself
-            if (userId !== undefined) {
-                dispatch(setProductIdInUserWishList({ productId: productId, productVariation: productVariation }))
-                console.log("holaaaaaa")
-                const result = await axios.post(`${USER_ENDPOINTS}/favourite`, { userId: userId, productId: productId, toAdd: false, productVariation: productVariation }, { withCredentials: true })
-                toast.success(result?.data?.message)
-            } else {
-                const obj = {
-                    productId: productId,
-                    productVariation: productVariation
-                }
-                dispatch(setFavouriteNotLoggedIn(obj))
-            }
+            dispatch(removeFavourite({productId,productVariation}))
+
+            // if the user is guest then it is simply a server call and if the user is logged in then it would be a DB call
+            const result = await axios.post(`${USER_ENDPOINTS}/removeFavourite`,{productId:productId,productVariation:productVariation},{withCredentials:true})
+
             setRefresh(prev => prev + 1)
         } catch (error) {
             console.log("wrong in remove favourite", error)
@@ -166,7 +158,7 @@ export default function WishListUI() {
                                     <span className="text-sm">Discount {product.discountValue[productVariationData[index]]}%</span>
                                 </div>
                                 <div className="flex justify-between items-center mt-2">
-                                    <div className="flex items-center px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200" onClick={(e) => removeFavourite(e, product._id, productVariationData[index])}>
+                                    <div className="flex items-center px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200" onClick={(e) => removeFavouriteFromWishList(e, product._id, productVariationData[index])}>
                                         <IoIosHeart size={18} className="mr-1" /> Remove
                                     </div>
                                     <span className="text-sm text-blue-700">{product.netWeight[productVariationData[index]]} kg</span>

@@ -22,6 +22,7 @@ import { PawPrint, Tag, Package } from "lucide-react";
 import toast from "react-hot-toast";
 import { useIsDesktop } from "../hooks/useIsDesktop.js";
 import { TbTruckDelivery } from "react-icons/tb";
+import { MdLocationOn } from "react-icons/md";
 
 function Brands(props) {
     const colorClasses = {
@@ -1238,54 +1239,139 @@ function Card({ review }) {
 }
 
 
+function MapEmbed() {
+    // const destination = "19.155878838522607, 72.83596398249723"; 
+    const shopLat = "19.155878838522607";
+    const shopLng = "72.83596398249723";
+    const destination ="Malik Pet Shop & Cage House, Shop No.11, Veena apartment, New Link Rd, near Oshiwara depot, Sejal Park, Best Nagar, Goregaon West, Mumbai, Maharashtra 400104"
+
+    function openGoogleMaps() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const url = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+                    window.open(url, "_blank");
+                },
+                () => {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`, "_blank");
+                }
+            );
+        } else {
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`, "_blank");
+        }
+    }
+
+    return (
+        <div
+            onClick={openGoogleMaps}
+            className="relative w-full h-[140px] rounded-xl overflow-hidden cursor-pointer group shadow-lg border border-blue-400"
+        >
+            <iframe
+                src={`https://maps.google.com/maps?q=${shopLat},${shopLng}&z=15&output=embed`}
+                width="100%"
+                height="100%"
+                style={{ border: 0, pointerEvents: "none" }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+            />
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-blue-900/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-center items-center gap-1">
+                <MdLocationOn size={30} color="white" />
+                <span className="text-white text-xs font-semibold tracking-wide">Click for directions</span>
+            </div>
+        </div>
+    );
+}
+
 export function Footer() {
     return (
-        <>
-            <div className="footer h-[300px] w-[100%] bg-[#0D47A1] flex flex-row justify-center gap-10 items-center border-t-[#00ACC1]">
-                <div className="flex flex-col h-[90%] w-fit gap-4 p-2 rounded-2xl text-white">
-                    <div className="flex flex-row gap-2">
-                        <div className="flex flex-row justify-center items-center"><img src="/header_logo.svg" alt="paws_img" /></div>
-                        <div className="flex flex-col text-white font-extrabold ">
-                            <div><span className="sm:text-lg md:text-xl lg:text-2xl font-semibold">Malik</span></div>
-                            <div><span className="sm:text-md md:text-lg">Pet Shop</span></div>
+        <div className="footer w-full bg-[#0D47A1] border-t border-[#00ACC1]">
+
+            {/* Main Footer Content */}
+            <div className="
+                grid
+                grid-cols-1
+                sm:grid-cols-2
+                lg:grid-cols-4
+                gap-6
+                px-6 sm:px-10
+                py-8
+                max-w-7xl mx-auto
+            ">
+
+                {/* Brand Section */}
+                <div className="flex flex-col gap-4 text-white">
+                    <div className="flex flex-row gap-2 items-center">
+                        <img src="/header_logo.svg" alt="paws_img" className="w-8 h-8" />
+                        <div className="flex flex-col">
+                            <span className="text-xl font-semibold">Malik</span>
+                            <span className="text-sm">Pet Shop</span>
                         </div>
                     </div>
-                    <div><span>Where every pet feels at home.</span></div>
 
-                    <div className="flex flex-row items-center justify-evenly gap-2 ">
-                        <div className="rounded-full border border-blue-400 p-1 flex flex-row justify-center items-center hover:bg-[#29B6F6] hover:cursor-pointer"><FaWhatsapp size={20} color="#81D4FA" /></div>
-                        <div className="rounded-full border border-blue-400 p-1 flex flex-row justify-center items-center hover:bg-[#29B6F6] hover:cursor-pointer"><FaInstagram size={20} color="#81D4FA" /></div>
-                        <div className="rounded-full border border-blue-400 p-1 flex flex-row justify-center items-center hover:bg-[#29B6F6] hover:cursor-pointer"><RiTwitterXLine size={20} color="#81D4FA" /></div>
-                        <div className="rounded-full border border-blue-400 p-1 flex flex-row justify-center items-center hover:bg-[#29B6F6] hover:cursor-pointer"><FaFacebook size={20} color="#81D4FA" /></div>
+                    <span className="text-[#BBDEFB] text-sm">Where every pet feels at home.</span>
 
+                    {/* Social Icons */}
+                    <div className="flex flex-row items-center gap-3">
+                        <div className="rounded-full border border-blue-400 p-1.5 flex justify-center items-center hover:bg-[#29B6F6] cursor-pointer transition-colors duration-200">
+                            <FaWhatsapp size={18} color="#81D4FA" />
+                        </div>
+                        <div className="rounded-full border border-blue-400 p-1.5 flex justify-center items-center hover:bg-[#29B6F6] cursor-pointer transition-colors duration-200">
+                            <FaInstagram size={18} color="#81D4FA" />
+                        </div>
+                        <div className="rounded-full border border-blue-400 p-1.5 flex justify-center items-center hover:bg-[#29B6F6] cursor-pointer transition-colors duration-200">
+                            <RiTwitterXLine size={18} color="#81D4FA" />
+                        </div>
+                        <div className="rounded-full border border-blue-400 p-1.5 flex justify-center items-center hover:bg-[#29B6F6] cursor-pointer transition-colors duration-200">
+                            <FaFacebook size={18} color="#81D4FA" />
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex flex-col h-[90%] w-fit gap-4 p-2 rounded-2xl text-white">
-                    <div className="xs:text-lg lg:text-xl text-white"><span>Quick Links</span></div>
-                    <div className="flex flex-col ">
-                        <Link to="/"><div className="hover:underline hover:decoration-[#03A9F4] hover:cursor-pointer hover:text-[#4FC3F7] text-[#BBDEFB]"><a>Home</a></div></Link>
-                        <div className="hover:underline hover:decoration-[#03A9F4] hover:cursor-pointer text-[#BBDEFB] hover:text-[#4FC3F7]"><a>About Us</a></div>
-                        <div className="hover:underline hover:decoration-[#03A9F4] hover:cursor-pointer text-[#BBDEFB] hover:text-[#4FC3F7]"><a>Offers</a></div>
-                        <div className="hover:underline hover:decoration-[#03A9F4] hover:cursor-pointer text-[#BBDEFB] hover:text-[#4FC3F7]"><a>Contact Us</a></div>
+                {/* Quick Links */}
+                <div className="flex flex-col gap-3 text-white">
+                    <span className="text-lg font-semibold border-b border-blue-400 pb-1">Quick Links</span>
+                    <div className="flex flex-col gap-1.5">
+                        <Link to="/" className="text-[#BBDEFB] hover:text-[#4FC3F7] hover:underline hover:decoration-[#03A9F4] text-sm transition-colors duration-200">Home</Link>
+                        <span className="text-[#BBDEFB] hover:text-[#4FC3F7] hover:underline hover:decoration-[#03A9F4] text-sm cursor-pointer transition-colors duration-200">About Us</span>
+                        <span className="text-[#BBDEFB] hover:text-[#4FC3F7] hover:underline hover:decoration-[#03A9F4] text-sm cursor-pointer transition-colors duration-200">Offers</span>
+                        <span className="text-[#BBDEFB] hover:text-[#4FC3F7] hover:underline hover:decoration-[#03A9F4] text-sm cursor-pointer transition-colors duration-200">Contact Us</span>
                     </div>
                 </div>
 
-
-                <div className="flex flex-col h-[90%] w-fit gap-4 p-2 rounded-2xl text-white">
-                    <div className="xs:text-lg lg:text-xl text-white"><span>Help Centers</span></div>
-                    <div className="flex flex-col ">
-                        <div className="hover:underline  hover:decoration-[#03A9F4] hover:cursor-pointer hover:text-[#4FC3F7] text-[#BBDEFB]"><a>Payments</a></div>
-                        <div className="hover:underline  hover:decoration-[#03A9F4] hover:cursor-pointer hover:text-[#4FC3F7] text-[#BBDEFB]"><a>Shipping</a></div>
-                        <div className="hover:underline  hover:decoration-[#03A9F4] hover:cursor-pointer hover:text-[#4FC3F7] text-[#BBDEFB]"><a>Product Return Policy</a></div>
-                        <div className="hover:underline  hover:decoration-[#03A9F4] hover:cursor-pointer hover:text-[#4FC3F7] text-[#BBDEFB]"><a>Logout</a></div>
+                {/* Help Center */}
+                <div className="flex flex-col gap-3 text-white">
+                    <span className="text-lg font-semibold border-b border-blue-400 pb-1">Help Center</span>
+                    <div className="flex flex-col gap-1.5">
+                        <span className="text-[#BBDEFB] hover:text-[#4FC3F7] hover:underline hover:decoration-[#03A9F4] text-sm cursor-pointer transition-colors duration-200">Payments</span>
+                        <span className="text-[#BBDEFB] hover:text-[#4FC3F7] hover:underline hover:decoration-[#03A9F4] text-sm cursor-pointer transition-colors duration-200">Shipping</span>
+                        <span className="text-[#BBDEFB] hover:text-[#4FC3F7] hover:underline hover:decoration-[#03A9F4] text-sm cursor-pointer transition-colors duration-200">Product Return Policy</span>
+                        <span className="text-[#BBDEFB] hover:text-[#4FC3F7] hover:underline hover:decoration-[#03A9F4] text-sm cursor-pointer transition-colors duration-200">Logout</span>
                     </div>
                 </div>
 
+                {/* Map Section */}
+                <div className="flex flex-col gap-3 text-white">
+                    <span className="text-lg font-semibold border-b border-blue-400 pb-1">Find Us</span>
+                    <MapEmbed />
+                    <div className="flex flex-row items-center gap-1.5 justify-center">
+                        <MdLocationOn size={16} color="#81D4FA" className="mt-0.5 shrink-0" />
+                        <span className="text-[#BBDEFB] text-xs">Near Oshiwara Depot, Goregaon (West) , Mumbai, Maharashtra</span>
+                    </div>
+                </div>
 
             </div>
-        </>
-    )
+
+            {/* Bottom Bar */}
+            <div className="border-t border-blue-700 px-6 py-3 flex flex-col gap-2">
+                <span className="text-[#BBDEFB] text-xs text-center">© 2025 Malik Pet Shop. All rights reserved.</span>
+                <span className="text-[#BBDEFB] text-xs text-center">Made with ❤️ for pets</span>
+            </div>
+
+        </div>
+    );
 }
 
 export default function LandingPage() {

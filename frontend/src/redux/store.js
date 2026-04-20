@@ -6,9 +6,25 @@ import activeReducer from "./slices/activeSlice.js"
 import productReducer from "./slices/productSlice.js"
 import cartReducer from "./slices/cartSlice.js"
 import chatReducer from "./slices/chatSlice.js"
+import wishListReducer from "./slices/wishListSlice.js"
 import { enableMapSet } from "immer";
+import {persistStore, persistReducer} from "redux-persist";
 
-enableMapSet();
+import storage from "redux-persist/lib/storage"; // localStorage
+
+enableMapSet(); // so that in the redux map can be used
+
+// persist ONLY wishlist
+const wishListPersistConfig = {
+  key: "wishList",
+  storage
+};
+
+const persistedWishListReducer = persistReducer(
+  wishListPersistConfig,
+  wishListReducer
+);
+
 const store=configureStore({
     reducer:{
         user:userReducer,
@@ -17,8 +33,11 @@ const store=configureStore({
         active:activeReducer,
         product:productReducer,
         cart:cartReducer,
-        chat:chatReducer
+        chat:chatReducer,
+        wishList:persistedWishListReducer,
     }
 })
 
 export default store
+
+export const persistor = persistStore(store);

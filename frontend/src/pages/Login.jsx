@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCategoryState, setDetailOption, setLoginOption, setUserData } from "../redux/slices/userSlice";
 import toast from "react-hot-toast";
+import { replaceEntireWishList } from "../redux/slices/wishListSlice";
 
 function Login() {
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -21,14 +22,16 @@ function Login() {
   const showDetailOption=useSelector((state)=>state?.user?.detailOption)
   const categoryState=useSelector((state)=>state?.user?.categoryState)
   const [processing,setProcessing]=useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const wishListDataNotLoggedIn=useSelector((state)=>state?.user?.userDataNotLoggedIn?.wishList)
+  const reduxWishListData=useSelector((state)=>state?.wishList?.wishList)
 
   async function loginUser(){
     try{
       // console.log("Playing around with admin")
       setProcessing(true)
-      const res= await axios.post(`${USER_ENDPOINTS}/login/${user}`,{email:email,password:password,reduxWishListData:wishListDataNotLoggedIn},{withCredentials:true})
+      const res= await axios.post(`${USER_ENDPOINTS}/login/${user}`,{email:email,password:password,reduxWishListData:reduxWishListData},{withCredentials:true})
       let result=res?.data?.bool
       // console.log(result)
       if(result){
@@ -38,6 +41,7 @@ function Login() {
         if(showDetailOption===true) dispatch(setDetailOption())
         if(categoryState===true) dispatch(setCategoryState())
         toast.success(res?.data?.message)
+        dispatch(replaceEntireWishList(result?.data?.updatedWishListData))
         navigate("/")
       }
     }catch(error){
@@ -154,25 +158,46 @@ function Login() {
             onChange={(e)=>setEMail(e.target.value)}
             className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
           />
-          <input
-            type="password"
-            placeholder="Password"
-            required
-            value={password}
-            onChange={(e)=>setPassword(e.target.value)}
-            className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              required
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
+              className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
+            />
+              <span
+                className="absolute right-3 top-3 cursor-pointer"
+                onMouseEnter={() => setShowPassword(true)}
+                onMouseLeave={() => setShowPassword(false)}
+              >
+                {showPassword && <FaEye/>}
+                {!showPassword && <FaEyeSlash/>}
+              </span>
+          </div>
 
           {/* signup field  */}
           {!isLoginMode && (
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              required
-              value={confirmPassword}
-              onChange={(e)=>setConfirmPassword(e.target.value)}
-              className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                required
+                value={confirmPassword}
+                onChange={(e)=>setConfirmPassword(e.target.value)}
+                className="w-full p-3 border-b-2 border-gray-300 outline-none focus:border-blue-500 placeholder-gray-400"
+              />
+              <span
+                className="absolute right-3 top-3 cursor-pointer"
+                onMouseEnter={() => setShowConfirmPassword(true)}
+                onMouseLeave={() => setShowConfirmPassword(false)}
+              >
+                {showConfirmPassword && <FaEye/>}
+                {!showConfirmPassword && <FaEyeSlash/>}
+              </span>
+
+            </div>
           )}
 
           {/* Login field  */}
