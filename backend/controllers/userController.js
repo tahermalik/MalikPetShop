@@ -447,7 +447,7 @@ export async function mergeWishList(userId, reduxWishListData) {
 
         for(let i=0;i<productIds.length;i++){
             const result=DBProductMap.get(productIds[i].toString())
-            if(result===undefined) return res.status(400).json({message:"There is some problem with the productIds"})
+            if(result===undefined) return new Error("There is some problem with the productIds")
             const netWeightLength=result.length
             const productVariation=wishList[i]["productVariation"]
             if(productVariation>=netWeightLength || productVariation<0) return res.status(400).json({message:"There is some problem with the product Variation"})
