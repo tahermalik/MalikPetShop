@@ -119,11 +119,9 @@ const productSchema = new mongoose.Schema({
     },
     description:{
         type:String,
-        required:true
     },
     usp:{
         type:String,
-        required:true
     }
 
 }, { timestamps: true })
@@ -140,12 +138,14 @@ productSchema.pre("save", function (next) {
     this.productString,
   ];
 
+  let count=0;
   for (const arr of arraysToCheck) {
     if (arr && arr.length !== len) {
       return next(
-        new Error("Variation arrays length mismatch")
+        new Error(`Variation arrays length mismatch ${count}`)
       );
     }
+    count+=1;
   }
 
   next();
