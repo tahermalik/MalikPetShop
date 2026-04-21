@@ -18,8 +18,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-console.log("ENV CHECK:", process.env.JWT_SECRET,process.env.CLOUDINARY_API_KEY,process.env.CLOUDINARY_API_SECRET,
-);
+//  console.log("ENV CHECK:", process.env.JWT_SECRET,process.env.CLOUDINARY_API_KEY,process.env.CLOUDINARY_API_SECRET,
+// );
 
 // Use memory storage instead of cloudinary storage
 const storage = multer.memoryStorage();
