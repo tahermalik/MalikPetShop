@@ -23,7 +23,7 @@ uRouter.post("/removeFavourite",(req,res,next)=>userGuest(req,res,next),(req,res
 uRouter.post("/viewWishList",(req,res,next)=>userGuest(req,res,next),(req,res)=>viewWishList(req,res))
 
 /// feedback routes
-uRouter.post("/createFeedBack/:id",(req,res)=>createFeedBack(req,res))
+uRouter.post("/createFeedBack",(req,res,next)=>userGuest(req,res,next),(req,res)=>createFeedBack(req,res))
 uRouter.get("/displayFeedBack",(req,res)=>displayFeedBack(req,res))
 
 /// address routes

@@ -498,9 +498,16 @@ export async function mergeWishList(userId, reduxWishListData) {
 
 //// working--> no need of transaction over here
 export async function createFeedBack(req, res) {
-    let result
+    let result,userId,guestId
     try {
-        const userId = req?.params;
+ 
+        guestId=req?.cookies?.guestId;
+        if(req?.userInfo!==undefined) userId=req?.userInfo?.id
+        
+        const isUser=!!userId;
+        const isGuest=!!guestId;
+
+        if(!isUser) return res.status(400).json({message:"User need to do login first"})
         let { message, rating } = req?.body
 
         message = message.trim()
