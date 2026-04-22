@@ -1,15 +1,24 @@
 import User from "../schema/userSchema.js";
 
 export async function createFeedBack(req,res){
+    let userId,guestId;
     try{
         /// extracting the message
         const {message}=req.body;
+        
+        guestId=req?.cookies?.guestId;
+        if(req?.userInfo!==undefined) userId=req?.userInfo?.id
+        
+        const isUser=!!userId;
+        const isGuest=!!guestId;
+
+        if(!isUser) return res.status(400).json({message:"User need to do login first"})
 
         if(!message || !message.trim()){
             return res.status(400).json({message:"to create a feedback you need to type in the message"})
         }
         await User.findByIdAndUpdate(
-            req?.user?.id,
+            userId,
             { $push: { feedbacks: { message:message}} },
             { new: true } // returns the updated document
         );
