@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from recommend import Recommender
-from vector_store import VectorStore
+from services.vector_service import VectorServices
 
 app = FastAPI(
     title="MalikPetShop Recommender",
     version="1.0.0"
 )
-vs=VectorStore()
+vs=VectorServices()
 recommender=Recommender(vs)
 @app.get("/health")
 def health_check():
@@ -18,17 +18,25 @@ def ingest_endpoint(payload: dict):
     products_data=payload["products"]   # products_data will be an array of objects
     return recommender.ingest_products(products_data)
 
+@app.post("/ingestSingleProduct")
+def ingestSingleProduct(payload: dict):
+    # print(payload["products"])
+    
+    product_data=payload["product"]   # product_data will be an object
+    
+    # print(f"Product Data {product_data}")
+    return recommender.ingest_product(product_data)
+
+
+
 @app.post("/recommend")
 def recommendProducts(query: dict):
     try:
-        userQuery=query["userQuery"]
+        print("Inside product recommendation")
+        userQuery=query["userQuery"] # userQuery python variable will have the string in it
         return recommender.recommend_products(userQuery)
     except Exception as e:
         print(e)
-    
-@app.post("/rebuild_faiss")
-def rebuild_faiss(productIdDict:dict):
-    productId=str(productIdDict["productId"])
-    vs.rebuild_faiss(productId)
+
     
     
