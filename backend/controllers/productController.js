@@ -404,7 +404,7 @@ export async function getProductsViaIds(req, res) {
         const { productIds,productVariationArray } = req?.body
         console.log("Inside backend",productIds,productVariationArray)
 
-        const productData = await Product.find({ _id: { $in: productIds } }).select("-cleanProductName -category -expiryDate -manufactureDate -type -pet -stock -reservedStock -breed -diet -wishList -cart -productString -description -usp -createdAt -updatedAt") // will return the array of objects
+        const productData = await Product.find({ _id: { $in: productIds } }).select("-cleanProductName -category -expiryDate -manufactureDate -type -pet -stock -reservedStock -breed -diet -wishList -cart -productString -description -usp -createdAt -updatedAt").lean() // will return the array of objects
         // console.log(productData) it is an array of objects
 
         // this is done in order to maintain the order in which frontend sends the id
@@ -421,6 +421,8 @@ export async function getProductsViaIds(req, res) {
                 let length=product["netWeight"].length;
                 let idx=productVariationArray[i]
                 if(length<=idx || idx<0) return res.status(400).json({message:`Not proper variation for the product ${product["productName"]}`})
+                product["productVariation"]=idx
+                productMap.set(id,product)
             }
 
             

@@ -69,7 +69,7 @@ export async function login(req, res) {
             secure: true,
             maxAge: 7 * 24 * 60 * 60 * 1000 // cookie is the container so both the container and its data is valid for 7 days
         });
-        return res.status(200).json({ message: `Welcome @${user.username}`, bool: true, user: updatedUser,updatedWishListData:updatedWishListData })
+        return res.status(200).json({ message: `Welcome @${user.username}`, bool: true, token, user: updatedUser,updatedWishListData:updatedWishListData })
     } catch (error) {
         console.log("wrong in login", error)
         return res.status(500).json({ message: "something wrong at the server side", bool: false })
@@ -253,6 +253,8 @@ export async function viewFood(req, res) {
 //     }
 // }
 
+/// this function is responsible for toggling; 
+/// if the product is in wishlist then it removes otherwise adds it into the list
 export async function favourite(req, res) {
     try {
         console.log("inside favourite")
@@ -314,10 +316,15 @@ export async function favourite(req, res) {
             // invalidating the cache
             await redisClient.del(`WishList:${userId}`)
 
+            const io = getIO();
+            io.to(userId).emit("removeWishList", {productId:productId.toString(),productVariation:productVariation});
+
             return res.status(200).json({ message: "Removed from wishlist", comment: "NOT GUEST" });
 
         } else { // add
-            const productResult = await Product.findById(productId).select("netWeight")
+
+            console.log("adding the product to the wishlist")
+            const productResult = await Product.findById(productId).select("netWeight image originalPrice discountValue productName")
             if (!productResult) return res.status(400).json({ message: "Product not found", comment: "NOT GUEST" })
 
             const length = productResult.netWeight?.length
@@ -330,6 +337,19 @@ export async function favourite(req, res) {
 
             // invalidating the cache
             await redisClient.del(`WishList:${userId}`)
+
+            // id is given so that while deleting using web socket, product can be identified
+            let wishListObj={
+                _id:productResult?._id.toString(),
+                image:productResult?.image,
+                productName:productResult?.productName,
+                originalPrice:productResult?.originalPrice,
+                discountValue:productResult?.discountValue,
+                netWeight:productResult?.netWeight,
+                productVariation:productVariation
+            }
+            const io = getIO();
+            io.to(userId).emit("addWishList", wishListObj);
 
             return res.status(200).json({ message: "Product added to wishlist", comment: "NOT GUEST" });
 
@@ -426,15 +446,16 @@ export async function viewWishList(req, res) {
         return res.status(500).json({ message: "Server fucked up in view WishList" })
     }
 }
+
 /// working
 export async function mergeWishList(userId, reduxWishListData) {
     try {
         console.log("inside merging of wishlist")
         
-        const wishList=reduxWishListData
+        const wishList=reduxWishListData || []
 
 
-        const productIds=wishList.map((obj)=>obj["productId"])
+        const productIds=wishList.map((obj)=>obj["productId"]) || []
         const result=await Product.find({_id:{$in:productIds}}).select("_id netWeight")
 
         const DBProductMap=new Map();
@@ -832,15 +853,11 @@ export async function getGuestId(req, res) {
 /// working
 export async function ingest_products(req, res) {
     try {
+        // it will be the array of objects with each obj with id, desc and usp
         const products = await Product.find().select("_id description usp").lean()
         for (let i = 0; i < products.length; i++) products[i]["_id"] = products[i]["_id"].toString()
-
-        // for localhost
-        // const result=await axios.post("http://127.0.0.1:8001/ingest",{products},{withCredentials:true})
-
-        // for render
+        
         const result = await axios.post(`${REC_ENDPOINT}/ingest`, { products }, { withCredentials: true })
-
 
         return res.status(200).json({ message: result["data"] })
 
@@ -855,12 +872,10 @@ export async function recommendProducts(req, res) {
     try {
         console.log("inside recommend Products")
         const userQuery = req?.body["userQuery"]
-        // for localhost
-        // let result = await axios.post("http://127.0.0.1:8001/recommend",{userQuery},{withCredentials:true})
-
-        // for render
+        
         let result = await axios.post(`${REC_ENDPOINT}/recommend`, { userQuery }, { withCredentials: true })
         result = result["data"]  // list of recommended objects
+        console.log(result,"Got the recommended result")
         const recommendedProductIds = []
 
         for (let i = 0; i < result.length; i++) recommendedProductIds.push(new mongoose.Types.ObjectId(result[i]["product_id"]))
