@@ -540,13 +540,13 @@ export async function createFeedBack(req, res) {
             { $push: { feedbacks: { message: message, rating: rating } } },
             { new: true }
         )
+
+        topMostFeedBacks(req?.body?.message, req?.body?.rating, result?.username)
         return res.status(200).json({ bool: true })
     } catch (error) {
         console.log("wrong in create feedback", error)
         return res.status(500).json({ message: "server fucked up at createFeedBack", bool: false })
-    } //finally {
-    //     topMostFeedBacks(req?.body?.message, req?.body?.rating, result?.username)
-    // }
+    }
 }
 
 /// working
