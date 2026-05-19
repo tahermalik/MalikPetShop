@@ -521,6 +521,8 @@ export async function mergeWishList(userId, reduxWishListData) {
 export async function createFeedBack(req, res) {
     let result,userId,guestId
     try {
+
+        console.log("inside create feedback")
  
         guestId=req?.cookies?.guestId;
         if(req?.userInfo!==undefined) userId=req?.userInfo?.id
@@ -534,7 +536,7 @@ export async function createFeedBack(req, res) {
         message = message.trim()
         if (message.length === 0) return res.status(400).json({ message: "FeedBack cant be empty", bool: false })
 
-        result = await User.findByIdAndUpdate(userId?.id,
+        result = await User.findByIdAndUpdate(userId,
             { $push: { feedbacks: { message: message, rating: rating } } },
             { new: true }
         )
@@ -542,9 +544,9 @@ export async function createFeedBack(req, res) {
     } catch (error) {
         console.log("wrong in create feedback", error)
         return res.status(500).json({ message: "server fucked up at createFeedBack", bool: false })
-    } finally {
-        topMostFeedBacks(req?.body?.message, req?.body?.rating, result?.username)
-    }
+    } //finally {
+    //     topMostFeedBacks(req?.body?.message, req?.body?.rating, result?.username)
+    // }
 }
 
 /// working
