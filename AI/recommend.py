@@ -34,7 +34,7 @@ class Recommender:
         result=self.e.get_embedding(value_list[0])
         # print(len(result),len(result[0])) # n,1536
         
-        self.vs.add_product_embedding(payload["_id"],payload["description"],payload["usp"],result)
+        self.vs.add_product_embedding(payload["_id"],payload["productName"],payload["description"],payload["usp"],result)
         return {"status": "Product Inserted"}
     
     def recommend_products(self,userQuery: str):

@@ -1,11 +1,27 @@
 from fastapi import FastAPI
 from recommend import Recommender
 from services.vector_service import VectorServices
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(
     title="MalikPetShop Recommender",
     version="1.0.0"
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://malik-pet-shop-main.vercel.app",
+        "malik-pet-shop-main-ovj0mol0i-taher-maliks-projects.vercel.app"
+        
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 vs=VectorServices()
 recommender=Recommender(vs)
 @app.get("/health")
