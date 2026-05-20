@@ -664,7 +664,7 @@ export async function getProductHTMLFile(req, res) {
                 "highPrice": price,
                 "lowPrice": discountedPrice,
                 "availability": "https://schema.org/InStock",
-                "url": `https://malik-pet-shop-main.vercel.app/product/singleProduct/${productId}`
+                "url": `https://malikpetshop.onrender.com/product/singleProduct/${productId}`
             }
         };
 
@@ -683,8 +683,6 @@ export async function getProductHTMLFile(req, res) {
                 <script type="application/ld+json">
                     ${JSON.stringify(structuredData)}
                 </script>
-                <!-- Redirect user to actual React app -->
-                <meta http-equiv="refresh" content="0;url=https://malik-pet-shop-main.vercel.app/product/singleProduct/${productId}" />
             </head>
             <body>
                 <h1>${productData.cleanProductName}</h1>
@@ -703,7 +701,7 @@ export async function getProductHTMLFile(req, res) {
 }
 
 
-export async function generateSitMap(req, res){
+export async function generateSitMap(req, res) {
     try {
         const products = await Product.find()
             .select("_id")
