@@ -709,7 +709,7 @@ export async function generateSitMap(req, res) {
 
         const urls = products.map(p => `
     <url>
-        <loc>https://malikpetshop.onrender.com/product/singleProduct/${p._id}</loc>
+        <loc>https://malik-pet-shop-main.vercel.app/product/singleProduct/${p._id}</loc>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>`).join('');
@@ -723,5 +723,20 @@ ${urls}
 
     } catch (error) {
         res.status(500).json({ message: "Error generating sitemap" });
+    }
+}
+
+export async function getProductData(req,res){
+    try{
+        const productId=req?.params?.id;
+
+        // productData will be an object
+        const productData=await Product.findById(productId).select("image netWeight originalPrice discountValue _id brand").lean();
+        if(!productData) return res.status(404).json({message:"Product Not found"})
+        // console.log(productData)
+        return res.status(200).json({message:"Product found",productData:productData})
+    }catch(error){
+        console.log("Server went wrong while fetching the product data"+error)
+        return res.status(500).json({ message: "Server side error" })
     }
 }

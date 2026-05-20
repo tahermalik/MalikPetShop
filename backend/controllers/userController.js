@@ -856,7 +856,7 @@ export async function getGuestId(req, res) {
 export async function ingest_products(req, res) {
     try {
         // it will be the array of objects with each obj with id, desc and usp
-        const products = await Product.find().select("_id description usp").lean()
+        const products = await Product.find().select("_id description usp productName").lean()
         for (let i = 0; i < products.length; i++) products[i]["_id"] = products[i]["_id"].toString()
         
         const result = await axios.post(`${REC_ENDPOINT}/ingest`, { products }, { withCredentials: true })
@@ -877,7 +877,7 @@ export async function recommendProducts(req, res) {
         
         let result = await axios.post(`${REC_ENDPOINT}/recommend`, { userQuery }, { withCredentials: true })
         result = result["data"]  // list of recommended objects
-        console.log(result,"Got the recommended result")
+        // console.log(result,"Got the recommended result")
         const recommendedProductIds = []
 
         for (let i = 0; i < result.length; i++) recommendedProductIds.push(new mongoose.Types.ObjectId(result[i]["product_id"]))
