@@ -1,12 +1,12 @@
 import { createClient } from 'redis';
 
 // for deployment
-const redisClient = createClient({
-  url: process.env.REDIS_URL
-});
+// const redisClient = createClient({
+//   url: process.env.REDIS_URL
+// });
 
 // for localhost
-// const redisClient = createClient();
+const redisClient = createClient();
 
 redisClient.on("connect", () => {
   console.log("✅ Redis connected");

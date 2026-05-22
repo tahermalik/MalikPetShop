@@ -4,8 +4,8 @@ const productSchema = new mongoose.Schema({
     productName: {
         type: String,
     },
-    cleanProductName:{
-        type:String,
+    cleanProductName: {
+        type: String,
     },
     expiryDate: {
         type: [String],
@@ -46,8 +46,8 @@ const productSchema = new mongoose.Schema({
         type: [Number],
         default: []
     },
-    reservedStock:{
-        type:[Number],
+    reservedStock: {
+        type: [Number],
         default: [],
     },
     breed: {
@@ -59,6 +59,9 @@ const productSchema = new mongoose.Schema({
     image: {
         type: [String],
     },
+    flavor:{
+        type:String,
+    },
 
     //// wishlist added here so that to find out which product is popular among user
     wishList: [
@@ -68,7 +71,7 @@ const productSchema = new mongoose.Schema({
         }
     ],
 
-    cart:[
+    cart: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
@@ -80,75 +83,49 @@ const productSchema = new mongoose.Schema({
         type: [String]
     },
 
-
-    /// snack schema
-    flavor: {
+    description: {
         type: String,
-        match: /^[A-Za-z]+$/,
-        required: false
     },
-
-    //// cloth schema
-    size: {
-        type: Number,
-    },
-    color: {
+    usp: {
         type: String,
-        match: /^[A-Za-z]+$/
-    },
-    material: {
-        type: String,
-        match: /^[A-Za-z]+$/
     },
 
-
-
-    /// cage schema
-    length: {
-        type: Number,
-        min: 0
-
-    },
-    width: {
-        type: Number,
-        min: 0
-    },
-    height: {
-        type: Number,
-        min: 0
-    },
-    description:{
-        type:String,
-    },
-    usp:{
-        type:String,
+    overview: {
+        type: [
+            {
+                key: { type: String },
+                value: { type: String },
+                unit: { type: String }
+            }
+        ],
+        default: []
     }
 
 }, { timestamps: true })
 
 productSchema.pre("save", function (next) {
-  const len = this.netWeight?.length || 0;
+    const len = this.netWeight?.length || 0;
 
-  const arraysToCheck = [
-    this.stock,
-    this.reservedStock,
-    this.discountValue,
-    this.discountType,
-    this.image,
-    this.productString,
-  ];
+    const arraysToCheck = [
+        this.stock,
+        this.reservedStock,
+        this.discountValue,
+        this.discountType,
+        this.image,
+        this.productString,
+    ];
 
-  let count=0;
-  for (const arr of arraysToCheck) {
-    if (arr && arr.length !== len) {
-      return next(
-        new Error(`Variation arrays length mismatch ${count}`)
-      );
+    let count = 0;
+    for (const arr of arraysToCheck) {
+        if (arr && arr.length !== len) {
+            return next(
+                new Error(`Variation arrays length mismatch ${count}`)
+            );
+        }
+        count += 1;
     }
-    count+=1;
-  }
 
-  next();
+    next();
 });
 
 const Product = mongoose.model("Product", productSchema);

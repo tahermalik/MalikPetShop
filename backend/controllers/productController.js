@@ -39,14 +39,10 @@ export async function addProduct(req, res) {
             discountValue,
             discountType,
             stock,
-            color,
-            material,
-            size,
-            height,
-            length,
-            width,
             expiryDate,
             manufactureDate,
+            overview // it is an array of objects
+
         } = productData;
 
         let description = req?.body?.description || ""
@@ -78,6 +74,15 @@ export async function addProduct(req, res) {
 
         /// creating the product String
         // console.log("product Data", productData)
+        let color=""
+        let material=""
+        overview=JSON.parse(overview)
+        for(let i=0;i<overview.length;i++){
+            if(overview[i]["key"]=="color") color=overview[i]["value"]
+            if(overview[i]["key"]=="material") color=overview[i]["value"]
+        }
+
+        console.log(overview)
         const textFields = [
             pet, category, type, flavor, breed, diet, brand, productName, color, material
         ];
@@ -91,7 +96,6 @@ export async function addProduct(req, res) {
 
         // adding the variation of the product
         if (product_db) {
-
             let name2 = cleanProductName.split(" ")
             let name1 = product_db?.cleanProductName.split(" ")
             let matches = 0
@@ -147,17 +151,12 @@ export async function addProduct(req, res) {
             pet: pet,
             stock: [Number(stock)],
             reservedStock: [0],
-            height: Number(height),
-            width: Number(width),
-            length: Number(length),
-            color: color,
-            size: Number(size),
-            material: material,
             productString: [productString.toLowerCase()],
             image: imagePath ? [imagePath] : [],
             cleanProductName: cleanProductName,
             description: description,
-            usp: usp
+            usp: usp,
+            overview:overview
         })
 
         return res.status(201).json({ message: "Product successfully added into the DB" })
@@ -731,7 +730,7 @@ export async function getProductData(req,res){
         const productId=req?.params?.id;
 
         // productData will be an object
-        const productData=await Product.findById(productId).select("image netWeight originalPrice discountValue _id brand").lean();
+        const productData=await Product.findById(productId).select("image netWeight originalPrice discountValue _id brand overview").lean();
         if(!productData) return res.status(404).json({message:"Product Not found"})
         // console.log(productData)
         return res.status(200).json({message:"Product found",productData:productData})
