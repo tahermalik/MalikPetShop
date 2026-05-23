@@ -858,39 +858,20 @@ export async function ingest_products(req, res) {
         // it will be the array of objects with each obj with id, desc and usp
         const products = await Product.find().select("_id description usp productName").lean()
         for (let i = 0; i < products.length; i++) products[i]["_id"] = products[i]["_id"].toString()
-        
-        const result = await axios.post(`${REC_ENDPOINT}/ingest`, { products }, { withCredentials: true })
+    
+        // so that data can be properly stored in the redis
+        let stringifyProducts=JSON.stringify(products)
+        redisClient.lPush("ToIngest",stringifyProducts)
 
-        return res.status(200).json({ message: result["data"] })
+        
+        /// part for the interserver communication
+        // const result = await axios.post(`${REC_ENDPOINT}/ingest`, { products }, { withCredentials: true })
+
+        return res.status(200).json({ message: "Product added into the queue" })
 
     } catch (error) {
         console.log(error)
         return res.status(500).json({ message: "something went wrong while creating embeddings" })
-    }
-}
-
-// working
-export async function recommendProducts(req, res) {
-    try {
-        console.log("inside recommend Products")
-        const userQuery = req?.body["userQuery"]
-        
-        let result = await axios.post(`${REC_ENDPOINT}/recommend`, { userQuery }, { withCredentials: true })
-        result = result["data"]  // list of recommended objects
-        // console.log(result,"Got the recommended result")
-        const recommendedProductIds = []
-
-        for (let i = 0; i < result.length; i++) recommendedProductIds.push(new mongoose.Types.ObjectId(result[i]["product_id"]))
-        // console.log(recommendedProductIds)
-
-        /// productData is an array of object where each object is an product
-        const productData = await Product.find({ "_id": { $in: recommendedProductIds } }).select("-wishList -cart -productString")
-        // console.log(productData)
-        return res.status(200).json({ result: productData })
-
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({ message: "Some problem occured while processing your request" })
     }
 }
 

@@ -1,5 +1,5 @@
 import express from "express"
-import { login, register ,logout, viewCompanyFood, viewFood,createFeedBack,displayFeedBack, favourite, viewWishList, forgotPassword, verifyOTP, resetPassword,setAddress, demo, getGuestId, recommendProducts, ingest_products, proceed_checkout} from "../controllers/userController.js";
+import { login, register ,logout, viewCompanyFood, viewFood,createFeedBack,displayFeedBack, favourite, viewWishList, forgotPassword, verifyOTP, resetPassword,setAddress, demo, getGuestId, ingest_products, proceed_checkout} from "../controllers/userController.js";
 import { auth } from "../middleware/auth.js";
 import { userGuest } from "../middleware/userGuest.js";
 import { removeFavourite } from "../controllers/userController.js";
@@ -33,7 +33,6 @@ uRouter.post("/setAddress",(req,res)=>setAddress(req,res))
 uRouter.get("/getGuestId",(req,res)=>getGuestId(req,res))
 
 // ChatBot
-uRouter.post("/recommendProducts",(req,res)=>recommendProducts(req,res))
 uRouter.post("/ingest_products",(req,res)=>ingest_products(req,res))
 
 /// demo
