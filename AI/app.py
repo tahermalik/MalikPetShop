@@ -2,12 +2,18 @@ from fastapi import FastAPI
 from recommend import Recommender
 from services.vector_service import VectorServices
 from fastapi.middleware.cors import CORSMiddleware
+import redis
+import os
+import json
+import threading
 
 
 app = FastAPI(
     title="MalikPetShop Recommender",
     version="1.0.0"
 )
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -22,12 +28,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+r = redis.Redis(host='localhost') ## for local host stuff
+# r = redis.Redis(host=os.getenv("REDIS_URL"))
+
 vs=VectorServices()
 recommender=Recommender(vs)
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
+
+
+# this is the endpoint when server 1 is the one calls the server 2
 @app.post("/ingest")
 def ingest_endpoint(payload: dict):
     # print(payload["products"])
@@ -56,3 +68,16 @@ def recommendProducts(query: dict):
 
     
     
+def consume():
+    while True:
+        result = r.brpop("ToIngest", timeout=5)
+        if result is None:
+            continue
+        _, data = result
+        products = json.loads(data)
+        recommender.ingest_products(products)
+
+# start consumer in background
+t = threading.Thread(target=consume, daemon=True)
+t.start()
+
