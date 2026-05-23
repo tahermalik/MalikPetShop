@@ -99,6 +99,16 @@ const productSchema = new mongoose.Schema({
             }
         ],
         default: []
+    },
+
+    manufactureDetails:{
+        type:String,
+        default:""
+    },
+
+    productDetails:{
+        type:String,
+        default:""
     }
 
 }, { timestamps: true })
