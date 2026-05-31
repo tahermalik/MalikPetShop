@@ -61,6 +61,7 @@ export async function addProduct(req, res) {
 
         description = (description || "").trim().toLowerCase()
         usp = (usp || "").trim().toLowerCase()
+    
 
         if (!number_regex.test(Number(originalPrice))) {
             return res.status(400).json({ message: "only numbers are allowed" })
@@ -78,8 +79,10 @@ export async function addProduct(req, res) {
         let material=""
         overview=JSON.parse(overview)
         for(let i=0;i<overview.length;i++){
-            if(overview[i]["key"]=="color") color=overview[i]["value"]
-            if(overview[i]["key"]=="material") color=overview[i]["value"]
+            if(overview[i]["key"]==="color") color=overview[i]["value"]
+            if(overview[i]["key"]==-"material") color=overview[i]["value"]
+
+            if(flavor==="NA" && overview[i]==="flavor") flavor=overview[i]["value"]
         }
 
         console.log(overview)
@@ -91,11 +94,12 @@ export async function addProduct(req, res) {
 
 
         //// identifying the product uniquely on the basis of followong field so that variations can be indentified like if the product is an variation or not
-        const product_db = await Product.findOne({ pet: pet, brand: brand, category: category, type: type, flavor: flavor, breed: breed, diet: diet })
+        const product_db = await Product.findOne({ pet: pet, brand: brand, category: category, type: type, flavor: flavor, breed: breed, diet: diet }).select("image cleanProductName netWeight").lean()
         // console.log(product_db)
 
         // adding the variation of the product
         if (product_db) {
+
             let name2 = cleanProductName.split(" ")
             let name1 = product_db?.cleanProductName.split(" ")
             let matches = 0
@@ -120,8 +124,8 @@ export async function addProduct(req, res) {
 
             productString = productString.trim().replace(/\s+/g, " ").toLowerCase();
 
-            // ✅ upload image only when variation is actually being added
-            const imagePath = fileBuffer ? await uploadToCloudinary(fileBuffer) : null;
+            // ✅ for the variation no new image for now
+            const imagePath = product_db?.image[0];
 
             await Product.updateOne(
                 { _id: product_db._id },
@@ -407,35 +411,47 @@ export async function deleteProduct(req, res) {
 export async function getProductsViaIds(req, res) {
     try {
         const { productIds, productVariationArray } = req?.body
-        console.log("Inside backend", productIds, productVariationArray)
+        // console.log("Inside backend", productIds, productVariationArray)
 
         const productData = await Product.find({ _id: { $in: productIds } }).select("-cleanProductName -category -expiryDate -manufactureDate -type -pet -stock -reservedStock -breed -diet -wishList -cart -productString -description -usp -createdAt -updatedAt").lean() // will return the array of objects
-        // console.log(productData) it is an array of objects
+        // console.log(productData) //it is an array of objects
 
         // this is done in order to maintain the order in which frontend sends the id
+
+        
+
         const productMap = new Map(productData.map(p => [p._id.toString(), p]));
 
         const foundIds = [];
         const missingIds = []
 
+        const product_var_map=new Map();
         for (let i = 0; i < productIds.length; i++) {
             let id = productIds[i].toString()
             let product = productMap.get(id);
+            let idx = productVariationArray[i]
 
             if (product !== undefined) {
                 let length = product["netWeight"].length;
-                let idx = productVariationArray[i]
                 if (length <= idx || idx < 0) return res.status(400).json({ message: `Not proper variation for the product ${product["productName"]}` })
-                product["productVariation"] = idx
-                productMap.set(id, product)
+                const productCopy = { ...product, productVariation: idx }
+                product_var_map.set(id+"_"+idx, productCopy)
+                // console.log(product_var_map.get(id+"_"+idx))
             }
 
-
             if (product === undefined) missingIds.push(id)
-            else foundIds.push(id)
+            else foundIds.push([id,idx]) // pushing the productId, productVariation
         }
 
-        const orderedProducts = foundIds.map(id => productMap.get(id));
+        // console.log("found Ids",foundIds)
+
+        const orderedProducts = foundIds.map(([id,idx]) => {
+            
+            let a=product_var_map.get(id+"_"+idx)
+            if(a===undefined) throw new Error(`Product not found: ${id}_${idx}`);
+            return a
+            
+        });
 
         // console.log("ordered",orderedProducts)
 
@@ -730,9 +746,10 @@ export async function getProductData(req,res){
         const productId=req?.params?.id;
 
         // productData will be an object
-        const productData=await Product.findById(productId).select("image netWeight originalPrice discountValue _id brand overview").lean();
+        const productData=await Product.findById(productId).select("image netWeight originalPrice discountValue _id brand overview productName manufactureDetails productDetails").lean();
+        
         if(!productData) return res.status(404).json({message:"Product Not found"})
-        // console.log(productData)
+        console.log(productData)
         return res.status(200).json({message:"Product found",productData:productData})
     }catch(error){
         console.log("Server went wrong while fetching the product data"+error)
