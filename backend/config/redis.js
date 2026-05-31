@@ -6,11 +6,11 @@ const redisClient = createClient({
 });
 
 // for localhost
-const redisClient = createClient();
+// const redisClient = createClient();
 
-// redisClient.on("connect", () => {
-//   console.log("✅ Redis connected");
-// });
+redisClient.on("connect", () => {
+  console.log("✅ Redis connected");
+});
 
 redisClient.on('error', err => console.log('Redis Client Error', err));
 
